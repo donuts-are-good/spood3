@@ -33,7 +33,9 @@
                         <div class="user-display">
                             {{$colors := generateUserColors $user.DiscordID}}
                             <span class="color-indicator" style="background-color: #{{index $colors 0}};"></span>
-                            <span class="username">{{if $user.CustomUsername}}{{$user.CustomUsername}}{{else}}{{$user.Username}}{{end}}</span>
+                            <a href="/user/@{{if $user.CustomUsername}}{{$user.CustomUsername}}{{else}}{{$user.Username}}{{end}}" class="username-link">
+                                <span class="username">{{if $user.CustomUsername}}{{$user.CustomUsername}}{{else}}{{$user.Username}}{{end}}</span>
+                            </a>
                             <span class="color-indicator" style="background-color: #{{index $colors 1}};"></span>
                         </div>
                     </td>

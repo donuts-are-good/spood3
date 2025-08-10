@@ -142,9 +142,21 @@
     flex-shrink: 0;
 }
 
+.username-link {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+.username-link:hover {
+    color: #ff4500;
+    text-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
+}
+
 .username {
     font-weight: bold;
     color: #ffffff;
+    transition: color 0.3s ease;
 }
 
 /* Credits Display */
