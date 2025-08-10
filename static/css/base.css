@@ -98,6 +98,77 @@ h3 {
     padding: 20px;
 }
 
+/* Header Layout */
+header {
+    position: relative;
+}
+
+/* Weather Advisory Indicator */
+.weather-indicator {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    background: linear-gradient(135deg, #ff4444, #ff6666);
+    border: 2px solid #ff0000;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: weatherIndicatorPulse 2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+    z-index: 1000;
+    display: none; /* Hidden by default, shown when advisory is dismissed */
+}
+
+.weather-indicator:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
+}
+
+
+
+.weather-emoji {
+    font-size: 1.1rem;
+    margin-right: 6px;
+}
+
+.weather-text {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@keyframes weatherIndicatorPulse {
+    0% { 
+        box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.7);
+    }
+    100% { 
+        box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+    }
+}
+
+/* Mobile responsive for weather indicator */
+@media (max-width: 768px) {
+    .weather-indicator {
+        top: 5px;
+        right: 10px;
+        padding: 6px 8px;
+    }
+    
+    .weather-text {
+        font-size: 0.7rem;
+    }
+    
+    .weather-emoji {
+        font-size: 1rem;
+    }
+}
+
 /* Navigation */
 nav {
     text-align: center;

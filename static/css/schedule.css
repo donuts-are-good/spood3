@@ -112,10 +112,7 @@
     }
 }
 
-/* Hide advisory when dismissed */
-.chaos-weather-advisory.dismissed {
-    display: none;
-}
+
 
 /* Mobile responsive for advisory */
 @media (max-width: 768px) {

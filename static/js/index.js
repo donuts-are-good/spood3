@@ -3,18 +3,62 @@
 // Chaos Weather Advisory dismissal
 function dismissWeatherAdvisory() {
     const advisory = document.getElementById('chaosWeatherAdvisory');
+    const indicator = document.getElementById('weatherIndicator');
+    
     if (advisory) {
-        advisory.classList.add('dismissed');
+        // Hide the advisory
+        advisory.style.display = 'none';
         // Store dismissal in localStorage so it stays dismissed for the session
         localStorage.setItem('weatherAdvisoryDismissed', 'true');
+        
+        // Show the weather indicator in the header
+        if (indicator) {
+            indicator.style.display = 'block';
+        }
     }
 }
 
-// Check if weather advisory should be shown
+// Restore weather advisory from header indicator
+function restoreWeatherAdvisory() {
+    const advisory = document.getElementById('chaosWeatherAdvisory');
+    const indicator = document.getElementById('weatherIndicator');
+    
+    if (advisory) {
+        // Show the advisory
+        advisory.style.display = 'block';
+        // Remove dismissal from localStorage
+        localStorage.removeItem('weatherAdvisoryDismissed');
+        
+        // Hide the weather indicator in the header
+        if (indicator) {
+            indicator.style.display = 'none';
+        }
+    }
+}
+
+// Check if weather advisory should be shown and manage indicator visibility
 function checkWeatherAdvisoryDismissal() {
     const advisory = document.getElementById('chaosWeatherAdvisory');
-    if (advisory && localStorage.getItem('weatherAdvisoryDismissed') === 'true') {
-        advisory.classList.add('dismissed');
+    const indicator = document.getElementById('weatherIndicator');
+    
+    if (advisory) {
+        if (localStorage.getItem('weatherAdvisoryDismissed') === 'true') {
+            // Advisory should be hidden
+            advisory.style.display = 'none';
+            
+            // Show the weather indicator in the header
+            if (indicator) {
+                indicator.style.display = 'block';
+            }
+        } else {
+            // Advisory should be showing
+            advisory.style.display = 'block';
+            
+            // Hide the weather indicator in the header
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
     }
 }
 

@@ -47,6 +47,13 @@
 <body>
     <header>
         <h1><a href="/" style="font-size: 3rem;">🥊 SPOODBLORT</a></h1>
+        
+        <!-- Weather Advisory Indicator (shown when advisory is hidden) -->
+        <div class="weather-indicator" id="weatherIndicator" onclick="restoreWeatherAdvisory()" title="Click to restore weather advisory" style="display: none;">
+            <span class="weather-emoji">☀️⚠️</span>
+            <span class="weather-text">WEATHER ADVISORY!!!</span>
+        </div>
+        
         <nav>
             <a style="color: #7289da;" href="https://discord.gg/qq8442wS6B">Discord</a>
             <a href="/">Schedule</a>
@@ -74,5 +81,48 @@
     <main>
         {{template "content" .}}
     </main>
+    
+    <!-- Global weather advisory functionality -->
+    <script>
+        // Global function to restore weather advisory
+        function restoreWeatherAdvisory() {
+            // Remove dismissal from localStorage
+            localStorage.removeItem('weatherAdvisoryDismissed');
+            
+            // Hide the weather indicator in the header immediately
+            const indicator = document.getElementById('weatherIndicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+            
+            // If we're on the schedule page, restore the advisory
+            const advisory = document.getElementById('chaosWeatherAdvisory');
+            if (advisory) {
+                advisory.classList.remove('dismissed');
+            } else {
+                // If not on schedule page, redirect there to show the restored advisory
+                window.location.href = '/';
+            }
+        }
+        
+        // Global function to check weather indicator visibility
+        function checkWeatherIndicatorVisibility() {
+            const indicator = document.getElementById('weatherIndicator');
+            if (indicator) {
+                if (localStorage.getItem('weatherAdvisoryDismissed') === 'true') {
+                    // Advisory is dismissed, show the indicator
+                    indicator.style.display = 'block';
+                } else {
+                    // Advisory is not dismissed, hide the indicator
+                    indicator.style.display = 'none';
+                }
+            }
+        }
+        
+        // Initialize weather indicator on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkWeatherIndicatorVisibility();
+        });
+    </script>
 </body>
 </html> 
