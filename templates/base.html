@@ -95,10 +95,10 @@
                 indicator.style.display = 'none';
             }
             
-            // If we're on the schedule page, restore the advisory
+            // If we're on the schedule page, restore the advisory immediately
             const advisory = document.getElementById('chaosWeatherAdvisory');
             if (advisory) {
-                advisory.classList.remove('dismissed');
+                advisory.style.display = 'block';
             } else {
                 // If not on schedule page, redirect there to show the restored advisory
                 window.location.href = '/';
