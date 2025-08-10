@@ -502,7 +502,16 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Error getting user effects for fight %d: %v", fightID, err)
 			userEffectsOnFight = nil
 		}
-		data.UserEffectsOnFight = userEffectsOnFight
+
+		// Filter effects to only show ones from the same date range as fighter effects
+		var filteredUserEffects []database.AppliedEffectWithUser
+		for _, effect := range userEffectsOnFight {
+			// Check if effect's created_at is within our date range
+			if (effect.CreatedAt.After(startDate) || effect.CreatedAt.Equal(startDate)) && effect.CreatedAt.Before(endDate) {
+				filteredUserEffects = append(filteredUserEffects, effect)
+			}
+		}
+		data.UserEffectsOnFight = filteredUserEffects
 	}
 
 	// Add colors if user is present
@@ -991,10 +1000,30 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 	// Get user effects applied to this fight
 	var userEffectsOnFight []database.AppliedEffectWithUser
 	if fight != nil {
-		userEffectsOnFight, err = s.repo.GetAppliedEffectsByUserForFight(fightID)
+		allUserEffects, err := s.repo.GetAppliedEffectsByUserForFight(fightID)
 		if err != nil {
 			log.Printf("Error getting user effects for fight %d: %v", fightID, err)
-			userEffectsOnFight = nil
+			allUserEffects = nil
+		}
+
+		// Filter effects to only show ones from the same date range as fighter effects
+		// Use the same date calculation logic as above
+		var effectDate time.Time
+		if fight.Status == "active" {
+			centralTime, _ := time.LoadLocation("America/Chicago")
+			effectDate = time.Now().In(centralTime)
+		} else {
+			effectDate = fight.ScheduledTime
+		}
+
+		startDate := time.Date(effectDate.Year(), effectDate.Month(), effectDate.Day(), 0, 0, 0, 0, effectDate.Location())
+		endDate := startDate.Add(24 * time.Hour)
+
+		for _, effect := range allUserEffects {
+			// Check if effect's created_at is within our date range
+			if (effect.CreatedAt.After(startDate) || effect.CreatedAt.Equal(startDate)) && effect.CreatedAt.Before(endDate) {
+				userEffectsOnFight = append(userEffectsOnFight, effect)
+			}
 		}
 	}
 
