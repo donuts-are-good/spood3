@@ -571,10 +571,25 @@ func (r *Repository) ApplyEffect(userID int, targetType string, targetID int, ef
 	now := time.Now().In(centralTime)
 	timestampStr := now.Format("2006-01-02 15:04:05")
 
+	// For fighter effects, randomly select which stat to modify
+	var finalEffectType string
+	if effectType == "fighter_blessing" || effectType == "fighter_curse" {
+		stats := []string{"strength", "speed", "endurance", "technique"}
+		randomStat := stats[now.UnixNano()%4] // Simple random selection using timestamp
+
+		if effectType == "fighter_blessing" {
+			finalEffectType = randomStat + "_blessing"
+		} else {
+			finalEffectType = randomStat + "_curse"
+		}
+	} else {
+		finalEffectType = effectType
+	}
+
 	_, err := r.db.Exec(`
 		INSERT INTO applied_effects (user_id, target_type, target_id, effect_type, effect_value, created_at) 
 		VALUES (?, ?, ?, ?, ?, ?)`,
-		userID, targetType, targetID, effectType, effectValue, timestampStr)
+		userID, targetType, targetID, finalEffectType, effectValue, timestampStr)
 	return err
 }
 

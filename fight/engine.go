@@ -177,7 +177,11 @@ func sanitizeName(name string) string {
 func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2 database.Fighter) (*FightState, error) {
 	log.Printf("Starting fight simulation: %s vs %s", fighter1.Name, fighter2.Name)
 
-	// Calculate starting health with applied effects from the fight's scheduled date
+	// Apply stat effects to fighters for this fight's date
+	modifiedFighter1 := e.applyStatEffectsToFighter(fighter1, fight.ScheduledTime)
+	modifiedFighter2 := e.applyStatEffectsToFighter(fighter2, fight.ScheduledTime)
+
+	// Calculate starting health (keeping original health calculation for now)
 	fighter1Health := e.calculateFighterHealthForDate(fighter1.ID, fight.ScheduledTime)
 	fighter2Health := e.calculateFighterHealthForDate(fighter2.ID, fight.ScheduledTime)
 
@@ -191,7 +195,7 @@ func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2
 	maxTicks := (30 * 60) / TICK_DURATION_SECONDS // 30 minutes worth of ticks
 
 	for tick := 1; tick <= maxTicks && !state.IsComplete; tick++ {
-		e.simulateTick(fight.ID, tick, fighter1, fighter2, state)
+		e.simulateTick(fight.ID, tick, modifiedFighter1, modifiedFighter2, state)
 
 		if tick%6 == 0 { // Every minute, check for round progression
 			state.CurrentRound++
@@ -221,6 +225,10 @@ func (e *Engine) CatchUpSimulation(fight database.Fight, fighter1, fighter2 data
 
 	log.Printf("Catching up fight simulation: %d ticks elapsed", targetTick)
 
+	// Apply stat effects to fighters for this fight's date
+	modifiedFighter1 := e.applyStatEffectsToFighter(fighter1, fight.ScheduledTime)
+	modifiedFighter2 := e.applyStatEffectsToFighter(fighter2, fight.ScheduledTime)
+
 	// Calculate starting health with applied effects from the fight's scheduled date
 	fighter1Health := e.calculateFighterHealthForDate(fighter1.ID, fight.ScheduledTime)
 	fighter2Health := e.calculateFighterHealthForDate(fighter2.ID, fight.ScheduledTime)
@@ -234,7 +242,7 @@ func (e *Engine) CatchUpSimulation(fight database.Fight, fighter1, fighter2 data
 
 	// Simulate all elapsed ticks at once
 	for tick := 1; tick <= targetTick && !state.IsComplete; tick++ {
-		e.simulateTick(fight.ID, tick, fighter1, fighter2, state)
+		e.simulateTick(fight.ID, tick, modifiedFighter1, modifiedFighter2, state)
 
 		if tick%6 == 0 {
 			state.CurrentRound++
@@ -269,9 +277,13 @@ func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighte
 	elapsed := time.Since(fight.ScheduledTime)
 	elapsedTicks := int(elapsed.Seconds()) / TICK_DURATION_SECONDS
 
-	// Calculate starting health with applied effects from today (live fights use today's effects)
+	// Apply stat effects to fighters for today (live fights use today's effects)
 	centralTime, _ := time.LoadLocation("America/Chicago")
 	now := time.Now().In(centralTime)
+	modifiedFighter1 := e.applyStatEffectsToFighter(fighter1, now)
+	modifiedFighter2 := e.applyStatEffectsToFighter(fighter2, now)
+
+	// Calculate starting health with applied effects from today
 	fighter1Health := e.calculateFighterHealthForDate(fighter1.ID, now)
 	fighter2Health := e.calculateFighterHealthForDate(fighter2.ID, now)
 
@@ -285,7 +297,7 @@ func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighte
 
 	// Catch up to current time without broadcasting (for consistency)
 	for tick := 1; tick <= elapsedTicks && !state.IsComplete; tick++ {
-		e.simulateTickQuiet(fight.ID, tick, fighter1, fighter2, state)
+		e.simulateTickQuiet(fight.ID, tick, modifiedFighter1, modifiedFighter2, state)
 		if tick%6 == 0 {
 			state.CurrentRound++
 		}
@@ -300,7 +312,7 @@ func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighte
 	}
 
 	// Start real-time broadcasting from current state
-	go e.broadcastLiveFight(fight, fighter1, fighter2, state)
+	go e.broadcastLiveFight(fight, modifiedFighter1, modifiedFighter2, state)
 
 	return nil
 }
@@ -647,6 +659,64 @@ func (e *Engine) calculateFighterHealthForDate(fighterID int, effectDate time.Ti
 		fighterID, effectDate.Format("2006-01-02"), baseHealth, STARTING_HEALTH, len(effects))
 
 	return baseHealth
+}
+
+// applyStatEffectsToFighter applies stat-based effects to a fighter's stats
+func (e *Engine) applyStatEffectsToFighter(fighter database.Fighter, effectDate time.Time) database.Fighter {
+	modifiedFighter := fighter
+
+	// Get day bounds for the effect date
+	startDate := time.Date(effectDate.Year(), effectDate.Month(), effectDate.Day(), 0, 0, 0, 0, effectDate.Location())
+	endDate := startDate.Add(24 * time.Hour)
+
+	// Get applied effects for this fighter on the specific date
+	effects, err := e.repo.GetAppliedEffectsForDate("fighter", fighter.ID, startDate, endDate)
+	if err != nil {
+		log.Printf("Error getting applied effects for fighter %d on date %s: %v", fighter.ID, effectDate.Format("2006-01-02"), err)
+		return modifiedFighter
+	}
+
+	// Apply stat modifications
+	for _, effect := range effects {
+		switch effect.EffectType {
+		case "strength_blessing":
+			modifiedFighter.Strength += effect.EffectValue
+		case "strength_curse":
+			modifiedFighter.Strength -= effect.EffectValue
+		case "speed_blessing":
+			modifiedFighter.Speed += effect.EffectValue
+		case "speed_curse":
+			modifiedFighter.Speed -= effect.EffectValue
+		case "endurance_blessing":
+			modifiedFighter.Endurance += effect.EffectValue
+		case "endurance_curse":
+			modifiedFighter.Endurance -= effect.EffectValue
+		case "technique_blessing":
+			modifiedFighter.Technique += effect.EffectValue
+		case "technique_curse":
+			modifiedFighter.Technique -= effect.EffectValue
+		}
+	}
+
+	// Ensure stats don't go below minimum values
+	if modifiedFighter.Strength < 1 {
+		modifiedFighter.Strength = 1
+	}
+	if modifiedFighter.Speed < 1 {
+		modifiedFighter.Speed = 1
+	}
+	if modifiedFighter.Endurance < 1 {
+		modifiedFighter.Endurance = 1
+	}
+	if modifiedFighter.Technique < 1 {
+		modifiedFighter.Technique = 1
+	}
+
+	log.Printf("Fighter %s stats modified - Str: %d->%d, Spd: %d->%d, End: %d->%d, Tech: %d->%d",
+		fighter.Name, fighter.Strength, modifiedFighter.Strength, fighter.Speed, modifiedFighter.Speed,
+		fighter.Endurance, modifiedFighter.Endurance, fighter.Technique, modifiedFighter.Technique)
+
+	return modifiedFighter
 }
 
 // CompleteFight finishes a fight and persists results to database
