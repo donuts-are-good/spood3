@@ -16,7 +16,10 @@ function formatCreditBalances() {
     creditElements.forEach(element => {
         const originalValue = parseInt(element.textContent.trim());
         if (!isNaN(originalValue)) {
-            element.textContent = formatLargeNumber(originalValue);
+            const formattedValue = formatLargeNumber(originalValue);
+            // Add title attribute to show full amount on hover
+            element.title = originalValue.toLocaleString() + ' Violence Credits';
+            element.textContent = formattedValue;
         }
     });
 }
@@ -67,6 +70,8 @@ function formatHeaderCredits() {
                 if (match) {
                     const credits = parseInt(match[1]);
                     const formatted = formatLargeNumber(credits);
+                    // Add title attribute to show full amount on hover
+                    span.title = credits.toLocaleString() + ' Violence Credits';
                     span.textContent = text.replace(/Credits:\s*\d+/, `Credits: ${formatted}`);
                 }
             }
