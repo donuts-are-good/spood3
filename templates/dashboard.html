@@ -6,6 +6,31 @@
             <p class="dashboard-subtitle">Monitor your chaos portfolio and betting operations</p>
         </div>
 
+        <!-- Profile Link Widget -->
+        <div class="dashboard-widget profile-link-widget">
+            <div class="widget-header">
+                <span class="widget-icon">🔗</span>
+                <h4 class="widget-title">Your Public Profile</h4>
+            </div>
+            <div class="profile-link-content">
+                <p class="profile-link-description">Share your violence statistics and chaos achievements with the world!</p>
+                <div class="profile-link-display">
+                    <a href="/user/@{{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}" class="profile-link-url" id="profileUrl" target="_blank" title="Click to view your profile">
+                        spoodblort.com/user/@{{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}
+                    </a>
+                    <button class="copy-profile-button" onclick="copyProfileLink()" title="Copy profile link">
+                        <span class="copy-icon">📄</span>
+                        <span class="copy-text">Copy</span>
+                    </button>
+                </div>
+                <div class="profile-link-actions">
+                    <a href="/user/@{{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}" class="view-profile-button" target="_blank">
+                        👁️ View Your Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Masonry Layout - Pinterest Style -->
         <div class="dashboard-masonry">
             <!-- Left Column -->
@@ -218,4 +243,57 @@
         </div>
     {{end}}
 </div>
+
+<script>
+function copyProfileLink() {
+    const profileUrl = document.getElementById('profileUrl').textContent;
+    const fullUrl = window.location.protocol + '//' + profileUrl;
+    
+    // Try to use the modern clipboard API first
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(fullUrl).then(function() {
+            showCopySuccess();
+        }).catch(function() {
+            fallbackCopyTextToClipboard(fullUrl);
+        });
+    } else {
+        // Fallback for older browsers or non-HTTPS
+        fallbackCopyTextToClipboard(fullUrl);
+    }
+}
+
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showCopySuccess();
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy link. Please copy manually: ' + text);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showCopySuccess() {
+    const button = document.querySelector('.copy-profile-button');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="copy-icon">✅</span><span class="copy-text">Copied!</span>';
+    button.style.background = '#4caf50';
+    
+    setTimeout(function() {
+        button.innerHTML = originalText;
+        button.style.background = '';
+    }, 2000);
+}
+</script>
 {{end}} 

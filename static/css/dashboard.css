@@ -636,6 +636,109 @@
     60% { transform: translateY(-3px); }
 }
 
+/* Profile Link Widget */
+.profile-link-widget {
+    margin-bottom: 25px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 2px solid #ff4500;
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
+}
+
+.profile-link-content {
+    padding: 5px 0;
+}
+
+.profile-link-description {
+    color: #cccccc;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    text-align: center;
+    font-style: italic;
+}
+
+.profile-link-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+}
+
+.profile-link-url {
+    flex: 1;
+    color: #ff4500;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 1rem;
+    word-break: break-all;
+    text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+}
+
+.copy-profile-button {
+    background: #ff4500;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #000000;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.copy-profile-button:hover {
+    background: #ff6500;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+}
+
+.copy-profile-button:active {
+    transform: translateY(0);
+}
+
+.copy-icon {
+    font-size: 1rem;
+}
+
+.copy-text {
+    font-size: 0.85rem;
+}
+
+.profile-link-actions {
+    text-align: center;
+}
+
+.view-profile-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.view-profile-button:hover {
+    background: #ffffff;
+    color: #000000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-container {
@@ -685,5 +788,21 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
+    }
+    
+    .profile-link-display {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .profile-link-url {
+        font-size: 0.9rem;
+        word-break: break-all;
+    }
+    
+    .copy-profile-button {
+        align-self: center;
+        width: auto;
     }
 } 
