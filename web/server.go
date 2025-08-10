@@ -966,9 +966,9 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			// Count effects
 			for _, effect := range fighter1Effects {
-				if effect.EffectType == "fighter_curse" {
+				if strings.Contains(effect.EffectType, "_curse") {
 					fighter1Curses++
-				} else if effect.EffectType == "fighter_blessing" {
+				} else if strings.Contains(effect.EffectType, "_blessing") {
 					fighter1Blessings++
 				}
 			}
@@ -978,9 +978,9 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			// Count effects
 			for _, effect := range fighter2Effects {
-				if effect.EffectType == "fighter_curse" {
+				if strings.Contains(effect.EffectType, "_curse") {
 					fighter2Curses++
-				} else if effect.EffectType == "fighter_blessing" {
+				} else if strings.Contains(effect.EffectType, "_blessing") {
 					fighter2Blessings++
 				}
 			}

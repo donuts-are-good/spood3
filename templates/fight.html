@@ -273,11 +273,25 @@
                             {{$userID := .UserID}}
                             {{range $.UserEffectsOnFight}}
                                 {{if eq .UserID $userID}}
-                                <div class="effect-notification {{if eq .EffectType "fighter_blessing"}}blessing-notif{{else}}curse-notif{{end}}">
-                                    {{if eq .EffectType "fighter_blessing"}}
-                                        ✨ Applied blessing to {{.TargetName}}
-                                    {{else if eq .EffectType "fighter_curse"}}
-                                        💀 Applied curse to {{.TargetName}}
+                                <div class="effect-notification {{if or (eq .EffectType "strength_blessing") (eq .EffectType "speed_blessing") (eq .EffectType "endurance_blessing") (eq .EffectType "technique_blessing")}}blessing-notif{{else}}curse-notif{{end}}">
+                                    {{if eq .EffectType "strength_blessing"}}
+                                        ✨ Applied strength blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "speed_blessing"}}
+                                        ✨ Applied speed blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "endurance_blessing"}}
+                                        ✨ Applied endurance blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "technique_blessing"}}
+                                        ✨ Applied technique blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "strength_curse"}}
+                                        💀 Applied strength curse to {{.TargetName}}
+                                    {{else if eq .EffectType "speed_curse"}}
+                                        💀 Applied speed curse to {{.TargetName}}
+                                    {{else if eq .EffectType "endurance_curse"}}
+                                        💀 Applied endurance curse to {{.TargetName}}
+                                    {{else if eq .EffectType "technique_curse"}}
+                                        💀 Applied technique curse to {{.TargetName}}
+                                    {{else}}
+                                        ⚡ Applied {{.EffectType}} to {{.TargetName}}
                                     {{end}}
                                 </div>
                                 {{end}}
