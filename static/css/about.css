@@ -1,0 +1,103 @@
+/* ABOUT PAGE STYLES - Rules & Regulations */
+.about-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+.about-header { text-align: center; margin-bottom: 40px; padding: 30px; background: #000000; border: 2px solid #ffffff; border-radius: 8px; }
+.about-header h2 { font-size: 2rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; color: #ffaa00; }
+.about-subtitle { font-size: 1rem; color: #888888; font-style: italic; }
+
+/* Two-column layout */
+.two-column-section { display: flex; gap: 30px; margin-bottom: 30px; }
+.half-width { flex: 1; }
+
+.rules-section { margin-bottom: 30px; }
+.rules-section h3 { font-size: 1.4rem; margin-bottom: 15px; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #ffaa00; padding-bottom: 10px; }
+
+.rule-box { background: #000000; border: 1px solid #444444; border-radius: 8px; padding: 25px; position: relative; }
+.rule-box.dangerous { border-color: #ff4444; background: #110000; }
+
+/* Official document styling */
+.rule-box.official-document { position: relative; }
+
+/* Legal Department Seal */
+.legal-seal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 170, 0, 0.15);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-12deg);
+    cursor: help;
+    border: 4px solid #ffaa00;
+    box-shadow: 0 0 0 2px #000000, inset 0 0 20px rgba(255, 170, 0, 0.2);
+    z-index: 2;
+}
+
+.legal-seal .seal-text {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #ffaa00;
+    text-align: center;
+    line-height: 1;
+    margin-bottom: 4px;
+    text-shadow: 1px 1px 2px #000000;
+}
+
+.legal-seal .seal-subtext {
+    font-size: 0.7rem;
+    color: #ffaa00;
+    text-align: center;
+    line-height: 1;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #000000;
+}
+
+.rule-box h4 { font-size: 1.2rem; margin-bottom: 15px; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
+
+.rules-list { line-height: 1.6; margin-left: 20px; }
+.rules-list li { margin-bottom: 8px; color: #cccccc; }
+.rules-list li strong { color: #ffffff; }
+
+.signatures-section { margin-top: 40px; padding: 30px; background: #000000; border: 2px solid #444444; border-radius: 8px; }
+.signatures-section h3 { font-size: 1.4rem; margin-bottom: 25px; color: #ffaa00; text-transform: uppercase; letter-spacing: 1px; text-align: center; border-bottom: 2px solid #ffaa00; padding-bottom: 10px; }
+
+.signature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+
+.signature-box { background: #111111; border: 1px solid #333333; border-radius: 6px; padding: 20px; text-align: center; transition: border-color 0.3s ease; }
+.signature-box:hover { border-color: #ffaa00; }
+
+.signature-title { font-size: 0.8rem; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.signature-name { font-size: 1.1rem; font-weight: bold; color: #ffffff; margin-bottom: 8px; line-height: 1.2; }
+.signature-date { font-size: 0.8rem; color: #888888; font-style: italic; }
+
+.disclaimer { padding: 20px; background: #222222; border: 1px solid #444444; border-radius: 6px; margin-top: 20px; }
+.disclaimer p { margin-bottom: 15px; color: #cccccc; line-height: 1.5; font-size: 0.9rem; }
+.disclaimer p:last-child { margin-bottom: 0; color: #888888; font-size: 0.8rem; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .about-container { padding: 15px; }
+    
+    .about-header { padding: 20px; margin-bottom: 30px; }
+    .about-header h2 { font-size: 1.5rem; }
+    
+    .two-column-section { flex-direction: column; gap: 20px; }
+    
+    .legal-seal { width: 90px; height: 90px; top: 8px; right: 12px; }
+    .legal-seal .seal-text { font-size: 0.7rem; }
+    .legal-seal .seal-subtext { font-size: 0.5rem; }
+    
+    .rules-section h3 { font-size: 1.2rem; }
+    
+    .rule-box { padding: 20px; }
+    
+    .signature-grid { grid-template-columns: 1fr; gap: 15px; }
+    
+    .signatures-section { padding: 20px; margin-top: 30px; }
+    .signatures-section h3 { font-size: 1.2rem; margin-bottom: 20px; }
+} 

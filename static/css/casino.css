@@ -1,0 +1,415 @@
+/* Underground Casino Styling - Compact & Elegant */
+
+.casino-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Compact Casino Header */
+.casino-header {
+    text-align: center;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d1b2d 100%);
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.casino-header h1 {
+    font-size: 1.8rem;
+    color: #ff6b35;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+
+.casino-subtitle {
+    color: #999;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 5px 0 0 0;
+}
+
+/* Sleek Game Tabs */
+.game-tabs {
+    display: flex;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    background: #1a1a1a;
+    color: #999;
+    border: none;
+    border-right: 1px solid #333;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tab-btn:last-child {
+    border-right: none;
+}
+
+.tab-btn:hover {
+    background: #2a2a2a;
+    color: #fff;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff4500 100%);
+    color: #000;
+    text-shadow: none;
+}
+
+/* Compact Game Panels */
+.game-panel {
+    display: none;
+    flex: 1;
+}
+
+.game-panel.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.game-section {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d1b2d 100%);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.game-header h2 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: #ff6b35;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.game-header p {
+    color: #999;
+    margin: 5px 0 0 0;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Compact Game Content */
+.game-content {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+}
+
+/* Moon Flip - Side by Side Layout */
+.moon-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.moon-option {
+    text-align: center;
+    cursor: pointer;
+    padding: 15px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    background: #222;
+}
+
+.moon-option:hover {
+    border-color: #ff6b35;
+    background: #2a2a2a;
+    transform: translateY(-1px);
+}
+
+.moon-emoji {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.moon-label {
+    font-size: 0.9rem;
+    color: #ccc;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Card Display - Compact */
+.card-display {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.current-card, .next-card {
+    width: 80px;
+    height: 110px;
+    background: #fff;
+    border: 1px solid #333;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.next-card {
+    background: #333;
+    color: #fff;
+    border-color: #555;
+}
+
+.vs-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ff6b35;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Compact Betting Controls */
+.betting-controls {
+    flex: 1;
+    background: #222;
+    border: 1px solid #333;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bet-amount-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bet-amount-row label {
+    font-weight: 600;
+    color: #fff;
+    min-width: 80px;
+    font-size: 0.9rem;
+}
+
+.bet-amount-row input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.bet-amount-row input:focus {
+    border-color: #ff6b35;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+.amount-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.amount-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #444;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.amount-btn:hover {
+    border-color: #ff6b35;
+    background: #2a2a2a;
+}
+
+.leverage-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.leverage-controls label {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.leverage-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.leverage-btn {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #444;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.leverage-btn:hover {
+    border-color: #ff6b35;
+}
+
+.leverage-btn.active {
+    border-color: #ff6b35;
+    background: #ff6b35;
+    color: #000;
+}
+
+.bet-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.bet-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #ff6b35;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+}
+
+.bet-btn:hover {
+    background: #ff6b35;
+    color: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.bet-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Compact Game Results */
+.game-result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1rem;
+    border: 1px solid transparent;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-result.win {
+    background: linear-gradient(135deg, #0d4f3c 0%, #1a7a5e 100%);
+    border-color: #00ff88;
+    color: #00ff88;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+.game-result.lose {
+    background: linear-gradient(135deg, #4f0d0d 0%, #7a1a1a 100%);
+    border-color: #ff4444;
+    color: #ff4444;
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .game-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .casino-container {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .casino-header h1 {
+        font-size: 1.4rem;
+    }
+    
+    .moon-display {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .moon-emoji {
+        font-size: 2rem;
+    }
+    
+    .current-card, .next-card {
+        width: 60px;
+        height: 80px;
+        font-size: 1.4rem;
+    }
+    
+    .tab-btn {
+        font-size: 0.8rem;
+        padding: 10px 15px;
+    }
+    
+    .betting-controls {
+        padding: 12px;
+    }
+} 

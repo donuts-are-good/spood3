@@ -1,0 +1,312 @@
+
+.fighter-profile {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Fighter Header */
+.fighter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: #000000;
+    border: 2px solid #ffffff;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+}
+
+/* Fighter name section */
+.fighter-name-section h2 {
+    font-size: 3rem;
+    margin: 0;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.fighter-name-section .team {
+    color: #ccc;
+    font-size: 1.2rem;
+    margin: 5px 0;
+    font-style: italic;
+}
+
+.fighter-name-section .fighter-class {
+    color: #ffd700;
+    font-size: 1rem;
+    margin: 5px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.fighter-name-section .creator-info {
+    color: #4ecdc4;
+    font-size: 0.9rem;
+    margin: 8px 0 0 0;
+    font-style: italic;
+    opacity: 0.9;
+}
+
+.fighter-record {
+    text-align: right;
+}
+
+.record-box {
+    background: #000000;
+    border: 1px solid #ffffff;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.record-box h3 {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+    color: #cccccc;
+}
+
+.record-numbers {
+    display: flex;
+    gap: 15px;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.wins { color: #00ff00; }
+.losses { color: #ff4444; }
+.draws { color: #ffaa00; }
+
+.status-box {
+    text-align: center;
+}
+
+.status-alive, .status-dead {
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.status-alive {
+    background: #004400;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+}
+
+.status-dead {
+    background: #440000;
+    color: #ff4444;
+    border: 1px solid #ff4444;
+}
+
+/* Stats Container */
+.stats-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.stats-card {
+    background: #000000;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.stats-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffffff;
+    border-bottom: 2px solid #ffffff;
+    padding-bottom: 10px;
+}
+
+/* Combat Stats with Bars */
+.stat-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-label {
+    min-width: 100px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.stat-bar {
+    flex: 1;
+    height: 24px;
+    background: #333333;
+    border: 1px solid #666666;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-fill {
+    height: 100%;
+    background: #000000;
+    transition: width 0.3s ease;
+}
+
+/* Red-orange colors for each stat */
+.stat-row:nth-child(1) .stat-fill { /* Strength */
+    background: #ff4400;
+}
+
+.stat-row:nth-child(2) .stat-fill { /* Speed */
+    background: #ff6600;
+}
+
+.stat-row:nth-child(3) .stat-fill { /* Endurance */
+    background: #ff8800;
+}
+
+.stat-row:nth-child(4) .stat-fill { /* Technique */
+    background: #ffaa00;
+}
+
+.stat-value {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px #000000, -1px -1px 2px #000000;
+    z-index: 10;
+}
+
+/* Chaos Stats Grid */
+.chaos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.chaos-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    background: #000000;
+    border: 1px solid #333333;
+    border-radius: 4px;
+}
+
+.chaos-label {
+    font-size: 0.8rem;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.chaos-value {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #ffffff;
+}
+
+/* Redacted styling */
+.redacted-item {
+    opacity: 0.6;
+    border: 1px solid #444444 !important;
+    background: #111111 !important;
+}
+
+.redacted-value {
+    color: #666666 !important;
+    font-family: monospace;
+    letter-spacing: 2px;
+}
+
+/* Actions */
+.fighter-actions {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 12px 25px;
+    background: #222222;
+    border: 2px solid #ffffff;
+    border-radius: 4px;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* Error Message */
+.error-message {
+    text-align: center;
+    padding: 50px;
+    background: #222222;
+    border: 1px solid #444444;
+    border-radius: 8px;
+}
+
+.error-message h2 {
+    color: #ff4444;
+    margin-bottom: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .fighter-header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .fighter-record {
+        text-align: center;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .chaos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .stat-label {
+        min-width: auto;
+    }
+} 

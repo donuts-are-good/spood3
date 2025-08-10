@@ -1,0 +1,14 @@
+# Binary
+spoodblort
+
+# Database - keep schema.sql but ignore actual data
+#*.db
+
+# Environment files
+.env
+
+# macOS
+.DS_Store 
+
+fight_logs/
+fight_logs/*

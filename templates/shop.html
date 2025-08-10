@@ -1,0 +1,100 @@
+{{define "content"}}
+<div class="shop-container">
+    <div class="shop-header">
+        <h1>🛒 THE CHAOS MARKETPLACE 🛒</h1>
+        <p class="shop-subtitle">Purchase items to manipulate the fabric of reality itself</p>
+        <div class="credits-display">
+            {{if .User}}
+                <span class="credits-amount">💰 {{.User.Credits}} Credits</span>
+            {{else}}
+                <span class="credits-amount">🔒 Login Required</span>
+            {{end}}
+        </div>
+    </div>
+
+    {{if .User}}
+    {{if .UserInventory}}
+    <div class="inventory-section">
+        <h2>🎒 YOUR CHAOS INVENTORY 🎒</h2>
+        <div class="inventory-grid">
+            {{range .UserInventory}}
+            <div class="inventory-item {{if eq .ItemType "fighter_creation"}}clickable-license{{end}}" 
+                 {{if eq .ItemType "fighter_creation"}}onclick="window.location.href='/user/create-fighter'"{{end}}>
+                <div class="inventory-emoji">{{.Emoji}}</div>
+                <div class="inventory-name">{{.Name}}</div>
+                <div class="inventory-quantity">×{{.Quantity}}</div>
+                {{if eq .ItemType "fighter_creation"}}
+                    <div class="license-hint">Click to create fighter!</div>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+
+    <div class="shop-grid">
+        {{range $shopItem := .ShopItems}}
+        {{/* Check if user already owns this MVP or fighter_creation item */}}
+        {{$userOwnsItem := false}}
+        {{if and (or (eq $shopItem.ItemType "mvp_player") (eq $shopItem.ItemType "fighter_creation")) $.UserInventory}}
+            {{range $.UserInventory}}
+                {{if and (eq .ShopItemID $shopItem.ID) (gt .Quantity 0)}}
+                    {{$userOwnsItem = true}}
+                {{end}}
+            {{end}}
+        {{end}}
+        
+        <div class="shop-item {{if or (lt $.User.Credits $shopItem.Price) $userOwnsItem}}disabled{{end}}" data-item-id="{{$shopItem.ID}}" data-price="{{$shopItem.Price}}">
+            <div class="item-emoji">{{$shopItem.Emoji}}</div>
+            <div class="item-name">{{$shopItem.Name}}</div>
+            <div class="item-description">{{$shopItem.Description}}</div>
+            <div class="item-price">💰 {{$shopItem.Price}} Credits</div>
+            <button class="buy-button" 
+                    {{if or (lt $.User.Credits $shopItem.Price) $userOwnsItem}}disabled{{end}}
+                    onclick="purchaseItem({{$shopItem.ID}}, '{{$shopItem.Name}}', {{$shopItem.Price}})">
+                {{if $userOwnsItem}}
+                    ALREADY OWNED
+                {{else if lt $.User.Credits $shopItem.Price}}
+                    TOO POOR
+                {{else}}
+                    BUY NOW
+                {{end}}
+            </button>
+            
+            {{/* Quick buy buttons - only show for non-MVP and non-fighter_creation items */}}
+            {{if and $.User (ne $shopItem.ItemType "mvp_player") (ne $shopItem.ItemType "fighter_creation")}}
+                <div class="quick-buy-section">
+                    <div class="quick-buy-label">BULK BUY:</div>
+                    <div class="quick-buy-buttons">
+                        <button class="quick-buy-btn" 
+                                {{if lt $.User.Credits (mul $shopItem.Price 5)}}disabled{{end}}
+                                onclick="purchaseItem({{$shopItem.ID}}, '{{$shopItem.Name}}', {{$shopItem.Price}}, 5)">
+                            5x
+                        </button>
+                        <button class="quick-buy-btn" 
+                                {{if lt $.User.Credits (mul $shopItem.Price 10)}}disabled{{end}}
+                                onclick="purchaseItem({{$shopItem.ID}}, '{{$shopItem.Name}}', {{$shopItem.Price}}, 10)">
+                            10x
+                        </button>
+                        <button class="quick-buy-btn" 
+                                {{if lt $.User.Credits (mul $shopItem.Price 25)}}disabled{{end}}
+                                onclick="purchaseItem({{$shopItem.ID}}, '{{$shopItem.Name}}', {{$shopItem.Price}}, 25)">
+                            25x
+                        </button>
+                    </div>
+                </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+    {{else}}
+    <div class="login-required">
+        <h3>🔒 AUTHENTICATION REQUIRED 🔒</h3>
+        <p>You must be logged in to access the chaos marketplace.</p>
+        <a href="/auth" class="auth-button">LOGIN WITH DISCORD</a>
+    </div>
+    {{end}}
+</div>
+
+<script src="/static/js/shop.js"></script>
+{{end}} 

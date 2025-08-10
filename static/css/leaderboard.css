@@ -1,0 +1,270 @@
+/* LEADERBOARD STYLES - Violence Credit Rankings */
+
+.leaderboard-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Leaderboard Header */
+.leaderboard-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 30px;
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+}
+
+.leaderboard-header h2 {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffaa00;
+}
+
+.leaderboard-subtitle {
+    font-size: 1.1rem;
+    color: #cccccc;
+    font-style: italic;
+}
+
+/* Leaderboard Table */
+.leaderboard-table-container {
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #000000;
+}
+
+.leaderboard-table thead {
+    background: #000000;
+}
+
+.leaderboard-table th {
+    padding: 15px 20px;
+    text-align: left;
+    font-weight: bold;
+    color: #ffaa00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    border-bottom: 2px solid #ffffff;
+}
+
+.leaderboard-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #222222;
+    color: #ffffff;
+}
+
+.leaderboard-row:hover {
+    background: #000000;
+}
+
+.leaderboard-row:last-child td {
+    border-bottom: none;
+}
+
+/* Column Styling */
+.rank-column {
+    width: 100px;
+    text-align: center;
+}
+
+.user-column {
+    width: auto;
+}
+
+.credits-column {
+    width: 150px;
+    text-align: center;
+}
+
+.joined-column {
+    width: 120px;
+    text-align: center;
+}
+
+/* Rank Badges */
+.rank-cell {
+    text-align: center;
+}
+
+.rank-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.rank-badge.rank-1 {
+    background: #ffaa00;
+    color: #000000;
+}
+
+.rank-badge.rank-2 {
+    background: #c0c0c0;
+    color: #000000;
+}
+
+.rank-badge.rank-3 {
+    background: #cd7f32;
+    color: #000000;
+}
+
+.rank-number {
+    color: #888888;
+    font-weight: bold;
+}
+
+/* User Display */
+.user-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.username {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* Credits Display */
+.credits-cell {
+    text-align: center;
+}
+
+.credits-amount {
+    font-weight: bold;
+    color: #00ff00;
+    font-size: 1.1rem;
+}
+
+/* Join Date */
+.joined-cell {
+    text-align: center;
+}
+
+.join-date {
+    color: #888888;
+    font-size: 0.9rem;
+}
+
+/* Empty State */
+.empty-leaderboard {
+    text-align: center;
+    padding: 60px 30px;
+    background: #000000;
+    border: 2px solid #444444;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.empty-leaderboard h3 {
+    color: #ff4444;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.empty-leaderboard p {
+    color: #cccccc;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.empty-leaderboard a {
+    color: #ffaa00;
+    font-weight: bold;
+}
+
+/* Footer */
+.leaderboard-footer {
+    text-align: center;
+}
+
+.leaderboard-note {
+    color: #888888;
+    font-style: italic;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 12px 25px;
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 4px;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .leaderboard-container {
+        padding: 15px;
+    }
+    
+    .leaderboard-header {
+        padding: 20px;
+    }
+    
+    .leaderboard-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .joined-column {
+        display: none;
+    }
+    
+    .user-display {
+        gap: 6px;
+    }
+    
+    .color-indicator {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .username {
+        font-size: 0.9rem;
+    }
+    
+    .credits-amount {
+        font-size: 1rem;
+    }
+} 

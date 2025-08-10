@@ -1,0 +1,192 @@
+{{define "content"}}
+<div class="fighters-container">
+    <!-- Fighters Header -->
+    <div class="fighters-header">
+        <h2>💀 FIGHTER RANKINGS 💀</h2>
+        <p class="fighters-subtitle">All registered violence practitioners ranked by combat record</p>
+    </div>
+
+    <!-- Fighters Table -->
+    <div class="fighters-table-container">
+        <table class="fighters-table">
+            <thead>
+                <tr>
+                    <th class="rank-column">RANK</th>
+                    <th class="fighter-column sortable" data-sort="name">
+                        FIGHTER
+                    </th>
+                    <th class="team-column sortable" data-sort="team">
+                        TEAM
+                    </th>
+                    <th class="wins-column sortable" data-sort="wins">
+                        WINS
+                    </th>
+                    <th class="losses-column sortable" data-sort="losses">
+                        LOSSES
+                    </th>
+                    <th class="draws-column sortable" data-sort="draws">
+                        DRAWS
+                    </th>
+                    <th class="status-column sortable" data-sort="status">
+                        STATUS
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {{if .Fighters}}
+                    {{range $index, $fighter := .Fighters}}
+                    <tr class="fighter-row" onclick="window.location.href='/fighter/{{$fighter.ID}}'"
+                        data-name="{{$fighter.Name}}"
+                        data-team="{{if $fighter.Team}}{{$fighter.Team}}{{else}}Free Agent{{end}}"
+                        data-wins="{{$fighter.Wins}}"
+                        data-losses="{{$fighter.Losses}}"
+                        data-draws="{{$fighter.Draws}}"
+                        data-status="{{if $fighter.IsDead}}DEAD{{else}}ACTIVE{{end}}">
+                        <td class="rank-cell">
+                            {{if eq $index 0}}
+                                <span class="rank-badge rank-1">👑 1</span>
+                            {{else if eq $index 1}}
+                                <span class="rank-badge rank-2">🥈 2</span>
+                            {{else if eq $index 2}}
+                                <span class="rank-badge rank-3">🥉 3</span>
+                            {{else}}
+                                <span class="rank-number">{{add $index 1}}</span>
+                            {{end}}
+                        </td>
+                        <td class="fighter-cell">
+                            <span class="fighter-name">{{$fighter.Name}}</span>
+                        </td>
+                        <td class="team-cell">
+                            <span class="team-name">{{if $fighter.Team}}{{$fighter.Team}}{{else}}Free Agent{{end}}</span>
+                        </td>
+                        <td class="wins-cell">
+                            <span class="wins-count">{{$fighter.Wins}}</span>
+                        </td>
+                        <td class="losses-cell">
+                            <span class="losses-count">{{$fighter.Losses}}</span>
+                        </td>
+                        <td class="draws-cell">
+                            <span class="draws-count">{{$fighter.Draws}}</span>
+                        </td>
+                        <td class="status-cell">
+                            {{if $fighter.IsDead}}
+                                <span class="status-dead">DEAD</span>
+                            {{else}}
+                                <span class="status-alive">ACTIVE</span>
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{end}}
+                {{else}}
+                    <tr>
+                        <td colspan="7" class="empty-fighters">
+                            <div class="empty-state">
+                                <h3>No fighters found</h3>
+                                <p>The violence database appears to be empty.</p>
+                                <p>Please contact the Department of Recreational Violence.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="fighters-footer">
+        <p class="fighters-note">🥊 Rankings updated in real-time based on combat performance. All violence pre-approved by the Department of Recreational Violence.</p>
+        <a href="/" class="back-button">← RETURN TO VIOLENCE SCHEDULE</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('.fighters-table');
+    const tbody = table.querySelector('tbody');
+    const sortableHeaders = table.querySelectorAll('.sortable');
+    
+    let currentSort = null;
+    let currentDirection = 'asc';
+    
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const sortKey = this.dataset.sort;
+            
+            // Determine sort direction
+            if (currentSort === sortKey) {
+                currentDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentDirection = 'asc';
+            }
+            
+            currentSort = sortKey;
+            
+            // Update sort styling
+            sortableHeaders.forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            this.classList.add(currentDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+            
+            // Sort the table
+            sortTable(sortKey, currentDirection);
+        });
+    });
+    
+    function sortTable(sortKey, direction) {
+        const rows = Array.from(tbody.querySelectorAll('.fighter-row'));
+        
+        rows.sort((a, b) => {
+            let valueA = a.dataset[sortKey];
+            let valueB = b.dataset[sortKey];
+            
+            // Convert numeric values
+            if (sortKey === 'wins' || sortKey === 'losses' || sortKey === 'draws') {
+                valueA = parseInt(valueA) || 0;
+                valueB = parseInt(valueB) || 0;
+            } else {
+                // String comparison
+                valueA = valueA.toLowerCase();
+                valueB = valueB.toLowerCase();
+            }
+            
+            if (valueA < valueB) {
+                return direction === 'asc' ? -1 : 1;
+            }
+            if (valueA > valueB) {
+                return direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+        
+        // Re-append sorted rows
+        rows.forEach(row => tbody.appendChild(row));
+        
+        // Update rank numbers
+        updateRankNumbers();
+    }
+    
+    function updateRankNumbers() {
+        const rows = tbody.querySelectorAll('.fighter-row');
+        rows.forEach((row, index) => {
+            const rankCell = row.querySelector('.rank-cell');
+            
+            // Only show special rank badges when sorted by wins (default ranking) in descending order
+            // or when no sort has been applied yet (natural order)
+            const isDefaultRanking = (currentSort === 'wins' && currentDirection === 'desc') || currentSort === null;
+            
+            if (isDefaultRanking && index === 0) {
+                rankCell.innerHTML = '<span class="rank-badge rank-1">👑 1</span>';
+            } else if (isDefaultRanking && index === 1) {
+                rankCell.innerHTML = '<span class="rank-badge rank-2">🥈 2</span>';
+            } else if (isDefaultRanking && index === 2) {
+                rankCell.innerHTML = '<span class="rank-badge rank-3">🥉 3</span>';
+            } else {
+                rankCell.innerHTML = `<span class="rank-number">${index + 1}</span>`;
+            }
+        });
+    }
+});
+</script>
+{{end}} 

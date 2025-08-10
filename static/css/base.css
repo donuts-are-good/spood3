@@ -1,0 +1,342 @@
+/* GLOBAL STYLES - Base styling for all pages */
+
+:root {
+    /* Typography */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Crimson Text', serif;
+    
+    /* Colors */
+    --color-primary: #ffaa00;
+    --color-secondary: #ffffff;
+    --color-background: #000000;
+    --color-text: #ffffff;
+    --color-success: #00ff00;
+    --color-error: #ff4444;
+    --color-warning: #ffaa00;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Links */
+a {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #cccccc;
+}
+
+a:visited {
+    color: #ffffff;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+h4 {
+    font-size: 1.25rem;
+}
+
+p, span, div, td, th, li {
+    font-family: var(--font-body);
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 2rem;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+}
+
+/* Main layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Navigation */
+nav {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ffffff;
+}
+
+nav a {
+    margin: 0 1rem;
+    font-weight: bold;
+}
+
+/* User Display Name Styling */
+.user-display-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.user-display-name .color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: inline-block;
+}
+
+/* Logout Link Styling */
+.logout-link {
+    background: none !important;
+    border: none !important;
+    color: #ffffff !important;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    margin: 0 1rem !important;
+    padding: 0 !important;
+    transition: color 0.3s ease;
+}
+
+.logout-link:hover {
+    color: #cccccc !important;
+    background: none !important;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #ffffff;
+}
+
+th {
+    font-weight: bold;
+    background-color: #000000;
+}
+
+/* Fight status colors */
+.status-live {
+    color: #00ff00;
+    font-weight: bold;
+}
+
+.status-completed {
+    color: #888888;
+}
+
+.status-voided {
+    color: #888888;
+    font-style: italic;
+}
+
+.status-upcoming {
+    color: #ffffff;
+}
+
+/* Clickable fight rows */
+.fight-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.fight-row:hover {
+    background-color: #222222;
+}
+
+.fights-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.fights-table th,
+.fights-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+.fights-table th {
+    background-color: #111;
+    font-weight: bold;
+}
+
+/* Forms */
+form {
+    margin: 1rem 0;
+}
+
+input, button, select {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16px;
+    padding: 8px 12px;
+    margin: 4px;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+}
+
+button {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #333333;
+}
+
+/* Fight Actions */
+.fight-actions {
+    margin-top: 10px;
+}
+
+.live-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #ff4444;
+    color: #fff !important;
+    text-decoration: none;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    border: 2px solid #ff4444;
+    animation: pulse-glow 2s infinite;
+}
+
+.live-button:hover {
+    background: #fff;
+    color: #ff4444 !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+}
+
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(255, 68, 68, 0.7); }
+    100% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.3); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    nav a {
+        display: block;
+        margin: 0.5rem 0;
+    }
+    
+    table {
+        font-size: 14px;
+    }
+    
+    th, td {
+        padding: 6px 8px;
+    }
+} 
+
+/* Site Header */
+.site-header {
+    background: #000000;
+    border-bottom: 2px solid #ffffff;
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.site-title {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    font-weight: normal;
+    color: #ffffff;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(255, 170, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.site-title:hover {
+    color: var(--color-primary);
+    text-shadow: 2px 2px 8px rgba(255, 170, 0, 0.8);
+}
+
+.site-title::before {
+    content: "🥊 ";
+}
+
+.site-title::after {
+    content: " 🥊";
+} 

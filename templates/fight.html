@@ -1,0 +1,315 @@
+{{define "content"}}
+<div class="fight-container">
+    {{if .Fight}}
+        <!-- Fight Navigation Arrows -->
+        <div class="fight-nav-left">
+            <a href="/fight/{{sub .Fight.ID 1}}" class="nav-arrow" title="Previous Fight">‹</a>
+        </div>
+        <div class="fight-nav-right">
+            <a href="/fight/{{add .Fight.ID 1}}" class="nav-arrow" title="Next Fight">›</a>
+        </div>
+
+        <div class="fight-header">
+            <h2 class="fight-title">🥊 VIOLENCE BREAKDOWN 🥊</h2>
+            
+            <!-- Commissioner's Blessing Stamp -->
+            <div class="commissioner-stamp stamp-position-{{mod .Fight.ID 6}}" title="THE COMMISSIONER has officially blessed this violence matchup on {{.Fight.ScheduledTime.Format "January 2, 2006"}}. All participants have been deemed sufficiently chaotic for public consumption. Department of Recreational Violence - Violence Division.">
+                <div class="stamp-text">BLESSED</div>
+                <div class="stamp-subtext">{{.Fight.ScheduledTime.Format "01-02-06"}}</div>
+                <div class="stamp-subtext">APPROVED</div>
+            </div>
+            
+            <div class="fight-meta">
+                <div class="meta-badge">
+                    <span class="meta-label">📅 Scheduled Violence</span>
+                    <span class="meta-value">{{.Fight.ScheduledTime.Format "Monday, January 2, 2006 at 3:04 PM"}}</span>
+                </div>
+                <div class="meta-badge">
+                    <span class="meta-label">⚡ Combat Status</span>
+                    <span class="meta-value status-{{.Fight.Status}}">
+                        {{if eq .Fight.Status "active"}}🔴 LIVE VIOLENCE
+                        {{else if eq .Fight.Status "completed"}}✅ VIOLENCE COMPLETE
+                        {{else if eq .Fight.Status "voided"}}❌ VOIDED BY CHAOS
+                        {{else}}⏱️ VIOLENCE PENDING{{end}}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="fighter-matchup">
+            <div class="matchup-grid">
+                <div class="fighter-card">
+                    <h4 class="fighter-name">
+                        <a href="/fighter/{{.Fight.Fighter1ID}}">{{.Fight.Fighter1Name}}</a>
+                        {{if or .Fighter1Effects (gt .Fighter1Curses 0) (gt .Fighter1Blessings 0)}}
+                            <div class="effect-indicators">
+                                {{if gt .Fighter1Curses 0}}
+                                    <div class="effect-badge curse-badge" title="Fighter Curse applied {{.Fighter1Curses}} time(s) - Fighter health reduced by {{mul .Fighter1Curses 10000}}">
+                                        <span class="effect-emoji">💀</span>
+                                        <span class="effect-count">{{.Fighter1Curses}}x</span>
+                                    </div>
+                                {{end}}
+                                {{if gt .Fighter1Blessings 0}}
+                                    <div class="effect-badge blessing-badge" title="Fighter Blessing applied {{.Fighter1Blessings}} time(s) - Fighter health increased by {{mul .Fighter1Blessings 10000}}">
+                                        <span class="effect-emoji">✨</span>
+                                        <span class="effect-count">{{.Fighter1Blessings}}x</span>
+                                    </div>
+                                {{end}}
+                            </div>
+                        {{end}}
+                    </h4>
+                    {{if .Fight.FinalScore1.Valid}}
+                        <div class="fighter-score">{{.Fight.FinalScore1.Int64}}</div>
+                        <small>Final Damage Dealt</small>
+                    {{else}}
+                        <div style="color: #888; font-style: italic;">Awaiting Violence</div>
+                    {{end}}
+                    
+                    {{/* Betting form for Fighter 1 */}}
+                    {{if and .User (eq .Fight.Status "scheduled")}}
+                        {{if not .UserBet}}
+                            <div class="fighter-betting">
+                                <form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter1Name}}')">
+                                    <input type="hidden" name="fighter_id" value="{{.Fight.Fighter1ID}}">
+                                    <div class="bet-controls">
+                                        <input type="number" name="amount" min="1" max="{{.User.Credits}}" placeholder="Credits" class="bet-input" required>
+                                        <button type="submit" class="bet-button">BET</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {{else if eq .UserBet.FighterID .Fight.Fighter1ID}}
+                            <div class="fighter-bet-placed">
+                                <div class="bet-amount">{{.UserBet.Amount}} credits</div>
+                                <div class="bet-label">YOUR BET</div>
+                            </div>
+                        {{end}}
+                    {{end}}
+                </div>
+                
+                <div class="vs-section">
+                    <div class="vs-text">VS</div>
+                    <div class="fight-status-badge status-{{.Fight.Status}}">
+                        {{if eq .Fight.Status "active"}}LIVE
+                        {{else if eq .Fight.Status "completed"}}DONE
+                        {{else if eq .Fight.Status "voided"}}VOID
+                        {{else}}SOON{{end}}
+                    </div>
+                </div>
+                
+                <div class="fighter-card">
+                    <h4 class="fighter-name">
+                        <a href="/fighter/{{.Fight.Fighter2ID}}">{{.Fight.Fighter2Name}}</a>
+                        {{if or .Fighter2Effects (gt .Fighter2Curses 0) (gt .Fighter2Blessings 0)}}
+                            <div class="effect-indicators">
+                                {{if gt .Fighter2Curses 0}}
+                                    <div class="effect-badge curse-badge" title="Fighter Curse applied {{.Fighter2Curses}} time(s) - Fighter health reduced by {{mul .Fighter2Curses 10000}}">
+                                        <span class="effect-emoji">💀</span>
+                                        <span class="effect-count">{{.Fighter2Curses}}x</span>
+                                    </div>
+                                {{end}}
+                                {{if gt .Fighter2Blessings 0}}
+                                    <div class="effect-badge blessing-badge" title="Fighter Blessing applied {{.Fighter2Blessings}} time(s) - Fighter health increased by {{mul .Fighter2Blessings 10000}}">
+                                        <span class="effect-emoji">✨</span>
+                                        <span class="effect-count">{{.Fighter2Blessings}}x</span>
+                                    </div>
+                                {{end}}
+                            </div>
+                        {{end}}
+                    </h4>
+                    {{if .Fight.FinalScore2.Valid}}
+                        <div class="fighter-score">{{.Fight.FinalScore2.Int64}}</div>
+                        <small>Final Damage Dealt</small>
+                    {{else}}
+                        <div style="color: #888; font-style: italic;">Awaiting Violence</div>
+                    {{end}}
+                    
+                    {{/* Betting form for Fighter 2 */}}
+                    {{if and .User (eq .Fight.Status "scheduled")}}
+                        {{if not .UserBet}}
+                            <div class="fighter-betting">
+                                <form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter2Name}}')">
+                                    <input type="hidden" name="fighter_id" value="{{.Fight.Fighter2ID}}">
+                                    <div class="bet-controls">
+                                        <input type="number" name="amount" min="1" max="{{.User.Credits}}" placeholder="Credits" class="bet-input" required>
+                                        <button type="submit" class="bet-button">BET</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {{else if eq .UserBet.FighterID .Fight.Fighter2ID}}
+                            <div class="fighter-bet-placed">
+                                <div class="bet-amount">{{.UserBet.Amount}} credits</div>
+                                <div class="bet-label">YOUR BET</div>
+                            </div>
+                        {{end}}
+                    {{end}}
+                </div>
+            </div>
+            
+            {{/* Available credits info */}}
+            {{if and .User (eq .Fight.Status "scheduled") (not .UserBet)}}
+                <div class="betting-info-bar">
+                    Available credits: {{.User.Credits}} | 1:1 odds (bet 100, win 200 total)
+                </div>
+            {{end}}
+        </div>
+
+        {{/* Bless/Curse Section */}}
+        {{if and .User (eq .Fight.Status "scheduled") .UserInventory}}
+            <div class="effects-section">
+                <h4>🔮 MANIPULATE THE CHAOS 🔮</h4>
+                <div class="effects-grid">
+                    {{range .UserInventory}}
+                        {{if or (eq .ItemType "fighter_curse") (eq .ItemType "fighter_blessing")}}
+                            <div class="effect-item">
+                                <div class="effect-header">
+                                    <span class="effect-emoji">{{.Emoji}}</span>
+                                    <span class="effect-name">{{.Name}}</span>
+                                    <span class="effect-quantity">×{{.Quantity}}</span>
+                                </div>
+                                <div class="effect-description">{{.Description}}</div>
+                                <div class="effect-targets">
+                                    <button class="effect-button" onclick="applyEffect({{.ShopItemID}}, {{$.Fight.Fighter1ID}}, '{{$.Fight.Fighter1Name}}', '{{.Name}}')">
+                                        Apply to {{$.Fight.Fighter1Name}}
+                                    </button>
+                                    <button class="effect-button" onclick="applyEffect({{.ShopItemID}}, {{$.Fight.Fighter2ID}}, '{{$.Fight.Fighter2Name}}', '{{.Name}}')">
+                                        Apply to {{$.Fight.Fighter2Name}}
+                                    </button>
+                                </div>
+                            </div>
+                        {{end}}
+                    {{end}}
+                </div>
+            </div>
+        {{end}}
+
+        {{if .Fight.WinnerID.Valid}}
+            <div class="result-section">
+                <h4>🏆 VIOLENCE VICTOR</h4>
+                <div class="winner-name">
+                    {{if eq .Fight.WinnerID.Int64 .Fight.Fighter1ID}}
+                        {{.Fight.Fighter1Name}}
+                    {{else if eq .Fight.WinnerID.Int64 .Fight.Fighter2ID}}
+                        {{.Fight.Fighter2Name}}
+                    {{end}}
+                </div>
+                {{if .Fight.CompletedAt.Valid}}
+                    <div class="completion-time">
+                        Violence concluded at {{.Fight.CompletedAt.Time.Format "3:04:05 PM"}}
+                    </div>
+                {{end}}
+            </div>
+        {{else if eq .Fight.Status "completed"}}
+            <div class="result-section draw-result">
+                <h4>🤝 MUTUAL DESTRUCTION</h4>
+                <div class="winner-name">Fight ended in chaos equilibrium</div>
+                <div style="color: #888; font-style: italic;">No one wins when everyone loses</div>
+            </div>
+        {{end}}
+
+        {{if .Fight.VoidedReason.Valid}}
+            <div class="voided-section">
+                <h4>💀 VOID TRANSMISSION</h4>
+                <div class="void-reason">{{.Fight.VoidedReason.String}}</div>
+            </div>
+        {{end}}
+
+        {{if .User}}
+            {{if .AllBets}}
+            <div class="betting-section">
+                <h3>💰 DEGENERATE GAMBLING STATUS</h3>
+                {{if .UserBet}}
+                    <div class="user-bet-status">
+                        <strong>Your Bet:</strong> {{.UserBet.Amount}} credits on 
+                        {{if eq .UserBet.FighterID .Fight.Fighter1ID}}{{.Fight.Fighter1Name}}{{else}}{{.Fight.Fighter2Name}}{{end}}
+                        {{if eq .UserBet.Status "resolved"}}
+                            {{if .UserBet.Payout.Valid}}
+                                - <span class="win-status">WON {{.UserBet.Payout.Int64}} credits! 🎉</span>
+                            {{else}}
+                                - <span class="loss-status">LOST 💸</span>
+                            {{end}}
+                        {{end}}
+                    </div>
+                {{end}}
+                
+                <div class="betting-summary">
+                    <div class="bet-count">{{len .AllBets}} degenerates have placed bets</div>
+                    {{$fighter1Bets := 0}}
+                    {{$fighter2Bets := 0}}
+                    {{$totalAmount := 0}}
+                    {{range .AllBets}}
+                        {{$totalAmount = add $totalAmount .Amount}}
+                        {{if eq .FighterID $.Fight.Fighter1ID}}
+                            {{$fighter1Bets = add $fighter1Bets 1}}
+                        {{else}}
+                            {{$fighter2Bets = add $fighter2Bets 1}}
+                        {{end}}
+                    {{end}}
+                    <div class="bet-stats-quick">
+                        <span><strong>{{.Fight.Fighter1Name}}:</strong> {{$fighter1Bets}} bets</span> | 
+                        <span><strong>{{.Fight.Fighter2Name}}:</strong> {{$fighter2Bets}} bets</span> | 
+                        <span><strong>Total Wagered:</strong> {{$totalAmount}} credits</span>
+                    </div>
+                </div>
+
+                <div class="detailed-bets">
+                    <h4>🎭 DEGENERATE ROSTER</h4>
+                    <div class="bets-list">
+                        {{range .AllBets}}
+                        <div class="bet-notification {{if eq .UserID $.User.ID}}user-bet{{end}}">
+                            <div class="bet-main-line">
+                                <span class="bettor-name">{{getDisplayName .Username .CustomUsername}}</span>
+                                <span class="bet-info">
+                                    {{.Amount}} credits → {{.FighterName}}
+                                    {{if eq .Status "resolved"}}
+                                        {{if .Payout.Valid}}
+                                            <span class="win-badge">+{{.Payout.Int64}}</span>
+                                        {{else}}
+                                            <span class="loss-badge">LOST</span>
+                                        {{end}}
+                                    {{end}}
+                                </span>
+                            </div>
+                            <!-- Show effects applied by this user as separate notification lines -->
+                            {{$userID := .UserID}}
+                            {{range $.UserEffectsOnFight}}
+                                {{if eq .UserID $userID}}
+                                <div class="effect-notification {{if eq .EffectType "fighter_blessing"}}blessing-notif{{else}}curse-notif{{end}}">
+                                    {{if eq .EffectType "fighter_blessing"}}
+                                        ✨ Applied blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "fighter_curse"}}
+                                        💀 Applied curse to {{.TargetName}}
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            {{end}}
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        {{else}}
+            <div class="auth-prompt">
+                <h4>🔐 AUTHENTICATION REQUIRED</h4>
+                <p><a href="/auth">Authenticate via Discord to access violence wagering systems</a></p>
+            </div>
+        {{end}}
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/" class="back-button">← Return to Violence Schedule</a>
+        </div>
+    {{else}}
+        <div class="error-section">
+            <h2>💀 VIOLENCE NOT FOUND</h2>
+            <p>The requested violence event has been absorbed into the chaos void.</p>
+            <div style="margin-top: 20px;">
+                <a href="/" class="back-button">← Return to Schedule</a>
+            </div>
+        </div>
+    {{end}}
+</div>
+
+<script src="/static/js/fight-navigation.js"></script>
+<script src="/static/js/betting.js"></script>
+<script src="/static/js/fight.js"></script>
+{{end}} 

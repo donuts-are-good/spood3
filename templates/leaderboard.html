@@ -1,0 +1,70 @@
+{{define "content"}}
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <h2>💰 VIOLENCE CREDIT LEADERBOARD 💰</h2>
+        <p class="leaderboard-subtitle">Ranking all participants by accumulated wealth from sanctioned violence</p>
+    </div>
+
+    <div class="leaderboard-table-container">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th class="rank-column">Rank</th>
+                    <th class="user-column">Participant</th>
+                    <th class="credits-column">Violence Credits</th>
+                    <th class="joined-column">Chaos Initiation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range $index, $user := .Users}}
+                <tr class="leaderboard-row">
+                    <td class="rank-cell">
+                        {{if eq $index 0}}
+                            <span class="rank-badge rank-1">👑 1</span>
+                        {{else if eq $index 1}}
+                            <span class="rank-badge rank-2">🥈 2</span>
+                        {{else if eq $index 2}}
+                            <span class="rank-badge rank-3">🥉 3</span>
+                        {{else}}
+                            <span class="rank-number">{{add $index 1}}</span>
+                        {{end}}
+                    </td>
+                    <td class="user-cell">
+                        <div class="user-display">
+                            {{$colors := generateUserColors $user.DiscordID}}
+                            <span class="color-indicator" style="background-color: #{{index $colors 0}};"></span>
+                            <span class="username">{{if $user.CustomUsername}}{{$user.CustomUsername}}{{else}}{{$user.Username}}{{end}}</span>
+                            <span class="color-indicator" style="background-color: #{{index $colors 1}};"></span>
+                        </div>
+                    </td>
+                    <td class="credits-cell">
+                        <span class="credits-amount">{{$user.Credits}}</span>
+                    </td>
+                    <td class="joined-cell">
+                        <span class="join-date">{{$user.CreatedAt.Format "Jan 2, 2006"}}</span>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+
+    {{if not .Users}}
+    <div class="empty-leaderboard">
+        <h3>🚫 No Participants Found</h3>
+        <p>The violence leaderboard awaits its first brave participants.</p>
+        <p><a href="/auth">Join the chaos</a> to claim your place in history!</p>
+    </div>
+    {{end}}
+
+    <div class="leaderboard-footer">
+        <p class="leaderboard-note">
+            💡 Rankings updated in real-time based on violence credit accumulation. 
+            All violence pre-approved by the Department of Recreational Violence.
+        </p>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/" class="back-button">← Return to Violence Schedule</a>
+        </div>
+    </div>
+</div>
+{{end}} 

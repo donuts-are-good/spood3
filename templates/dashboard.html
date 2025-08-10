@@ -1,0 +1,259 @@
+{{define "content"}}
+<div class="dashboard-container">
+    {{if .User}}
+        <div class="dashboard-header">
+            <h2>🎮 VIOLENCE COMMAND CENTER 🎮</h2>
+            <p class="dashboard-subtitle">Monitor your chaos portfolio and betting operations</p>
+        </div>
+
+        <!-- Masonry Layout - Pinterest Style -->
+        <div class="dashboard-masonry">
+            <!-- Left Column -->
+            <div class="dashboard-column">
+                <!-- User Info Widget -->
+                <div class="dashboard-widget user-info-card">
+                    <div class="user-avatar">
+                        {{if .User.AvatarURL}}
+                            <img src="{{.User.AvatarURL}}" alt="Avatar" class="avatar">
+                        {{else}}
+                            <div class="avatar" style="background: #333; display: flex; align-items: center; justify-content: center; font-size: 2rem;">👤</div>
+                        {{end}}
+                    </div>
+                    <div class="user-details">
+                        <h3>Welcome, {{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}!</h3>
+                        <div class="user-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">💰 Violence Credits</span>
+                                <span class="meta-value credits">{{.User.Credits}}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">📅 Chaos Initiation</span>
+                                <span class="meta-value">{{.User.CreatedAt.Format "January 2, 2006"}}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">🎯 Betting Status</span>
+                                <span class="meta-value">Ready for Violence</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Widget -->
+                <div class="dashboard-widget stats-widget">
+                    <div class="widget-header">
+                        <span class="widget-icon">📊</span>
+                        <h4 class="widget-title">Violence Statistics</h4>
+                    </div>
+                    <div class="stats-list">
+                        {{if .BettingStats}}
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">⏳</span>
+                                <span class="stat-text">Active Bets</span>
+                            </div>
+                            <div class="stat-number">{{.BettingStats.ActiveBets}}</div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">🎯</span>
+                                <span class="stat-text">Total Bets</span>
+                            </div>
+                            <div class="stat-number">{{.BettingStats.TotalBets}}</div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">🏆</span>
+                                <span class="stat-text">Win Rate</span>
+                            </div>
+                            <div class="stat-number">{{printf "%.1f%%" .BettingStats.WinRate}}</div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">⚖️</span>
+                                <span class="stat-text">Win/Loss Ratio</span>
+                            </div>
+                            <div class="stat-number">
+                                {{if eq .BettingStats.BetsLost 0}}
+                                    {{if gt .BettingStats.BetsWon 0}}Perfect{{else}}—{{end}}
+                                {{else}}
+                                    {{printf "%.2f" .BettingStats.WinLossRatio}}
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">💰</span>
+                                <span class="stat-text">Net Profit</span>
+                            </div>
+                            <div class="stat-number {{if lt .BettingStats.NetProfit 0}}negative{{else if gt .BettingStats.NetProfit 0}}positive{{end}}">
+                                {{if ge .BettingStats.NetProfit 0}}+{{end}}{{.BettingStats.NetProfit}}
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">📈</span>
+                                <span class="stat-text">Avg Bet Size</span>
+                            </div>
+                            <div class="stat-number">{{printf "%.0f" .BettingStats.AvgBetSize}}</div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">🚀</span>
+                                <span class="stat-text">Biggest Win</span>
+                            </div>
+                            <div class="stat-number positive">{{.BettingStats.BiggestWin}}</div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">💀</span>
+                                <span class="stat-text">Existential Dread</span>
+                            </div>
+                            <div class="stat-number">Maximum</div>
+                        </div>
+                        {{else}}
+                        <div class="stat-row">
+                            <div class="stat-info">
+                                <span class="stat-emoji">📊</span>
+                                <span class="stat-text">No betting data yet</span>
+                            </div>
+                            <div class="stat-number">—</div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+
+                <!-- Quick Actions Widget -->
+                <div class="dashboard-widget actions-widget">
+                    <div class="widget-header">
+                        <span class="widget-icon">🎯</span>
+                        <h4 class="widget-title">Quick Actions</h4>
+                    </div>
+                    <div class="action-list">
+                        <a href="/" class="action-button primary">🥊 View Violence Schedule</a>
+                        <a href="/user/settings" class="action-button secondary">⚙️ Customize Identity</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="dashboard-column">
+                <!-- Inventory Widget -->
+                {{if .UserInventory}}
+                <div class="dashboard-widget inventory-section">
+                    <h3>🎒 YOUR CHAOS INVENTORY</h3>
+                    <div class="inventory-grid">
+                        {{range .UserInventory}}
+                        <div class="inventory-item {{if eq .ItemType "fighter_creation"}}clickable-license{{end}}" 
+                             {{if eq .ItemType "fighter_creation"}}onclick="window.location.href='/user/create-fighter'"{{end}}>
+                            <div class="inventory-emoji">{{.Emoji}}</div>
+                            <div class="inventory-name">{{.Name}}</div>
+                            <div class="inventory-quantity">×{{.Quantity}}</div>
+                            {{if eq .ItemType "fighter_creation"}}
+                                <div class="license-hint">Click to create fighter!</div>
+                            {{end}}
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+                {{else}}
+                <div class="dashboard-widget inventory-section">
+                    <h3>🎒 YOUR CHAOS INVENTORY</h3>
+                    <div class="inventory-empty">
+                        <div class="empty-state">
+                            <span style="font-size: 3rem; opacity: 0.5;">📦</span>
+                            <p>No items yet</p>
+                            <a href="/shop" class="action-button secondary">Visit Shop</a>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+
+                <!-- Analytics Widget -->
+                <div class="dashboard-widget analytics-widget">
+                    <div class="widget-header">
+                        <span class="widget-icon">🔬</span>
+                        <h4 class="widget-title">Lab Analytics</h4>
+                    </div>
+                    <div class="analytics-grid">
+                        <div class="analytics-item">
+                            <div class="analytics-label">Chaos Level</div>
+                            <div class="analytics-value">Optimal</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-label">Violence Tolerance</div>
+                            <div class="analytics-value">Infinite</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-label">Connection Status</div>
+                            <div class="analytics-value">Synchronized</div>
+                        </div>
+                        <div class="analytics-item">
+                            <div class="analytics-label">Energy Level</div>
+                            <div class="analytics-value">Ready for Combat</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Betting History Widget -->
+                <div class="dashboard-widget betting-history-widget">
+                    <div class="widget-header">
+                        <span class="widget-icon">📈</span>
+                        <h4 class="widget-title">Betting History</h4>
+                    </div>
+                    {{if .UserBets}}
+                        <div class="betting-history">
+                            {{range $index, $bet := .UserBets}}
+                                {{if lt $index 50}}
+                                    <div class="bet-history-item status-{{$bet.Status}}">
+                                        <div class="bet-fight-info">
+                                            <div class="bet-fighters">{{$bet.Fighter1Name}} vs {{$bet.Fighter2Name}}</div>
+                                            <div class="bet-details">
+                                                {{$bet.Amount}} credits on {{$bet.FighterName}}
+                                                <span class="bet-status status-{{$bet.Status}}">
+                                                    {{if eq $bet.Status "pending"}}⏳ Pending
+                                                    {{else if eq $bet.Status "won"}}✅ Won
+                                                    {{else if eq $bet.Status "lost"}}❌ Lost
+                                                    {{else if eq $bet.Status "voided"}}⚪ Voided
+                                                    {{end}}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {{if eq $bet.Status "won"}}
+                                            {{if $bet.Payout.Valid}}
+                                                <div class="bet-payout">+{{$bet.Payout.Int64}} credits</div>
+                                            {{end}}
+                                        {{end}}
+                                    </div>
+                                {{end}}
+                            {{end}}
+                            {{if gt (len .UserBets) 50}}
+                                <div class="bet-history-more">
+                                    <small>And {{sub (len .UserBets) 50}} more bets...</small>
+                                </div>
+                            {{end}}
+                        </div>
+                    {{else}}
+                        <div class="activity-placeholder">
+                            🏜️ No betting activity yet<br>
+                            <small>Time to embrace the chaos!</small>
+                        </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+    {{else}}
+        <div class="dashboard-header">
+            <h2>🚫 ACCESS VIOLATION</h2>
+            <p class="dashboard-subtitle">Identity verification required</p>
+        </div>
+        <div class="dashboard-widget user-info-card">
+            <div class="user-details" style="text-align: center; width: 100%;">
+                <h3>Authentication Required</h3>
+                <p>You must be logged in to access the Violence Command Center.</p>
+                <a href="/auth" class="action-button primary" style="margin-top: 20px; display: inline-block;">🔐 Login via Discord</a>
+            </div>
+        </div>
+    {{end}}
+</div>
+{{end}} 

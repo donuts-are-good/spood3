@@ -1,0 +1,232 @@
+{{define "content"}}
+<div class="schedule-container">
+<div class="tournament-header">
+    {{if .Tournament}}
+        <div class="tournament-banner">
+            <h1 style="font-size: 2em; font-weight: bold;">2025 <span style="color: #ff0000;">SUMMER</span> PRE-SEASON</h1>
+            <h2 class="tournament-title" >{{.Tournament.Name}} Tournament</h2>
+            <p class="sponsor">Sponsored by <strong title="Spoodblort Inc. is not affiliated with {{.Tournament.Sponsor}}, for legal reasons. - Spoodblort Inc. Legal Team">{{.Tournament.Sponsor}}</strong></p>
+            <div class="tournament-meta">
+                <span class="week-badge">Week {{.Tournament.WeekNumber}}</span>
+                <span class="date-badge">{{.Tournament.StartDate.Format "January 2, 2006"}}</span>
+            </div>
+        </div>
+    {{end}}
+</div>
+
+<div class="schedule-header">
+    <h3 class="schedule-title">🥊 TODAY'S VIOLENCE SCHEDULE 🥊</h3>
+    <p class="current-time">{{.Now.Format "Monday, January 2, 2006 at 3:04 PM MST"}}</p>
+    
+    {{/* Find next upcoming fight and active fight */}}
+    {{$nextFight := .NextFight}}
+    {{$activeFight := ""}}
+    {{range .Fights}}
+        {{if eq .Status "active"}}
+            {{$activeFight = .}}
+        {{end}}
+    {{end}}
+    
+    {{if or $nextFight $activeFight}}
+        <div class="live-countdown-section {{if $activeFight}}split-layout{{else}}full-layout{{end}}">
+            {{if $activeFight}}
+                <div class="live-fight-alert">
+                    <div class="live-label">🔴 LIVE NOW</div>
+                    <div class="live-fight-name">
+                        {{$activeFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter1ID))}} 👑{{end}} vs {{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}
+                    </div>
+                    <a href="/watch/{{$activeFight.ID}}" class="watch-live-btn">⚡ WATCH NOW ⚡</a>
+                </div>
+            {{end}}
+            
+            {{if $nextFight}}
+                <div class="next-fight-countdown {{if $activeFight}}half-width{{else}}full-width{{end}}">
+                    <div class="countdown-label">⏰ NEXT VIOLENCE IN:</div>
+                    <div class="countdown-timer" 
+                         data-target-time="{{$nextFight.ScheduledTime.Format "2006-01-02T15:04:05Z07:00"}}"
+                         data-fight-id="{{$nextFight.ID}}"
+                         data-fighter1="{{$nextFight.Fighter1Name}}"
+                         data-fighter2="{{$nextFight.Fighter2Name}}">
+                        <span class="countdown-display">Calculating chaos...</span>
+                    </div>
+                    <div class="countdown-fight">
+                        {{$nextFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter1ID))}} 👑{{end}} vs {{$nextFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter2ID))}} 👑{{end}}
+                    </div>
+                </div>
+            {{end}}
+        </div>
+    {{end}}
+</div>
+
+{{if .Fights}}
+{{/* Display upcoming fights first */}}
+<div class="fights-grid">
+    {{range $i, $fight := .Fights}}
+    {{if or (eq $fight.Status "scheduled") (eq $fight.Status "active")}}
+    
+    {{/* Desktop Fight Card */}}
+    <div class="fight-card desktop-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+        <div class="fight-content">
+            <div class="fight-time">
+                <span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span>
+            </div>
+            
+            <div class="fight-matchup">
+                <div class="fighter-slot fighter1{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
+                    <span class="fighter-name">
+                        <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
+                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}}<span class="mvp-crown">👑</span>{{end}}
+                    </span>
+                </div>
+                
+                <div class="vs-section">
+                    <span class="vs-text">VS</span>
+                    <div class="fight-number">{{add $i 1}}</div>
+                </div>
+                
+                <div class="fighter-slot fighter2{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
+                    <span class="fighter-name">
+                        <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
+                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}}<span class="mvp-crown">👑</span>{{end}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fight-status">
+            {{if eq $fight.Status "active"}}
+                <div class="fight-actions">
+                    <a href="/watch/{{$fight.ID}}" class="live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
+                </div>
+            {{else if eq $fight.Status "completed"}}
+                <span class="status-indicator completed">✅ COMPLETED</span>
+            {{else if eq $fight.Status "voided"}}
+                <span class="status-indicator voided">❌ VOIDED</span>
+            {{else}}
+                <span class="status-indicator upcoming">⏱️ UPCOMING</span>
+            {{end}}
+        </div>
+    </div>
+    
+    {{/* Mobile Fight Card */}}
+    <div class="fight-card-mobile mobile-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+        <div class="mobile-fight-content">
+            <div class="mobile-fighter-name">
+                <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
+                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} 👑{{end}}
+            </div>
+            <div class="mobile-vs">vs</div>
+            <div class="mobile-fighter-name">
+                <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
+                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} 👑{{end}}
+            </div>
+            <div class="mobile-fight-time">{{$fight.ScheduledTime.Format "3:04 PM"}}</div>
+            
+            {{if eq $fight.Status "active"}}
+                <div class="mobile-fight-status">
+                    <a href="/watch/{{$fight.ID}}" class="mobile-live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
+                </div>
+            {{else if eq $fight.Status "completed"}}
+                <div class="mobile-fight-status completed">✅ COMPLETED</div>
+            {{else if eq $fight.Status "voided"}}
+                <div class="mobile-fight-status voided">❌ VOIDED</div>
+            {{else}}
+                <div class="mobile-fight-status upcoming">⏱️ UPCOMING</div>
+            {{end}}
+        </div>
+    </div>
+    
+    {{end}}
+    {{end}}
+</div>
+
+{{/* Display completed fights below */}}
+<div class="fights-grid">
+    {{range $i, $fight := .Fights}}
+    {{if or (eq $fight.Status "completed") (eq $fight.Status "voided")}}
+    
+    {{/* Desktop Fight Card */}}
+    <div class="fight-card desktop-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+        <div class="fight-content">
+            <div class="fight-time">
+                <span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span>
+            </div>
+            
+            <div class="fight-matchup">
+                <div class="fighter-slot fighter1{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
+                    <span class="fighter-name">
+                        <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
+                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}}<span class="mvp-crown">👑</span>{{end}}
+                    </span>
+                </div>
+                
+                <div class="vs-section">
+                    <span class="vs-text">VS</span>
+                    <div class="fight-number">{{add $i 1}}</div>
+                </div>
+                
+                <div class="fighter-slot fighter2{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
+                    <span class="fighter-name">
+                        <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
+                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}}<span class="mvp-crown">👑</span>{{end}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fight-status">
+            {{if eq $fight.Status "active"}}
+                <div class="fight-actions">
+                    <a href="/watch/{{$fight.ID}}" class="live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
+                </div>
+            {{else if eq $fight.Status "completed"}}
+                <span class="status-indicator completed">✅ COMPLETED</span>
+            {{else if eq $fight.Status "voided"}}
+                <span class="status-indicator voided">❌ VOIDED</span>
+            {{else}}
+                <span class="status-indicator upcoming">⏱️ UPCOMING</span>
+            {{end}}
+        </div>
+    </div>
+    
+    {{/* Mobile Fight Card */}}
+    <div class="fight-card-mobile mobile-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+        <div class="mobile-fight-content">
+            <div class="mobile-fighter-name{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
+                <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
+                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} 👑{{end}}
+            </div>
+            <div class="mobile-vs">vs</div>
+            <div class="mobile-fighter-name{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
+                <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
+                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} 👑{{end}}
+            </div>
+            <div class="mobile-fight-time">{{$fight.ScheduledTime.Format "3:04 PM"}}</div>
+            
+            {{if eq $fight.Status "active"}}
+                <div class="mobile-fight-status">
+                    <a href="/watch/{{$fight.ID}}" class="mobile-live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
+                </div>
+            {{else if eq $fight.Status "completed"}}
+                <div class="mobile-fight-status completed">✅ COMPLETED</div>
+            {{else if eq $fight.Status "voided"}}
+                <div class="mobile-fight-status voided">❌ VOIDED</div>
+            {{else}}
+                <div class="mobile-fight-status upcoming">⏱️ UPCOMING</div>
+            {{end}}
+        </div>
+    </div>
+    
+    {{end}}
+    {{end}}
+</div>
+{{else}}
+<div class="no-fights">
+    <h3>💀 NO VIOLENCE SCHEDULED 💀</h3>
+    <p>The fighters are probably touching grass or something equally disturbing.</p>
+</div>
+{{end}}
+</div>
+
+<script src="/static/js/index.js"></script>
+{{end}}

@@ -1,0 +1,267 @@
+{{define "content"}}
+<div class="settings-container">
+    {{if .User}}
+        <div class="settings-header">
+            <h2>⚙️ USER CUSTOMIZATION LABORATORY ⚙️</h2>
+            <p class="settings-subtitle">Modify your identity parameters within acceptable chaos tolerances</p>
+        </div>
+        
+        <div class="settings-sections">
+            <div class="settings-section username-section">
+                <h3>🎭 Display Name Configuration</h3>
+                <p class="section-description">
+                    Customize your identity projection throughout the Spoodblort violence ecosystem. 
+                    Your Discord identity anchor is <strong>{{.User.Username}}</strong>.
+                </p>
+                
+                <form method="POST" action="/user/settings" class="username-form">
+                    <div class="form-group">
+                        <label for="custom_username">🏷️ Custom Identity String:</label>
+                        <input type="text" 
+                               id="custom_username" 
+                               name="custom_username" 
+                               value="{{.User.CustomUsername}}" 
+                               placeholder="Enter your preferred chaos designation"
+                               maxlength="30">
+                        <small class="form-help">⚠️ Leave empty to maintain Discord identity coherence</small>
+                    </div>
+                    
+                    <div class="username-preview">
+                        <h4>🔬 LIVE PREVIEW SIMULATION</h4>
+                        <p class="preview-description">Your violence aura has been algorithmically divined from the cosmic hash of your Discord soul essence:</p>
+                        <div class="preview-name" id="namePreview">
+                            <span class="color-indicator left" style="background-color: #{{.PrimaryColor}};" title="Primary Chaos Frequency: #{{.PrimaryColor}}"></span>
+                            <span class="username-text" data-discord-username="{{.User.Username}}">{{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}</span>
+                            <span class="color-indicator right" style="background-color: #{{.SecondaryColor}};" title="Secondary Violence Wavelength: #{{.SecondaryColor}}"></span>
+                        </div>
+                        <div class="color-codes">
+                            <span class="color-code">Chaos Frequency: #{{.PrimaryColor}}</span>
+                            <span class="color-code">Violence Wavelength: #{{.SecondaryColor}}</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="save-button">💾 SAVE IDENTITY MATRIX</button>
+                </form>
+            </div>
+            
+            <div class="settings-section account-section">
+                <h3>📊 ACCOUNT TELEMETRY</h3>
+                <div class="account-details">
+                    <div class="detail-row">
+                        <span class="detail-label">🎮 Discord Identity:</span>
+                        <span class="detail-value">{{.User.Username}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">💰 Violence Credits:</span>
+                        <span class="detail-value credits-amount">{{.User.Credits}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📅 Chaos Initiation:</span>
+                        <span class="detail-value">{{.User.CreatedAt.Format "January 2, 2006"}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">🎲 Identity Hash:</span>
+                        <span class="detail-value hash-display">{{.User.DiscordID}}</span>
+                    </div>
+                </div>
+                
+                <div class="stats-summary">
+                    <h4>🏆 VIOLENCE STATISTICS</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Active Bets</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Winnings</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Chaos Streak</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Existential Dread</span>
+                            <span class="stat-value">Maximum</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {{/* MVP Player Section */}}
+            {{$hasMVPItem := false}}
+            {{if .UserInventory}}
+                {{range .UserInventory}}
+                    {{if and (eq .ItemType "mvp_player") (gt .Quantity 0)}}
+                        {{$hasMVPItem = true}}
+                    {{end}}
+                {{end}}
+            {{end}}
+            
+            <div class="settings-section mvp-section">
+                <h3>👑 MVP PLAYER SYSTEM</h3>
+                {{if $hasMVPItem}}
+                    <p class="section-description">
+                        Choose your favorite fighter to earn <strong>10,000 credits</strong> every time they win a fight.
+                        You can change your MVP for free at the next tournament, or pay <strong>1,000 credits</strong> to change immediately.
+                    </p>
+                    
+                    <div class="mvp-form">
+                        <label for="mvp_fighter">👑 Your MVP Fighter:</label>
+                        <select id="mvp_fighter" class="mvp-dropdown">
+                            <option value="">Select a fighter...</option>
+                            {{range .Fighters}}
+                                <option value="{{.ID}}" {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" .ID))}}selected{{end}}>
+                                    {{.Name}} ({{.Wins}}W-{{.Losses}}L)
+                                </option>
+                            {{end}}
+                        </select>
+                        
+                        <div class="mvp-actions">
+                            <button type="button" class="mvp-button" onclick="updateMVP(false)" {{if not $.CanChangeMVP}}disabled{{end}}>
+                                {{if $.CanChangeMVP}}
+                                    SET MVP (FREE)
+                                {{else}}
+                                    WAIT FOR NEXT TOURNAMENT
+                                {{end}}
+                            </button>
+                            <button type="button" class="mvp-button pay-button" onclick="updateMVP(true)">
+                                CHANGE NOW (1,000 CREDITS)
+                            </button>
+                        </div>
+                        
+                        {{if $.CurrentMVP}}
+                            <div class="current-mvp">
+                                <span class="mvp-label">Current MVP:</span>
+                                <span class="mvp-name">
+                                    {{range .Fighters}}
+                                        {{if eq (printf "%d" .ID) $.CurrentMVP.SettingValue}}{{.Name}}{{end}}
+                                    {{end}}
+                                </span>
+                            </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <div class="mvp-locked">
+                        <p class="locked-message">
+                            🔒 <strong>MVP Player System Locked</strong><br>
+                            Purchase <strong>MVP Player lvl 1</strong> from the <a href="/shop">Chaos Marketplace</a> to unlock this feature.
+                        </p>
+                        <div class="mvp-benefits">
+                            <h4>💰 Benefits:</h4>
+                            <ul>
+                                <li>Earn 10,000 credits when your chosen fighter wins</li>
+                                <li>Change MVP for free each tournament</li>
+                                <li>Pay 1,000 credits to change anytime</li>
+                            </ul>
+                        </div>
+                        <a href="/shop" class="shop-link-button">🛒 Visit Shop (15,000 credits)</a>
+                    </div>
+                {{end}}
+            </div>
+            
+            <div class="settings-section preferences-section">
+                <h3>🔒 ADVANCED PREFERENCES [COMMISSIONER LOCKED]</h3>
+                <div class="commissioner-notice">
+                    <strong>🏛️ DEPARTMENT OF RECREATIONAL VIOLENCE - NOTICE 2025-07-23</strong><br>
+                    <em>Advanced preference modification has been temporarily suspended following Incident ░░░░░░.</em>
+                </div>
+                <div class="preferences-grid locked">
+                    <div class="preference-item">
+                        <span class="pref-label">⚠️ Violence Notifications</span>
+                        <span class="pref-status enabled">ENABLED</span>
+                    </div>
+                    <div class="preference-item">
+                        <span class="pref-label">🌙 Dark Mode</span>
+                        <span class="pref-status enabled">ALWAYS</span>
+                    </div>
+                    <div class="preference-item redacted">
+                        <span class="pref-label">░░ ░░░░░░ ░░░░░░░░░</span>
+                        <span class="pref-status redacted-status">░░░░░░░░</span>
+                    </div>
+                    <div class="preference-item">
+                        <span class="pref-label">💀 Death Notifications</span>
+                        <span class="pref-status enabled">IMMEDIATE</span>
+                    </div>
+                    <div class="preference-item locked-item">
+                        <span class="pref-label">🎲 Probability Manipulation</span>
+                        <span class="pref-status locked">LOCKED BY ORDER 66-B</span>
+                    </div>
+                    <div class="preference-item locked-item">
+                        <span class="pref-label">🌀 Reality Anchor</span>
+                        <span class="pref-status locked">UNAUTHORIZED</span>
+                    </div>
+                </div>
+                <div class="preferences-footer">
+                    <p class="commissioner-warning">
+                        ⚠️ <strong>COMMISSIONER REMINDER:</strong> Users found attempting to modify locked preferences will be subject to 
+                        immediate violence credit forfeiture and potential ░░░░░░░░░░░ ░░░░░░░░░.
+                    </p>
+                    <p class="clearance-note">
+                        🔑 Level 3 Chaos Clearance required for unlock. Contact your local Chaos Coordinator for ░░░░░░░░░ authorization.
+                    </p>
+                    <div class="stamp">
+                        <div class="stamp-text">CLASSIFIED</div>
+                        <div class="stamp-subtext">DRV-2025</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-actions">
+            <a href="/" class="back-button">← RETURN TO VIOLENCE</a>
+            <a href="/user/dashboard" class="dashboard-button">📊 DASHBOARD</a>
+        </div>
+    {{else}}
+        <div class="error-message">
+            <h2>🚫 ACCESS VIOLATION</h2>
+            <p>Identity verification required to access the Customization Laboratory.</p>
+            <a href="/auth" class="auth-button">🔐 AUTHENTICATE VIA DISCORD</a>
+        </div>
+    {{end}}
+</div>
+
+<script src="/static/js/settings-username-livereload.js"></script>
+<script>
+function updateMVP(payToChange) {
+    const fighterSelect = document.getElementById('mvp_fighter');
+    const fighterID = fighterSelect.value;
+    
+    if (!fighterID) {
+        alert('Please select a fighter first');
+        return;
+    }
+    
+    const fighterName = fighterSelect.options[fighterSelect.selectedIndex].text.split(' (')[0];
+    const action = payToChange ? 'pay 1,000 credits to change' : 'set';
+    
+    if (!confirm(`Are you sure you want to ${action} your MVP to ${fighterName}?`)) {
+        return;
+    }
+    
+    fetch('/user/settings/mvp', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            fighter_id: parseInt(fighterID),
+            pay_to_change: payToChange
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating MVP.');
+    });
+}
+</script>
+{{end}} 

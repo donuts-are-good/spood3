@@ -1,0 +1,124 @@
+# SPOODBLORT DEVELOPMENT WORK LIST
+# Last Updated: July 23, 2025
+
+## 🔥 TIER 1: CRITICAL WEB FOUNDATION (DO FIRST)
+
+### 1. Web Server & HTTP Routes
+- [ ] Add Gorilla Mux web server to main.go
+- [ ] Create web/ package with handlers.go, routes.go, middleware.go
+- [ ] Basic routes: /, /schedule, /fight/{id}, /fighter/{id}, /login, /signup
+- [ ] Design API endpoints alongside HTML routes (/api/fights/active, etc.)
+- [ ] Add static file serving for CSS/JS/images
+
+### 2. Template System Implementation
+- [ ] Create base.html template with header/nav/footer
+- [ ] Build index.html - today's schedule with live/upcoming/completed fights
+- [ ] Build match.html - individual fight page (3 states: betting/live/historical)
+- [ ] Build fighter.html - fighter profile with stats and fight history
+- [ ] Build closed.html - Sunday "touch grass" page with Department of Recreational Violence proclamation
+- [ ] Add template helper functions for time formatting, status colors
+
+### 3. Live Fight State API
+- [ ] Add fight state endpoint: GET /api/fight/{id}/state
+- [ ] Cache current fight state (don't re-simulate every request)
+- [ ] Return JSON with health, round, time remaining, recent damage
+- [ ] Plan for Server-Sent Events or WebSocket upgrade path
+
+### 4. Basic Styling & UX
+- [ ] Mobile-first CSS framework setup
+- [ ] Fight status colors (green=live, gray=past, black=upcoming)
+- [ ] Responsive schedule table
+- [ ] Basic JavaScript for auto-refreshing live fights
+
+## 🎯 TIER 2: USER FEATURES (CORE FUNCTIONALITY)
+
+### 5. Discord OAuth Integration
+- [ ] Add Discord OAuth2 flow
+- [ ] User sessions (consider Redis or DB-based)
+- [ ] User registration with 1000 starting credits
+- [ ] Login/logout functionality
+- [ ] Middleware for protected routes
+
+### 6. Betting System
+- [ ] Bet placement UI on match.html (before fight starts only)
+- [ ] Bet validation (sufficient credits, fight not started)
+- [ ] Bet storage and tracking
+- [ ] Credit deduction/payout system
+- [ ] Bet confirmation and history display
+
+### 7. User Dashboard
+- [ ] /user/dashboard route
+- [ ] Show current credits, active bets, bet history
+- [ ] Win/loss statistics
+- [ ] Recent betting activity
+
+### 8. Fighter Profiles
+- [ ] /fighter/{id} pages with full stats
+- [ ] Fight history with win/loss records
+- [ ] "Chaos stats" display (blood type, molecular density, etc.)
+- [ ] Recent fight results and upcoming matches
+
+## 🚀 TIER 3: POLISH & ADVANCED FEATURES
+
+### 9. Enhanced Fight Display
+- [ ] Round-by-round fight progression
+- [ ] Damage visualization and fight commentary
+- [ ] Fight event timeline/log
+- [ ] Replay functionality for completed fights
+
+### 10. Betting UX Improvements
+- [ ] Odds calculation and display
+- [ ] Bet amount validation and suggestions
+- [ ] Betting confirmation modals
+- [ ] Real-time bet updates during fights
+
+### 11. Tournament & Navigation
+- [ ] Tournament overview pages
+- [ ] Historical tournament browsing
+- [ ] Weekly leaderboards
+- [ ] Fighter rankings and statistics
+
+### 12. Admin & Configuration
+- [ ] Admin dashboard for fight management
+- [ ] Manual fight voiding/completion
+- [ ] Adjustable engine constants (death rate, damage, etc.)
+- [ ] User credit management
+
+## 🧠 ARCHITECTURAL GUIDELINES
+
+### Database Strategy
+- Add betting constraints and validation
+- Plan for user session storage
+- Consider fight event logging for replays
+- Version schema changes properly
+
+### Real-Time Approach
+- Build with Server-Sent Events in mind from start
+- Cache fight states, don't re-simulate constantly
+- Design for broadcast updates to multiple users
+- Progressive enhancement: HTML first, real-time second
+
+### Development Principles
+- Mobile-first responsive design
+- API-first approach (REST endpoints + HTML views)
+- Environment-based configuration (.env files)
+- Template inheritance and reusable components
+
+### User Experience Focus
+- Progressive enhancement (works without JS)
+- Clear fight status indicators
+- Fast loading and responsive updates
+- Intuitive betting flow with confirmations
+
+## 🎯 CURRENT SPRINT FOCUS
+Start with Tier 1 items 1-4. These create the foundation for everything else.
+Design routes and templates with betting and real-time features in mind.
+Don't build dead-end pages - every component should anticipate future features.
+
+## ✅ COMPLETED
+- [x] Fight engine with 10-second tick simulation
+- [x] Catch-up simulation for crash recovery
+- [x] Database schema and repository layer
+- [x] Scheduler with lazy generation and void recovery
+- [x] Fighter stats and tournament management
+- [x] Death mechanics and win/loss tracking

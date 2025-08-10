@@ -1,0 +1,123 @@
+{{define "content"}}
+<div class="fighter-profile">
+    {{if .Fighter}}
+        <div class="fighter-header">
+            <div class="fighter-name-section">
+                <h2>{{.Fighter.Name}}</h2>
+                <p class="team">{{.Fighter.Team}}</p>
+                <p class="fighter-class">{{.Fighter.FighterClass}} Class</p>
+                {{if and .Fighter.IsCustom .Fighter.CreatedByUserID}}
+                    {{if .CreatorUser}}
+                        <p class="creator-info">🎨 Created by {{getDisplayName .CreatorUser.Username .CreatorUser.CustomUsername}}</p>
+                    {{else}}
+                        <p class="creator-info">🎨 Created by User ID {{.Fighter.CreatedByUserID}}</p>
+                    {{end}}
+                {{end}}
+            </div>
+            
+            <div class="fighter-record">
+                <div class="record-box">
+                    <h3>RECORD</h3>
+                    <div class="record-numbers">
+                        <span class="wins">{{.Fighter.Wins}}W</span>
+                        <span class="losses">{{.Fighter.Losses}}L</span>
+                        <span class="draws">{{.Fighter.Draws}}D</span>
+                    </div>
+                </div>
+                
+                <div class="status-box">
+                    {{if .Fighter.IsDead}}
+                        <div class="status-dead">💀 DECEASED</div>
+                    {{else}}
+                        <div class="status-alive">✅ ACTIVE</div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stats-card combat-stats">
+                <h3>Combat Attributes</h3>
+                <div class="stat-bars">
+                    <div class="stat-row">
+                        <span class="stat-label">Strength</span>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: /*{{.Fighter.Strength}}*/ {{.Fighter.Strength}}%"></div>
+                            <span class="stat-value">{{.Fighter.Strength}}</span>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Speed</span>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: /*{{.Fighter.Speed}}*/ {{.Fighter.Speed}}%"></div>
+                            <span class="stat-value">{{.Fighter.Speed}}</span>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Endurance</span>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: /*{{.Fighter.Endurance}}*/ {{.Fighter.Endurance}}%"></div>
+                            <span class="stat-value">{{.Fighter.Endurance}}</span>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Technique</span>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: /*{{.Fighter.Technique}}*/ {{.Fighter.Technique}}%"></div>
+                            <span class="stat-value">{{.Fighter.Technique}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-card chaos-stats">
+                <h3>Chaos Attributes</h3>
+                <div class="chaos-grid">
+                    <div class="chaos-item">
+                        <span class="chaos-label">Blood Type</span>
+                        <span class="chaos-value">{{.Fighter.BloodType}}</span>
+                    </div>
+                    <div class="chaos-item">
+                        <span class="chaos-label">Horoscope</span>
+                        <span class="chaos-value">{{.Fighter.Horoscope}}</span>
+                    </div>
+                    <div class="chaos-item">
+                        <span class="chaos-label">Molecular Density</span>
+                        <span class="chaos-value">{{.Fighter.MolecularDensity}}</span>
+                    </div>
+                    <div class="chaos-item">
+                        <span class="chaos-label">Existential Dread</span>
+                        <span class="chaos-value">{{.Fighter.ExistentialDread}}</span>
+                    </div>
+                    <div class="chaos-item">
+                        <span class="chaos-label">Fingers</span>
+                        <span class="chaos-value">{{.Fighter.Fingers}}</span>
+                    </div>
+                    <div class="chaos-item">
+                        <span class="chaos-label">Toes</span>
+                        <span class="chaos-value">{{.Fighter.Toes}}</span>
+                    </div>
+                    <div class="chaos-item">
+                        <span class="chaos-label">Ancestors</span>
+                        <span class="chaos-value">{{.Fighter.Ancestors}}</span>
+                    </div>
+                    <div class="chaos-item redacted-item">
+                        <span class="chaos-label">████████████</span>
+                        <span class="chaos-value redacted-value">████████</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fighter-actions">
+            <a href="/" class="back-button">← Back to Schedule</a>
+        </div>
+    {{else}}
+        <div class="error-message">
+            <h2>Fighter Not Found</h2>
+            <p>The fighter you're looking for doesn't exist.</p>
+            <a href="/" class="back-button">← Back to Schedule</a>
+        </div>
+    {{end}}
+</div>
+{{end}} 

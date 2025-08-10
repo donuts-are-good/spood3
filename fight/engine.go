@@ -1,0 +1,879 @@
+package fight
+
+import (
+	"fmt"
+	"log"
+	"math"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"spoodblort/database"
+	"spoodblort/discord"
+	"spoodblort/utils"
+	"sync"
+	"time"
+)
+
+// Fight engine constants - adjust these to tune gameplay
+const (
+	TICK_DURATION_SECONDS = 5
+	DEATH_CHANCE          = 100000 // 1 in 100,000 chance per damage tick
+	STARTING_HEALTH       = 100000 // Increased from 100k for longer fights
+	MIN_DAMAGE            = 5
+	MAX_DAMAGE            = 1000 // Reduced from 5000 to balance simultaneous combat
+)
+
+// Broadcaster interface for live fight updates
+type Broadcaster interface {
+	BroadcastAction(fightID int, action LiveAction)
+	BroadcastViewerCount(fightID int)
+	BroadcastRoundClapSummary(fightID, round int)
+}
+
+type FightState struct {
+	Fighter1Health int
+	Fighter2Health int
+	TickNumber     int
+	LastDamage1    int
+	LastDamage2    int
+	CurrentRound   int
+	IsComplete     bool
+	WinnerID       int
+	DeathOccurred  bool
+}
+
+type Engine struct {
+	repo             *database.Repository
+	broadcaster      Broadcaster
+	discordNotifier  *discord.Notifier
+	DiscordEvents    *discord.EventsManager
+	roleManager      *discord.RoleManager
+	liveSimulations  map[int]bool // Track which fights have live simulations running
+	simulationsMutex sync.RWMutex
+	// Fight logging
+	fightLogs     map[int]*os.File // Track open log files for each fight
+	fightLogMutex sync.Mutex
+}
+
+func NewEngine(repo *database.Repository) *Engine {
+	// Check if Discord features should be disabled
+	noDiscord := os.Getenv("SPOODBLORT_NO_DISCORD") != ""
+
+	if noDiscord {
+		log.Printf("🚫 Discord features disabled via SPOODBLORT_NO_DISCORD environment variable")
+	}
+
+	engine := &Engine{
+		repo:            repo,
+		discordNotifier: discord.NewNotifier(repo),
+		liveSimulations: make(map[int]bool),
+		fightLogs:       make(map[int]*os.File),
+	}
+
+	// Only initialize Discord Events and Role Manager if not disabled
+	if !noDiscord {
+		engine.DiscordEvents = discord.NewEventsManager(repo)
+		engine.roleManager = discord.NewRoleManager(repo)
+	}
+
+	return engine
+}
+
+// SetBroadcaster allows setting a live broadcaster for the engine
+func (e *Engine) SetBroadcaster(broadcaster Broadcaster) {
+	e.broadcaster = broadcaster
+}
+
+// GetRoleManager returns the Discord role manager
+func (e *Engine) GetRoleManager() *discord.RoleManager {
+	return e.roleManager
+}
+
+// initFightLog creates a log file for the fight and writes the header
+func (e *Engine) initFightLog(fight database.Fight, fighter1, fighter2 database.Fighter) error {
+	e.fightLogMutex.Lock()
+	defer e.fightLogMutex.Unlock()
+
+	// Create logs directory if it doesn't exist
+	logsDir := "fight_logs"
+	if err := os.MkdirAll(logsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create logs directory: %w", err)
+	}
+
+	// Format: YYYY-MM-DD-Fight12-sampson-vs-timber.txt
+	date := fight.ScheduledTime.Format("2006-01-02")
+	sanitizedName1 := sanitizeName(fighter1.Name)
+	sanitizedName2 := sanitizeName(fighter2.Name)
+	filename := fmt.Sprintf("%s-Fight%d-%s-vs-%s.txt", date, fight.ID, sanitizedName1, sanitizedName2)
+	filepath := filepath.Join(logsDir, filename)
+
+	// Create/open the file
+	file, err := os.Create(filepath)
+	if err != nil {
+		return fmt.Errorf("failed to create log file: %w", err)
+	}
+
+	e.fightLogs[fight.ID] = file
+
+	// Get tournament info
+	tournament, err := e.repo.GetTournament(fight.TournamentID)
+	if err != nil {
+		log.Printf("Failed to get tournament for fight log: %v", err)
+		tournament = &database.Tournament{Name: "Unknown Tournament", Sponsor: "Unknown Sponsor"}
+	}
+
+	// Write header
+	_, err = file.WriteString(fmt.Sprintf("%s vs %s\n", fighter1.Name, fighter2.Name))
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(fmt.Sprintf("%s, Sponsored by %s\n\n", tournament.Name, tournament.Sponsor))
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Created fight log: %s", filepath)
+	return nil
+}
+
+// logFightAction writes an action to the fight log
+func (e *Engine) logFightAction(fightID int, text string) {
+	e.fightLogMutex.Lock()
+	defer e.fightLogMutex.Unlock()
+
+	if file, exists := e.fightLogs[fightID]; exists {
+		file.WriteString(text + "\n")
+		file.Sync() // Ensure it's written immediately
+	}
+}
+
+// closeFightLog closes and removes the log file from tracking
+func (e *Engine) closeFightLog(fightID int) {
+	e.fightLogMutex.Lock()
+	defer e.fightLogMutex.Unlock()
+
+	if file, exists := e.fightLogs[fightID]; exists {
+		file.Close()
+		delete(e.fightLogs, fightID)
+	}
+}
+
+// sanitizeName removes characters that aren't safe for filenames
+func sanitizeName(name string) string {
+	// Replace spaces and unsafe characters with hyphens
+	result := ""
+	for _, char := range name {
+		if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || (char >= '0' && char <= '9') {
+			result += string(char)
+		} else if char == ' ' || char == '_' {
+			result += "-"
+		}
+		// Skip other characters
+	}
+	return result
+}
+
+// SimulateFightFromStart runs a complete fight simulation from the beginning
+func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2 database.Fighter) (*FightState, error) {
+	log.Printf("Starting fight simulation: %s vs %s", fighter1.Name, fighter2.Name)
+
+	// Calculate starting health with applied effects from the fight's scheduled date
+	fighter1Health := e.calculateFighterHealthForDate(fighter1.ID, fight.ScheduledTime)
+	fighter2Health := e.calculateFighterHealthForDate(fighter2.ID, fight.ScheduledTime)
+
+	state := &FightState{
+		Fighter1Health: fighter1Health,
+		Fighter2Health: fighter2Health,
+		TickNumber:     0,
+		CurrentRound:   1,
+	}
+
+	maxTicks := (30 * 60) / TICK_DURATION_SECONDS // 30 minutes worth of ticks
+
+	for tick := 1; tick <= maxTicks && !state.IsComplete; tick++ {
+		e.simulateTick(fight.ID, tick, fighter1, fighter2, state)
+
+		if tick%6 == 0 { // Every minute, check for round progression
+			state.CurrentRound++
+		}
+	}
+
+	// If fight went the distance, determine winner by remaining health
+	if !state.IsComplete {
+		if state.Fighter1Health > state.Fighter2Health {
+			state.WinnerID = fighter1.ID
+		} else if state.Fighter2Health > state.Fighter1Health {
+			state.WinnerID = fighter2.ID
+		}
+		// If exactly equal health, it's a draw (WinnerID stays 0)
+		state.IsComplete = true
+		log.Printf("Fight went to judges decision")
+	}
+
+	return state, nil
+}
+
+// CatchUpSimulation simulates a fight from start to current time for recovery
+func (e *Engine) CatchUpSimulation(fight database.Fight, fighter1, fighter2 database.Fighter, now time.Time) (*FightState, error) {
+	elapsed := now.Sub(fight.ScheduledTime)
+	elapsedSeconds := int(elapsed.Seconds())
+	targetTick := elapsedSeconds / TICK_DURATION_SECONDS
+
+	log.Printf("Catching up fight simulation: %d ticks elapsed", targetTick)
+
+	// Calculate starting health with applied effects from the fight's scheduled date
+	fighter1Health := e.calculateFighterHealthForDate(fighter1.ID, fight.ScheduledTime)
+	fighter2Health := e.calculateFighterHealthForDate(fighter2.ID, fight.ScheduledTime)
+
+	state := &FightState{
+		Fighter1Health: fighter1Health,
+		Fighter2Health: fighter2Health,
+		TickNumber:     0,
+		CurrentRound:   1,
+	}
+
+	// Simulate all elapsed ticks at once
+	for tick := 1; tick <= targetTick && !state.IsComplete; tick++ {
+		e.simulateTick(fight.ID, tick, fighter1, fighter2, state)
+
+		if tick%6 == 0 {
+			state.CurrentRound++
+		}
+	}
+
+	return state, nil
+}
+
+// StartLiveFightSimulation begins real-time simulation for an active fight
+func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighter2 database.Fighter) error {
+	// Check if simulation is already running for this fight
+	e.simulationsMutex.Lock()
+	if e.liveSimulations[fight.ID] {
+		e.simulationsMutex.Unlock()
+		log.Printf("Live simulation already running for fight %d", fight.ID)
+		return nil
+	}
+	e.liveSimulations[fight.ID] = true
+	e.simulationsMutex.Unlock()
+
+	log.Printf("Starting live simulation for fight %d: %s vs %s", fight.ID, fighter1.Name, fighter2.Name)
+
+	// Initialize fight log
+	err := e.initFightLog(fight, fighter1, fighter2)
+	if err != nil {
+		log.Printf("Failed to initialize fight log: %v", err)
+		// Continue without logging
+	}
+
+	// Calculate how many ticks have already passed since fight started
+	elapsed := time.Since(fight.ScheduledTime)
+	elapsedTicks := int(elapsed.Seconds()) / TICK_DURATION_SECONDS
+
+	// Calculate starting health with applied effects from today (live fights use today's effects)
+	centralTime, _ := time.LoadLocation("America/Chicago")
+	now := time.Now().In(centralTime)
+	fighter1Health := e.calculateFighterHealthForDate(fighter1.ID, now)
+	fighter2Health := e.calculateFighterHealthForDate(fighter2.ID, now)
+
+	// Create initial state
+	state := &FightState{
+		Fighter1Health: fighter1Health,
+		Fighter2Health: fighter2Health,
+		TickNumber:     0,
+		CurrentRound:   1,
+	}
+
+	// Catch up to current time without broadcasting (for consistency)
+	for tick := 1; tick <= elapsedTicks && !state.IsComplete; tick++ {
+		e.simulateTickQuiet(fight.ID, tick, fighter1, fighter2, state)
+		if tick%6 == 0 {
+			state.CurrentRound++
+		}
+	}
+
+	// If fight is already complete, finish it
+	if state.IsComplete {
+		e.simulationsMutex.Lock()
+		delete(e.liveSimulations, fight.ID)
+		e.simulationsMutex.Unlock()
+		return e.CompleteFight(fight, state)
+	}
+
+	// Start real-time broadcasting from current state
+	go e.broadcastLiveFight(fight, fighter1, fighter2, state)
+
+	return nil
+}
+
+// broadcastLiveFight runs the live fight simulation in a goroutine
+func (e *Engine) broadcastLiveFight(fight database.Fight, fighter1, fighter2 database.Fighter, state *FightState) {
+	defer func() {
+		e.simulationsMutex.Lock()
+		delete(e.liveSimulations, fight.ID)
+		e.simulationsMutex.Unlock()
+		log.Printf("Live simulation ended for fight %d", fight.ID)
+	}()
+
+	ticker := time.NewTicker(TICK_DURATION_SECONDS * time.Second)
+	defer ticker.Stop()
+
+	// Broadcast initial viewer count
+	if e.broadcaster != nil {
+		e.broadcaster.BroadcastViewerCount(fight.ID)
+	}
+
+	maxTicks := (30 * 60) / TICK_DURATION_SECONDS // 30 minutes worth of ticks
+
+	for !state.IsComplete && state.TickNumber < maxTicks {
+		select {
+		case <-ticker.C:
+			state.TickNumber++
+
+			// Simulate this tick with broadcasting
+			e.simulateTick(fight.ID, state.TickNumber, fighter1, fighter2, state)
+
+			// Check for round progression
+			if state.TickNumber%6 == 0 {
+				state.CurrentRound++
+				// Broadcast round change
+				if e.broadcaster != nil {
+					roundAction := GenerateRoundAction(state.CurrentRound, state.Fighter1Health, state.Fighter2Health)
+					e.broadcaster.BroadcastAction(fight.ID, roundAction)
+
+					// Log the round action
+					e.logFightAction(fight.ID, roundAction.Action)
+					if roundAction.Commentary != "" {
+						e.logFightAction(fight.ID, fmt.Sprintf("%s: \"%s\"", roundAction.Announcer, roundAction.Commentary))
+					}
+
+					// Broadcast clap summary for the previous round if it was a clapping round
+					e.broadcaster.BroadcastRoundClapSummary(fight.ID, state.CurrentRound)
+				}
+			}
+
+			// If fight is complete, finish it
+			if state.IsComplete {
+				log.Printf("Live fight %d completed, finishing...", fight.ID)
+				e.CompleteFight(fight, state)
+				return
+			}
+		}
+	}
+
+	// If fight went the distance, complete it
+	if !state.IsComplete {
+		if state.Fighter1Health > state.Fighter2Health {
+			state.WinnerID = fighter1.ID
+		} else if state.Fighter2Health > state.Fighter1Health {
+			state.WinnerID = fighter2.ID
+		}
+		state.IsComplete = true
+		log.Printf("Live fight %d went to judges decision", fight.ID)
+		e.CompleteFight(fight, state)
+	}
+}
+
+// simulateTick runs one 10-second combat tick
+func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 database.Fighter, state *FightState) {
+	seed := utils.FightTickSeed(fightID, tickNumber)
+	rng := utils.NewSeededRNG(seed)
+
+	// Random coinflip determines who gets advantage this tick (pure chaos!)
+	fighter1Advantage := rng.Intn(2) == 0
+
+	// Calculate base damage for both fighters (simultaneous combat)
+	baseDamage1 := e.calculateDamage(fighter1, rng)
+	baseDamage2 := e.calculateDamage(fighter2, rng)
+
+	var damage1, damage2 int
+	if fighter1Advantage {
+		// Fighter1 wins this exchange - gets full damage, Fighter2 gets reduced damage
+		damage1 = 0
+		damage2 = baseDamage1 + (baseDamage1 / 2) // Winner gets 150% damage
+		// Fighter1 still takes some damage back but reduced
+		damage1 = baseDamage2 / 3 // Loser deals 33% damage back
+	} else {
+		// Fighter2 wins this exchange - gets full damage, Fighter1 gets reduced damage
+		damage2 = 0
+		damage1 = baseDamage2 + (baseDamage2 / 2) // Winner gets 150% damage
+		// Fighter2 still takes some damage back but reduced
+		damage2 = baseDamage1 / 3 // Loser deals 33% damage back
+	}
+
+	// Apply damage
+	state.Fighter1Health -= damage1
+	state.Fighter2Health -= damage2
+	state.LastDamage1 = damage1
+	state.LastDamage2 = damage2
+	state.TickNumber = tickNumber
+
+	// Generate and broadcast live action if broadcaster is available
+	if e.broadcaster != nil {
+		action := GenerateLiveAction(fightID, tickNumber, fighter1, fighter2, damage1, damage2, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+		e.broadcaster.BroadcastAction(fightID, action)
+
+		// Log the action to file
+		e.logFightAction(fightID, action.Action)
+		if action.Commentary != "" {
+			e.logFightAction(fightID, fmt.Sprintf("%s: \"%s\"", action.Announcer, action.Commentary))
+		}
+	}
+
+	// Check for death (only if damage was dealt)
+	if damage1 > 0 && e.checkDeath(rng) {
+		state.DeathOccurred = true
+		state.IsComplete = true
+		state.WinnerID = fighter2.ID
+		log.Printf("%s died from damage!", fighter1.Name)
+
+		// Broadcast death action
+		if e.broadcaster != nil {
+			deathAction := GenerateDeathAction(fightID, fighter2, fighter1, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+			e.broadcaster.BroadcastAction(fightID, deathAction)
+
+			// Log the death action
+			e.logFightAction(fightID, deathAction.Action)
+			if deathAction.Commentary != "" {
+				e.logFightAction(fightID, fmt.Sprintf("%s: \"%s\"", deathAction.Announcer, deathAction.Commentary))
+			}
+		}
+		return
+	}
+
+	if damage2 > 0 && e.checkDeath(rng) {
+		state.DeathOccurred = true
+		state.IsComplete = true
+		state.WinnerID = fighter1.ID
+		log.Printf("%s died from damage!", fighter2.Name)
+
+		// Broadcast death action
+		if e.broadcaster != nil {
+			deathAction := GenerateDeathAction(fightID, fighter1, fighter2, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+			e.broadcaster.BroadcastAction(fightID, deathAction)
+
+			// Log the death action
+			e.logFightAction(fightID, deathAction.Action)
+			if deathAction.Commentary != "" {
+				e.logFightAction(fightID, fmt.Sprintf("%s: \"%s\"", deathAction.Announcer, deathAction.Commentary))
+			}
+		}
+		return
+	}
+
+	// Check for KO
+	if state.Fighter1Health <= 0 {
+		state.IsComplete = true
+		state.WinnerID = fighter2.ID
+		log.Printf("%s won by KO!", fighter2.Name)
+
+		// Broadcast KO action
+		if e.broadcaster != nil {
+			koAction := GenerateDeathAction(fightID, fighter2, fighter1, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+			e.broadcaster.BroadcastAction(fightID, koAction)
+
+			// Log the KO action
+			e.logFightAction(fightID, koAction.Action)
+			if koAction.Commentary != "" {
+				e.logFightAction(fightID, fmt.Sprintf("%s: \"%s\"", koAction.Announcer, koAction.Commentary))
+			}
+		}
+		return
+	}
+
+	if state.Fighter2Health <= 0 {
+		state.IsComplete = true
+		state.WinnerID = fighter1.ID
+		log.Printf("%s won by KO!", fighter1.Name)
+
+		// Broadcast KO action
+		if e.broadcaster != nil {
+			koAction := GenerateDeathAction(fightID, fighter1, fighter2, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+			e.broadcaster.BroadcastAction(fightID, koAction)
+
+			// Log the KO action
+			e.logFightAction(fightID, koAction.Action)
+			if koAction.Commentary != "" {
+				e.logFightAction(fightID, fmt.Sprintf("%s: \"%s\"", koAction.Announcer, koAction.Commentary))
+			}
+		}
+		return
+	}
+}
+
+// simulateTickQuiet runs a tick without broadcasting (for catch-up)
+func (e *Engine) simulateTickQuiet(fightID, tickNumber int, fighter1, fighter2 database.Fighter, state *FightState) {
+	seed := utils.FightTickSeed(fightID, tickNumber)
+	rng := utils.NewSeededRNG(seed)
+
+	// Random coinflip determines who gets advantage this tick (pure chaos!)
+	fighter1Advantage := rng.Intn(2) == 0
+
+	// Calculate base damage for both fighters (simultaneous combat)
+	baseDamage1 := e.calculateDamage(fighter1, rng)
+	baseDamage2 := e.calculateDamage(fighter2, rng)
+
+	var damage1, damage2 int
+	if fighter1Advantage {
+		// Fighter1 wins this exchange - gets full damage, Fighter2 gets reduced damage
+		damage1 = 0
+		damage2 = baseDamage1 + (baseDamage1 / 2) // Winner gets 150% damage
+		// Fighter1 still takes some damage back but reduced
+		damage1 = baseDamage2 / 3 // Loser deals 33% damage back
+	} else {
+		// Fighter2 wins this exchange - gets full damage, Fighter1 gets reduced damage
+		damage2 = 0
+		damage1 = baseDamage2 + (baseDamage2 / 2) // Winner gets 150% damage
+		// Fighter2 still takes some damage back but reduced
+		damage2 = baseDamage1 / 3 // Loser deals 33% damage back
+	}
+
+	// Apply damage
+	state.Fighter1Health -= damage1
+	state.Fighter2Health -= damage2
+	state.LastDamage1 = damage1
+	state.LastDamage2 = damage2
+	state.TickNumber = tickNumber
+
+	// Check for death (only if damage was dealt)
+	if damage1 > 0 && e.checkDeath(rng) {
+		state.DeathOccurred = true
+		state.IsComplete = true
+		state.WinnerID = fighter2.ID
+		return
+	}
+
+	if damage2 > 0 && e.checkDeath(rng) {
+		state.DeathOccurred = true
+		state.IsComplete = true
+		state.WinnerID = fighter1.ID
+		return
+	}
+
+	// Check for KO
+	if state.Fighter1Health <= 0 {
+		state.IsComplete = true
+		state.WinnerID = fighter2.ID
+		return
+	}
+
+	if state.Fighter2Health <= 0 {
+		state.IsComplete = true
+		state.WinnerID = fighter1.ID
+		return
+	}
+}
+
+// calculateDamage calculates damage dealt by winning fighter
+func (e *Engine) calculateDamage(winner database.Fighter, rng *rand.Rand) int {
+	// Base damage with some randomness
+	baseDamage := MIN_DAMAGE + rng.Intn(MAX_DAMAGE-MIN_DAMAGE)
+
+	// Modify by strength (higher strength = more damage)
+	strengthMultiplier := 1.0 + (float64(winner.Strength)/100.0)*0.5
+
+	finalDamage := int(float64(baseDamage) * strengthMultiplier)
+
+	return int(math.Max(float64(MIN_DAMAGE), float64(finalDamage)))
+}
+
+// checkDeath determines if death occurs this tick
+func (e *Engine) checkDeath(rng *rand.Rand) bool {
+	return rng.Intn(DEATH_CHANCE) == 0
+}
+
+// calculateFighterHealth calculates starting health with applied effects
+func (e *Engine) calculateFighterHealth(fighterID int) int {
+	baseHealth := STARTING_HEALTH
+
+	// Get applied effects for this fighter
+	effects, err := e.repo.GetAppliedEffects("fighter", fighterID)
+	if err != nil {
+		log.Printf("Error getting applied effects for fighter %d: %v", fighterID, err)
+		return baseHealth
+	}
+
+	// Apply health modifications
+	for _, effect := range effects {
+		switch effect.EffectType {
+		case "fighter_blessing":
+			baseHealth += effect.EffectValue // +100 per blessing
+		case "fighter_curse":
+			baseHealth -= effect.EffectValue // -100 per curse
+		}
+	}
+
+	// Ensure health never goes below 1
+	if baseHealth < 1 {
+		baseHealth = 1
+	}
+
+	log.Printf("Fighter %d starting health: %d (base: %d, effects applied: %d)",
+		fighterID, baseHealth, STARTING_HEALTH, len(effects))
+
+	return baseHealth
+}
+
+// calculateFighterHealthForDate calculates starting health with applied effects from a specific date
+func (e *Engine) calculateFighterHealthForDate(fighterID int, effectDate time.Time) int {
+	baseHealth := STARTING_HEALTH
+
+	// Get day bounds for the effect date
+	startDate := time.Date(effectDate.Year(), effectDate.Month(), effectDate.Day(), 0, 0, 0, 0, effectDate.Location())
+	endDate := startDate.Add(24 * time.Hour)
+
+	// Get applied effects for this fighter on the specific date
+	effects, err := e.repo.GetAppliedEffectsForDate("fighter", fighterID, startDate, endDate)
+	if err != nil {
+		log.Printf("Error getting applied effects for fighter %d on date %s: %v", fighterID, effectDate.Format("2006-01-02"), err)
+		return baseHealth
+	}
+
+	// Apply health modifications
+	for _, effect := range effects {
+		switch effect.EffectType {
+		case "fighter_blessing":
+			baseHealth += effect.EffectValue // +100 per blessing
+		case "fighter_curse":
+			baseHealth -= effect.EffectValue // -100 per curse
+		}
+	}
+
+	// Ensure health never goes below 1
+	if baseHealth < 1 {
+		baseHealth = 1
+	}
+
+	log.Printf("Fighter %d starting health for date %s: %d (base: %d, effects applied: %d)",
+		fighterID, effectDate.Format("2006-01-02"), baseHealth, STARTING_HEALTH, len(effects))
+
+	return baseHealth
+}
+
+// CompleteFight finishes a fight and persists results to database
+func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
+	log.Printf("Completing fight %d: final scores %d-%d", fight.ID, state.Fighter1Health, state.Fighter2Health)
+
+	// Log the final result
+	if state.WinnerID != 0 {
+		// Get the winner's name
+		var winnerName string
+		if state.WinnerID == fight.Fighter1ID {
+			winnerName = fight.Fighter1Name
+		} else {
+			winnerName = fight.Fighter2Name
+		}
+
+		if state.DeathOccurred {
+			e.logFightAction(fight.ID, fmt.Sprintf("%s wins by DEATH!", winnerName))
+		} else if state.Fighter1Health <= 0 || state.Fighter2Health <= 0 {
+			e.logFightAction(fight.ID, fmt.Sprintf("%s wins by KO!", winnerName))
+		} else {
+			e.logFightAction(fight.ID, fmt.Sprintf("%s wins by decision!", winnerName))
+		}
+	} else {
+		e.logFightAction(fight.ID, "Fight ends in a draw!")
+	}
+
+	// Close the fight log
+	defer e.closeFightLog(fight.ID)
+
+	// Determine winner ID for betting purposes
+	var winnerIDPtr *int
+	if state.WinnerID != 0 {
+		winnerIDPtr = &state.WinnerID
+	}
+
+	// Get user IDs who have bets on this fight (for role updates after credit changes)
+	affectedUserIDs, err := e.repo.GetUserIDsWithBetsOnFight(fight.ID)
+	if err != nil {
+		log.Printf("Failed to get user IDs for role updates: %v", err)
+		affectedUserIDs = nil // Continue without role updates
+	}
+
+	// Process all bets for this fight BEFORE updating the fight status
+	err = e.repo.ProcessBetsForFight(fight.ID, winnerIDPtr)
+	if err != nil {
+		log.Printf("Failed to process bets for fight %d: %v", fight.ID, err)
+		// Continue with fight completion even if bet processing fails
+	} else if len(affectedUserIDs) > 0 {
+		// Update Discord roles for users whose credits changed
+		go e.UpdateUserRolesAfterCreditsChange(affectedUserIDs)
+	}
+
+	// Process MVP rewards if there's a winner
+	if state.WinnerID != 0 {
+		err = e.repo.ProcessMVPRewards(fight.ID, state.WinnerID)
+		if err != nil {
+			log.Printf("Failed to process MVP rewards for fight %d: %v", fight.ID, err)
+			// Continue with fight completion even if MVP processing fails
+		}
+	}
+
+	// Update fight in database
+	err = e.repo.UpdateFightResult(fight.ID, nullableInt64(state.WinnerID), state.Fighter1Health, state.Fighter2Health)
+	if err != nil {
+		return fmt.Errorf("failed to update fight: %w", err)
+	}
+
+	// Handle death if it occurred
+	if state.DeathOccurred {
+		var deadFighterID int
+		if state.WinnerID == fight.Fighter1ID {
+			deadFighterID = fight.Fighter2ID
+		} else {
+			deadFighterID = fight.Fighter1ID
+		}
+
+		err = e.repo.KillFighter(deadFighterID)
+		if err != nil {
+			return fmt.Errorf("failed to kill fighter: %w", err)
+		}
+
+		log.Printf("Fighter %d has died!", deadFighterID)
+	}
+
+	// Update fighter records
+	switch state.WinnerID {
+	case fight.Fighter1ID:
+		err = e.repo.UpdateFighterRecords(fight.Fighter1ID, fight.Fighter2ID, "fighter1_wins")
+	case fight.Fighter2ID:
+		err = e.repo.UpdateFighterRecords(fight.Fighter1ID, fight.Fighter2ID, "fighter2_wins")
+	default:
+		err = e.repo.UpdateFighterRecords(fight.Fighter1ID, fight.Fighter2ID, "draw")
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to update fighter records: %w", err)
+	}
+
+	// Get fighter information for Discord notification
+	fighter1, err := e.repo.GetFighter(fight.Fighter1ID)
+	if err != nil {
+		log.Printf("Failed to get fighter1 for Discord notification: %v", err)
+		fighter1 = nil
+	}
+
+	fighter2, err := e.repo.GetFighter(fight.Fighter2ID)
+	if err != nil {
+		log.Printf("Failed to get fighter2 for Discord notification: %v", err)
+		fighter2 = nil
+	}
+
+	// Send Discord notification (don't fail the fight if this fails)
+	if fighter1 != nil && fighter2 != nil {
+		// Convert fight.FightState to discord.FightState to avoid import cycles
+		discordState := &discord.FightState{
+			Fighter1Health: state.Fighter1Health,
+			Fighter2Health: state.Fighter2Health,
+			TickNumber:     state.TickNumber,
+			LastDamage1:    state.LastDamage1,
+			LastDamage2:    state.LastDamage2,
+			CurrentRound:   state.CurrentRound,
+			IsComplete:     state.IsComplete,
+			WinnerID:       state.WinnerID,
+			DeathOccurred:  state.DeathOccurred,
+		}
+
+		err = e.discordNotifier.NotifyFightResult(fight, discordState, *fighter1, *fighter2)
+		if err != nil {
+			log.Printf("Failed to send Discord notification for fight %d: %v", fight.ID, err)
+			// Continue - don't fail fight completion if Discord notification fails
+		}
+
+		// Update the Discord event to mark it as completed
+		if e.DiscordEvents != nil {
+			err = e.DiscordEvents.UpdateEventAsCompleted(fight)
+			if err != nil {
+				log.Printf("Failed to update Discord event for completed fight %d: %v", fight.ID, err)
+				// Continue - don't fail fight completion if event update fails
+			}
+		}
+	}
+
+	log.Printf("Fight completed successfully, bets and MVP rewards processed")
+	return nil
+}
+
+// ProcessActiveFights handles all currently active fights
+func (e *Engine) ProcessActiveFights(now time.Time) error {
+	// Get all active fights
+	activeFights, err := e.repo.GetActiveFights()
+	if err != nil {
+		return fmt.Errorf("failed to get active fights: %w", err)
+	}
+
+	log.Printf("Processing %d active fights", len(activeFights))
+
+	for _, fight := range activeFights {
+		err = e.processSingleActiveFight(fight, now)
+		if err != nil {
+			log.Printf("Error processing fight %d: %v", fight.ID, err)
+			continue
+		}
+	}
+
+	return nil
+}
+
+// processSingleActiveFight handles one active fight
+func (e *Engine) processSingleActiveFight(fight database.Fight, now time.Time) error {
+	// Get fighters
+	fighter1, err := e.repo.GetFighter(fight.Fighter1ID)
+	if err != nil {
+		return fmt.Errorf("failed to get fighter1: %w", err)
+	}
+
+	fighter2, err := e.repo.GetFighter(fight.Fighter2ID)
+	if err != nil {
+		return fmt.Errorf("failed to get fighter2: %w", err)
+	}
+
+	// Check if fight should be over (30 minutes elapsed)
+	fightEndTime := fight.ScheduledTime.Add(30 * time.Minute)
+	if now.After(fightEndTime) {
+		// Simulate complete fight to get final result
+		state, err := e.SimulateFightFromStart(fight, *fighter1, *fighter2)
+		if err != nil {
+			return fmt.Errorf("failed to simulate complete fight: %w", err)
+		}
+
+		return e.CompleteFight(fight, state)
+	}
+
+	// Start live simulation for this active fight
+	log.Printf("Starting live simulation for active fight %d", fight.ID)
+	return e.StartLiveFightSimulation(fight, *fighter1, *fighter2)
+}
+
+// nullableInt64 converts int to sql.NullInt64 (0 becomes NULL)
+func nullableInt64(value int) interface{} {
+	if value == 0 {
+		return nil
+	}
+	return value
+}
+
+// UpdateUserRolesAfterCreditsChange updates Discord roles for users whose credits changed
+func (e *Engine) UpdateUserRolesAfterCreditsChange(userIDs []int) {
+	if e.roleManager == nil {
+		return
+	}
+
+	for _, userID := range userIDs {
+		user, err := e.repo.GetUser(userID)
+		if err != nil {
+			log.Printf("Failed to get user %d for role update: %v", userID, err)
+			continue
+		}
+
+		err = e.roleManager.UpdateUserRole(user)
+		if err != nil {
+			log.Printf("Failed to update Discord role for user %s: %v", user.Username, err)
+		}
+	}
+}
+
+// LogAction is a public method to log fight actions (used by websocket for clap summaries)
+func (e *Engine) LogAction(fightID int, text string) {
+	e.logFightAction(fightID, text)
+}

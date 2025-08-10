@@ -1,0 +1,336 @@
+/* SUNDAY CLOSED PAGE - Department of Recreational Violence */
+
+.closed-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Department Seal */
+.department-seal {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: #000000;
+    border: 3px solid #ffffff;
+    border-radius: 15px;
+}
+
+.department-seal h1 {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffaa00;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+.seal-subtitle {
+    font-size: 1rem;
+    color: #888888;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+/* Proclamation Box */
+.proclamation-box {
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.proclamation-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #ffaa00;
+}
+
+.proclamation-header h2 {
+    font-size: 1.8rem;
+    color: #ffaa00;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.proclamation-number {
+    font-size: 0.9rem;
+    color: #888888;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* Proclamation Content */
+.proclamation-content {
+    line-height: 1.6;
+}
+
+.whereas {
+    margin-bottom: 15px;
+    font-size: 1rem;
+    color: #cccccc;
+    text-indent: 20px;
+    font-style: italic;
+}
+
+.therefore {
+    margin: 20px 0;
+    font-size: 1.1rem;
+    color: #ffffff;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.resolution {
+    background: #000000;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.resolution p {
+    font-size: 1.05rem;
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.activities-list {
+    list-style: none;
+    padding: 0;
+}
+
+.activities-list li {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: #111111;
+    border-left: 4px solid #ffaa00;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    color: #cccccc;
+}
+
+.activities-list li.redacted {
+    background: #1a0000;
+    border-left: 4px solid #ff4444;
+    color: #666666;
+    font-family: monospace;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+.activities-list li.redacted::before {
+    content: "🚫 CLASSIFIED";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    color: #ff4444;
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+}
+
+/* Resumption Notice */
+.resumption-notice {
+    background: #220000;
+    border: 2px solid #ff4444;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 25px;
+    text-align: center;
+}
+
+.resumption-header {
+    color: #ff4444;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.resumption-notice p {
+    color: #ffcccc;
+    margin-bottom: 10px;
+}
+
+/* Signature Block */
+.signature {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #444444;
+}
+
+.signature-text {
+    flex: 1;
+    color: #888888;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.signature-text strong {
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-family: cursive;
+    font-style: normal;
+}
+
+.signature-text em {
+    color: #ffaa00;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.official-seal {
+    margin-left: 20px;
+    text-align: center;
+}
+
+.seal-text {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #ffaa00;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.seal-emoji {
+    width: 60px;
+    height: 60px;
+    border: 3px solid #ffaa00;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: #111111;
+}
+
+/* Violence Countdown */
+.violence-countdown {
+    text-align: center;
+    padding: 25px;
+    background: #222222;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.violence-countdown p {
+    font-size: 1.1rem;
+    color: #cccccc;
+    margin-bottom: 20px;
+}
+
+.countdown-container {
+    background: #000000;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.countdown-label {
+    font-size: 0.9rem;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+}
+
+.countdown-timer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.countdown-segment {
+    text-align: center;
+    min-width: 80px;
+}
+
+.countdown-segment span {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #00ff00;
+    text-shadow: 0 0 10px #00ff00;
+    background: #111111;
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 5px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.countdown-segment label {
+    font-size: 0.8rem;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.violence-ready {
+    font-size: 1.5rem;
+    color: #ff4444;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: pulse 1s infinite;
+    padding: 20px;
+    border: 2px solid #ff4444;
+    border-radius: 8px;
+    background: #220000;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .department-seal h1 {
+        font-size: 1.6rem;
+    }
+    
+    .proclamation-box {
+        padding: 20px;
+    }
+    
+    .signature {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .official-seal {
+        margin-left: 0;
+    }
+    
+    .countdown-timer {
+        gap: 15px;
+    }
+    
+    .countdown-segment {
+        min-width: 70px;
+    }
+    
+    .countdown-segment span {
+        font-size: 1.5rem;
+        min-height: 50px;
+        padding: 8px;
+    }
+} 

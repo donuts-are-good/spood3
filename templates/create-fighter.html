@@ -1,0 +1,184 @@
+{{define "content"}}
+<div class="create-fighter-container">
+    <div class="creation-header">
+        <h2>🥊 FIGHTER CREATION LABORATORY 🥊</h2>
+        <p class="creation-subtitle">Design your ultimate combatant for the violence arena</p>
+    </div>
+
+    <div class="creation-wizard">
+        <!-- Step 1: Fighter Name -->
+        <div class="wizard-step active" id="step-name">
+            <div class="step-header">
+                <h3>Step 1: Name Your Fighter</h3>
+                <p>Choose a name that strikes fear into your enemies</p>
+            </div>
+            
+            <div class="name-input-section">
+                <label for="fighter-name">Fighter Name</label>
+                <input type="text" id="fighter-name" placeholder="Enter fighter name (3-50 characters)" maxlength="50" minlength="3">
+                <div class="name-validation" id="name-validation"></div>
+            </div>
+
+            <div class="step-controls">
+                <button class="wizard-btn primary" onclick="nextStep()" id="name-next-btn" disabled>
+                    Continue to Stats →
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Stat Allocation -->
+        <div class="wizard-step" id="step-stats">
+            <div class="step-header">
+                <h3>Step 2: Allocate Combat Stats</h3>
+                <p>Distribute 300 points across your fighter's abilities</p>
+            </div>
+
+            <div class="stat-allocation">
+                <div class="points-remaining">
+                    <span id="remaining-points">300</span> points remaining
+                </div>
+                
+                <div class="stat-row">
+                    <label>Strength</label>
+                    <button class="stat-btn" onclick="adjustStat('strength', -1)">-</button>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="strength-fill" style="width: 16.67%"></div>
+                        <span class="stat-value" id="strength-value">20/120</span>
+                    </div>
+                    <button class="stat-btn" onclick="adjustStat('strength', 1)">+</button>
+                </div>
+
+                <div class="stat-row">
+                    <label>Speed</label>
+                    <button class="stat-btn" onclick="adjustStat('speed', -1)">-</button>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="speed-fill" style="width: 16.67%"></div>
+                        <span class="stat-value" id="speed-value">20/120</span>
+                    </div>
+                    <button class="stat-btn" onclick="adjustStat('speed', 1)">+</button>
+                </div>
+
+                <div class="stat-row">
+                    <label>Endurance</label>
+                    <button class="stat-btn" onclick="adjustStat('endurance', -1)">-</button>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="endurance-fill" style="width: 16.67%"></div>
+                        <span class="stat-value" id="endurance-value">20/120</span>
+                    </div>
+                    <button class="stat-btn" onclick="adjustStat('endurance', 1)">+</button>
+                </div>
+
+                <div class="stat-row">
+                    <label>Technique</label>
+                    <button class="stat-btn" onclick="adjustStat('technique', -1)">-</button>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="technique-fill" style="width: 16.67%"></div>
+                        <span class="stat-value" id="technique-value">20/120</span>
+                    </div>
+                    <button class="stat-btn" onclick="adjustStat('technique', 1)">+</button>
+                </div>
+
+                <div class="quick-builds">
+                    <h4>Quick Build Presets</h4>
+                    <button onclick="applyPreset('balanced')">Balanced Build</button>
+                    <button onclick="applyPreset('glass_cannon')">Glass Cannon</button>
+                    <button onclick="applyPreset('tank')">Tank Build</button>
+                    <button onclick="applyPreset('speedster')">Speedster</button>
+                    <button onclick="applyPreset('technical')">Technical Fighter</button>
+                </div>
+            </div>
+
+            <div class="step-controls">
+                <button class="wizard-btn secondary" onclick="prevStep()">← Back to Name</button>
+                <button class="wizard-btn primary" onclick="nextStep()" id="stats-next-btn" disabled>
+                    Continue to Chaos Stats →
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Chaos Stats Generation -->
+        <div class="wizard-step" id="step-chaos">
+            <div class="step-header">
+                <h3>Step 3: Generate Chaos Stats</h3>
+                <p>Let fate determine your fighter's quirky characteristics</p>
+            </div>
+
+            <div class="chaos-gacha">
+                <div class="chaos-stats-grid">
+                    <div class="chaos-stat" data-rarity="unknown">
+                        <label>Blood Type</label>
+                        <div class="gacha-slot" id="blood-type">???</div>
+                    </div>
+                    <div class="chaos-stat" data-rarity="unknown">
+                        <label>Horoscope</label>
+                        <div class="gacha-slot" id="horoscope">???</div>
+                    </div>
+                    <div class="chaos-stat" data-rarity="unknown">
+                        <label>Fingers</label>
+                        <div class="gacha-slot" id="fingers">?</div>
+                    </div>
+                    <div class="chaos-stat" data-rarity="unknown">
+                        <label>Toes</label>
+                        <div class="gacha-slot" id="toes">?</div>
+                    </div>
+                    <div class="chaos-stat" data-rarity="unknown">
+                        <label>Fighter Class</label>
+                        <div class="gacha-slot" id="fighter-class">???</div>
+                    </div>
+                    <div class="chaos-stat" data-rarity="unknown">
+                        <label>Molecular Density</label>
+                        <div class="gacha-slot" id="molecular-density">?.?</div>
+                    </div>
+                </div>
+                
+                <div class="gacha-controls">
+                    <button id="generate-chaos" onclick="generateChaosStats()">🎲 Generate Chaos Stats!</button>
+                </div>
+                
+                <div class="rarity-indicator" id="overall-rarity" style="display: none;">
+                    <span class="rarity-badge legendary">✨ LEGENDARY ROLL! ✨</span>
+                </div>
+            </div>
+
+            <div class="step-controls">
+                <button class="wizard-btn secondary" onclick="prevStep()">← Back to Stats</button>
+                <button class="wizard-btn primary" onclick="nextStep()" id="chaos-next-btn" disabled>
+                    Continue to Preview →
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Preview & Confirm -->
+        <div class="wizard-step" id="step-preview">
+            <div class="step-header">
+                <h3>Step 4: Preview Your Fighter</h3>
+                <p>Review your creation before finalizing</p>
+            </div>
+
+            <div class="fighter-preview">
+                <div class="preview-card">
+                    <div class="fighter-name-preview" id="fighter-name-preview">Fighter Name</div>
+                    <div class="stats-preview">
+                        <h4>Combat Stats</h4>
+                        <div class="stats-grid" id="stats-preview"></div>
+                    </div>
+                    <div class="chaos-preview">
+                        <h4>Chaos Characteristics</h4>
+                        <div class="chaos-grid" id="chaos-preview"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-controls">
+                <button class="wizard-btn secondary" onclick="prevStep()">← Back to Chaos Stats</button>
+                <button class="wizard-btn primary" onclick="createFighter()">
+                    🥊 Create Fighter & Use License!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="/static/css/create-fighter.css">
+<script src="/static/js/create-fighter.js"></script>
+{{end}} 

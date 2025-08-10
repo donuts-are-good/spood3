@@ -1,0 +1,213 @@
+/* AUTH PAGE STYLES - Violence Authorization */
+
+.auth-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+/* Auth Header */
+.auth-header {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    position: relative;
+}
+
+.auth-header h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffaa00;
+}
+
+.auth-subtitle {
+    font-size: 1.1rem;
+    color: #cccccc;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.auth-features {
+    background: #000000;
+    border: 1px solid #444444;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.auth-features h3 {
+    color: #ffaa00;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.feature-list li {
+    padding: 8px 0;
+    color: #cccccc;
+    border-bottom: 1px solid #333333;
+}
+
+.feature-list li:last-child {
+    border-bottom: none;
+}
+
+.feature-list li strong {
+    color: #ffffff;
+}
+
+/* Discord Login Button - Official Discord Styling */
+.discord-login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #5865f2;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 3px;
+    font-family: "Whitney", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    transition: background-color 0.17s ease, color 0.17s ease;
+    margin: 20px 0;
+    border: none;
+    cursor: pointer;
+    min-height: 38px;
+    min-width: 96px;
+}
+
+.discord-login-btn:hover {
+    background: #4752c4;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.discord-login-btn:active {
+    background: #3c45a5;
+}
+
+.discord-logo {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Credits Info */
+.credits-info {
+    background: #000000;
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 30px 0;
+}
+
+.credits-info h3 {
+    color: #00ff00;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.credits-info p {
+    color: #cccccc;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.credits-amount {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+/* Already Logged In State */
+.logged-in-state {
+    background: #000000;
+    border: 2px solid #ffaa00;
+    border-radius: 8px;
+    padding: 30px;
+}
+
+.logged-in-state h2 {
+    color: #ffaa00;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.logged-in-state p {
+    color: #cccccc;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.logged-in-state a {
+    display: inline-block;
+    padding: 12px 25px;
+    background: #000000;
+    border: 2px solid #ffaa00;
+    color: #ffaa00;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.logged-in-state a:hover {
+    background: #ffaa00;
+    color: #000000;
+}
+
+/* Warning Notice */
+.auth-warning {
+    background: #110000;
+    border: 1px solid #ff4444;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 30px;
+}
+
+.auth-warning p {
+    color: #ff8888;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 20px 15px;
+    }
+    
+    .auth-header {
+        padding: 20px;
+    }
+    
+    .auth-header h2 {
+        font-size: 1.6rem;
+    }
+    
+    .discord-login-btn {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+} 

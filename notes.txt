@@ -1,0 +1,127 @@
+# Spoodblort - Dev Notes
+
+## Core System
+- Daily fighting schedule (noon-midnight, 24 fights, one fight every 30 minutes)
+- 100 fighters in pool, 48 selected daily (no same-day repeats)
+- Simple betting on individual fights (before they start) - 1:1 win/loss (bet 100, win 200 total)
+- UFC-style teams with absurdist spoodblort elements
+
+## Daily Fighter Selection (24 fights = 48 fighters)
+1. Generate random number for each alive fighter
+2. Sort by random number, take top 48
+3. Randomly pair them into 24 matches
+4. Each day is atomic - fighters can fight consecutive days but not twice same day
+5. Dead fighters skipped via "dead" field until resurrection
+
+## Fight Simulation (10-second ticks)
+- Each fighter starts with 100,000 points
+- Every 10 seconds: pick random stat, compare fighters, apply damage
+- Continue until fighter hits 0 points (loss) or 30 minutes elapsed
+- If time expires: fighter with fewer points loses (judges decision)
+- Death chance: 1 in 10,000 per damage tick (sets "dead" field)
+
+## Weekly Tournament System
+- Each week is a tournament with unique name/sponsor combo
+- Tournament names with sponsor as column: "The Brown Cup sponsored by Dude Whipes", etc.
+- RNG picks unused tournament/sponsor combo each week
+- Historical fights show: date, time, tournament name, sponsor
+
+## Match System (30-min slots)
+- 1 fight every 30 minutes exactly (noon to midnight)
+- Each fighter starts with 100,000 points
+- Continuous RNG based on fighter stats determines damage/advantage
+- Show live: current leader, round number, time remaining
+- Fights can end early (KO, submission, death) or go to judges
+- Rare crazy rounds (15+) but weighted toward realistic 3-5 rounds
+- All fights must conclude within 30-minute window
+
+## Fight Mechanics
+- Real-time point deduction system
+- Round-based but fluid (rounds can be 1-8 minutes)
+- End conditions: Points reach 0, submission, judges decision at 30min
+- Live stats: Current leader, round, damage dealt, special events
+- Death chance during fights (sets "dead" field)
+
+## Schedule Generation (Resilient)
+- Lazy: Check/generate on each request, not time-dependent
+- ensureTodaysSchedule() called by handlers
+- Background cleanup for expired/stuck fights (auto-void with absurdist excuses)
+- Handles server restarts, pause, resume gracefully - can restart mid-day and resume schedule
+- Fight status tracking (scheduled/active/completed/voided) for crash recovery
+- Detects stuck fights (>30min active) and voids them automatically
+
+## Fighter Stats
+Traditional: Strength, Speed, Endurance, Technique
+Chaos: Blood Type, Horoscope, Molecular Density, Existential Dread
+Class: Conceptual, Temporal, Emotional, Metaphysical, Existential
+
+## Tech Stack
+- Single main.go file initially
+- jmoiron/sqlx + SQLite3 (single database for everything)
+- gorilla/mux, gorilla/sessions, gorilla/handlers
+- Hot reload: parse templates on each request in dev
+
+## Database Design
+- Single SQLite database (spoodblort.db) for all tables
+- Mostly normalized but pragmatic approach (not full 5NF)
+- Denormalize fighter names in fights table for easy display
+- Pre-programmed fighters/camps/tournaments loaded into DB tables
+- Win/loss records stored directly in fighters table for fast odds calculation
+- Voided fights count as draws for both fighters
+
+## File Structure
+```
+/
+├── main.go
+├── schema.sql  
+├── notes.txt
+├── templates/
+│   ├── index.html
+│   ├── match.html
+│   ├── player.html
+│   ├── login.html
+│   ├── signup.html
+│   ├── user.html
+│   └── settings.html
+└── static/
+    ├── css/style.css
+    └── js/app.js
+```
+
+## Template Views
+- **index.html** - today's fights only, current/upcoming at top, completed at bottom (no spoilers!)
+- **match.html** - dedicated betting/viewing page for each fight (3 states: betting, live, historical)
+- **player.html** - fighter stats, last N fights summary
+- **login/signup.html** - Discord auth, use Discord username/avatar, 1000 starting credits
+- **user.html** - lifetime bet volume, wins, losses, profile
+- **settings.html** - logout
+
+## MVP Features
+1. View daily fight schedule (24 fights, 30min apart)
+2. Fighter profiles with stats
+3. Simple betting (pick winner) - bet on dedicated fight pages only
+4. Discord auth signup/login with 1000 starting credits
+5. Credit management (1:1 win/loss betting)
+6. Live fight viewer (simple polling, real-time updates added later)
+
+## Fight Engine TODO
+- RNG damage calculation based on stats
+- Round progression logic
+- End condition detection (including death)
+- Live update system for ongoing fights (simple polling initially)
+- Death/resurrection system 
+
+## Betting System
+- 1:1 odds (bet 100, win 200 total)
+- 1000 starting credits on signup
+- Betting only on dedicated fight pages (match.html)
+- Simple win/loss picks only (odds/spreads added later)
+
+## Content Strategy
+- Pre-programmed fighters, camps, tournaments, sponsors
+- Load absurdist content into DB tables
+- Curated humor rather than procedural generation
+
+## Implementation Notes
+- Voided fights count as draws for both fighters
+- Update win/loss records when fights complete

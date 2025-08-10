@@ -1,0 +1,453 @@
+/* Shop Page Styles */
+.shop-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.shop-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.shop-header h1 {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #ffffff;
+    text-shadow: 3px 3px 6px rgba(255, 170, 0, 0.5);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.shop-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: #cccccc;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.credits-display {
+    background: #000000;
+    border: 2px solid #ffd700;
+    border-radius: 10px;
+    padding: 15px;
+    display: inline-block;
+}
+
+.credits-amount {
+    font-size: 1.5em;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Inventory Section */
+.inventory-section {
+    background: #000000;
+    border: 3px solid #ff4500;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.inventory-section::before {
+    content: "⚡ ACTIVE ⚡";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: #ff4500;
+    color: #000;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.7em;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+.inventory-section h2 {
+    text-align: center;
+    color: #ff4500;
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+}
+
+.inventory-item {
+    background: #000000;
+    border: 2px solid #ff4500;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.inventory-item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #ff4500;
+    animation: pulse 3s infinite;
+}
+
+.inventory-item:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(255, 69, 0, 0.4);
+    border-color: #ffaa00;
+}
+
+.inventory-item:hover::before {
+    background: #ffaa00;
+}
+
+.inventory-emoji {
+    font-size: 3em;
+    margin-bottom: 10px;
+    animation: bounce 4s infinite;
+}
+
+.inventory-name {
+    color: #ffffff;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.inventory-quantity {
+    color: #ff4500;
+    font-size: 1.1em;
+    font-weight: bold;
+    background: rgba(255, 69, 0, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #ff4500;
+}
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.shop-item {
+    background: #000000;
+    border: 3px solid;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Bright colored borders for different item types */
+.shop-item[data-item-id="1"] { border-color: #8B0000; } /* Fighter Curse - Dark Red */
+.shop-item[data-item-id="2"] { border-color: #FFD700; } /* Fighter Blessing - Gold */
+.shop-item[data-item-id="3"] { border-color: #FF4500; } /* Sacrifice - Orange Red */
+.shop-item[data-item-id="4"] { border-color: #32CD32; } /* Governance Vote - Lime Green */
+.shop-item[data-item-id="5"] { border-color: #8B008B; } /* Player Curse - Dark Magenta */
+.shop-item[data-item-id="6"] { border-color: #00CED1; } /* Player Blessing - Dark Turquoise */
+
+.shop-item:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+}
+
+.shop-item.disabled {
+    opacity: 0.5;
+    transform: none !important;
+    cursor: not-allowed;
+}
+
+.shop-item.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.item-emoji {
+    font-size: 4em;
+    margin-bottom: 15px;
+    animation: bounce 3s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.item-name {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.item-description {
+    color: #cccccc;
+    margin-bottom: 15px;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.item-price {
+    font-size: 1.3em;
+    color: #ffd700;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.buy-button {
+    background: linear-gradient(45deg, #ff4500, #ff6347);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 12px 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+}
+
+.buy-button:hover:not(:disabled) {
+    background: #cc0000;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+}
+
+/* Quick Buy Buttons */
+.quick-buy-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #444;
+}
+
+.quick-buy-label {
+    color: #ff6600;
+    font-size: 0.7em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.quick-buy-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.quick-buy-btn {
+    flex: 1;
+    background: #333;
+    border: 1px solid #666;
+    color: #fff;
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.quick-buy-btn:hover:not(:disabled) {
+    background: #555;
+    border-color: #ff6600;
+    color: #ff6600;
+    transform: translateY(-1px);
+}
+
+.quick-buy-btn:disabled {
+    background: #222;
+    border-color: #333;
+    color: #555;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Responsive quick buy buttons */
+@media (max-width: 768px) {
+    .quick-buy-buttons {
+        gap: 2px;
+    }
+    
+    .quick-buy-btn {
+        padding: 4px 6px;
+        font-size: 0.7em;
+    }
+}
+
+.buy-button:active {
+    transform: scale(0.98);
+}
+
+.buy-button:disabled {
+    background: #666666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.buy-button:disabled:hover {
+    background: #666666;
+    transform: none;
+    box-shadow: none;
+}
+
+.login-required {
+    text-align: center;
+    padding: 60px 20px;
+    background: #000000;
+    border: 2px solid #ff4500;
+    border-radius: 15px;
+    margin-top: 40px;
+}
+
+.login-required h3 {
+    color: #ff4500;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.login-required p {
+    color: #cccccc;
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+.auth-button {
+    background: linear-gradient(45deg, #5865F2, #7289DA);
+    color: white;
+    text-decoration: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.auth-button:hover {
+    background: linear-gradient(45deg, #7289DA, #5865F2);
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .shop-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .shop-header h1 {
+        font-size: 2.5em;
+    }
+    
+    .item-emoji {
+        font-size: 3em;
+    }
+    
+    .shop-container {
+        padding: 15px;
+    }
+}
+
+/* Special effects for expensive items */
+.shop-item[data-price="2000"] {
+    background: #000000;
+    border-width: 4px;
+}
+
+.shop-item[data-price="2000"]::before {
+    content: "💎 PREMIUM 💎";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ffd700;
+    color: #000;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* Chaos effects */
+.shop-item:nth-child(odd) .item-emoji {
+    animation-delay: 1s;
+}
+
+.shop-item:nth-child(even) .item-emoji {
+    animation-delay: 2s;
+}
+
+/* Combat License Styling */
+.clickable-license {
+    cursor: pointer;
+    border-color: #00ff00 !important;
+    position: relative;
+}
+
+.clickable-license:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 12px 25px rgba(0, 255, 0, 0.4);
+    border-color: #44ff44 !important;
+}
+
+.clickable-license::before {
+    background: #00ff00 !important;
+    animation: pulse-green 2s infinite;
+}
+
+.license-hint {
+    font-size: 0.7em;
+    color: #00ff00;
+    margin-top: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@keyframes pulse-green {
+    0%, 100% { 
+        opacity: 0.8;
+        box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    }
+    50% { 
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+    }
+} 
