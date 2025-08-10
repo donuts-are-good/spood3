@@ -1461,9 +1461,15 @@ func (s *Server) handleCreateFighterPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Generate additional chaos stats
+	// Generate ALL chaos stats server-side (gacha system)
 	ancestors := generateAncestors()
 	existentialDread := generateExistentialDread()
+	bloodType := generateBloodType()
+	horoscope := generateHoroscope()
+	molecularDensity := generateMolecularDensity()
+	fingers := generateFingers()
+	toes := generateToes()
+	fighterClass := generateFighterClass()
 
 	// Create the fighter
 	now := time.Now()
@@ -1474,14 +1480,14 @@ func (s *Server) handleCreateFighterPost(w http.ResponseWriter, r *http.Request)
 		Speed:             req.Stats.Speed,
 		Endurance:         req.Stats.Endurance,
 		Technique:         req.Stats.Technique,
-		BloodType:         req.ChaosStats.BloodType,
-		Horoscope:         req.ChaosStats.Horoscope,
-		MolecularDensity:  req.ChaosStats.MolecularDensity,
+		BloodType:         bloodType,
+		Horoscope:         horoscope,
+		MolecularDensity:  molecularDensity,
 		ExistentialDread:  existentialDread,
-		Fingers:           req.ChaosStats.Fingers,
-		Toes:              req.ChaosStats.Toes,
+		Fingers:           fingers,
+		Toes:              toes,
 		Ancestors:         ancestors,
-		FighterClass:      req.ChaosStats.FighterClass,
+		FighterClass:      fighterClass,
 		Wins:              0,
 		Losses:            0,
 		Draws:             0,
@@ -1564,6 +1570,152 @@ func generateExistentialDread() int {
 		return 50 + rand.Intn(30) // 50-79 (medium dread)
 	} else {
 		return 80 + rand.Intn(21) // 80-100 (high dread)
+	}
+}
+
+func generateBloodType() string {
+	// First determine rarity
+	rarity := generateRarity()
+
+	switch rarity {
+	case "legendary":
+		types := []string{"Quantum Uncertainty", "The Void Itself", "Pure Determination", "Concentrated Chaos"}
+		return types[rand.Intn(len(types))]
+	case "rare":
+		types := []string{"Monday Morning", "Imposter Syndrome", "Social Anxiety", "Main Character Syndrome", "Cryptocurrency Believer"}
+		return types[rand.Intn(len(types))]
+	case "uncommon":
+		types := []string{"Caffeinated", "Meme Energy", "Discord Moderator", "User-Generated", "Community Spirit"}
+		return types[rand.Intn(len(types))]
+	default: // common
+		types := []string{"A+", "B+", "AB+", "O+", "A-", "B-", "AB-", "O-", "Nacho Cheese", "Diet Coke"}
+		return types[rand.Intn(len(types))]
+	}
+}
+
+func generateHoroscope() string {
+	rarity := generateRarity()
+
+	switch rarity {
+	case "legendary":
+		signs := []string{"Quantum Entanglement", "The Singularity", "Heat Death", "Big Bang Redux"}
+		return signs[rand.Intn(len(signs))]
+	case "rare":
+		signs := []string{"Reply Guy", "Oversharer", "LinkedIn Influencer", "Discord Admin", "Reddit Moderator"}
+		return signs[rand.Intn(len(signs))]
+	case "uncommon":
+		signs := []string{"Algorithm", "Notification", "Blue Checkmark", "WiFi Signal", "Battery Low"}
+		return signs[rand.Intn(len(signs))]
+	default: // common
+		signs := []string{"Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"}
+		return signs[rand.Intn(len(signs))]
+	}
+}
+
+func generateMolecularDensity() float64 {
+	rarity := generateRarity()
+
+	switch rarity {
+	case "legendary":
+		// Extreme values
+		if rand.Float64() < 0.5 {
+			return 0.1
+		} else {
+			return 99.9
+		}
+	case "rare":
+		// Very low or very high
+		if rand.Float64() < 0.5 {
+			return rand.Float64() * 10 // 0-10
+		} else {
+			return 90 + rand.Float64()*9.9 // 90-99.9
+		}
+	case "uncommon":
+		// Somewhat extreme
+		if rand.Float64() < 0.5 {
+			return 10 + rand.Float64()*20 // 10-30
+		} else {
+			return 70 + rand.Float64()*20 // 70-90
+		}
+	default: // common
+		return 10 + rand.Float64()*80 // 10-90
+	}
+}
+
+func generateFingers() int {
+	rarity := generateRarity()
+
+	switch rarity {
+	case "legendary":
+		// Impossible finger counts
+		extremes := []int{0, 1, 25, 30, 50, 100}
+		return extremes[rand.Intn(len(extremes))]
+	case "rare":
+		// Very weird but not impossible
+		return rand.Intn(21) // 0-20
+	case "uncommon":
+		// Slightly off normal
+		if rand.Float64() < 0.5 {
+			return rand.Intn(2) + 6 // 6-7
+		} else {
+			return rand.Intn(3) + 13 // 13-15
+		}
+	default: // common
+		// Mostly normal with slight variation
+		return rand.Intn(5) + 8 // 8-12
+	}
+}
+
+func generateToes() int {
+	rarity := generateRarity()
+
+	switch rarity {
+	case "legendary":
+		extremes := []int{0, 1, 25, 30, 50, 100}
+		return extremes[rand.Intn(len(extremes))]
+	case "rare":
+		return rand.Intn(21) // 0-20
+	case "uncommon":
+		if rand.Float64() < 0.5 {
+			return rand.Intn(2) + 6 // 6-7
+		} else {
+			return rand.Intn(3) + 13 // 13-15
+		}
+	default: // common
+		return rand.Intn(5) + 8 // 8-12
+	}
+}
+
+func generateFighterClass() string {
+	rarity := generateRarity()
+
+	switch rarity {
+	case "legendary":
+		classes := []string{"Reality Bender", "Concept Destroyer", "Existence Negator", "Universe Ender"}
+		return classes[rand.Intn(len(classes))]
+	case "rare":
+		classes := []string{"Meme Lord", "Chaos Agent", "Discord Mod", "Reply Guy", "Karen"}
+		return classes[rand.Intn(len(classes))]
+	case "uncommon":
+		classes := []string{"Community-Forged", "User-Defined", "Bespoke Violence", "Artisanal Combat"}
+		return classes[rand.Intn(len(classes))]
+	default: // common
+		classes := []string{"Crowdsourced Chaos", "Democratic Destruction", "Collaborative Carnage", "Vanilla Fighter", "Basic Brawler"}
+		return classes[rand.Intn(len(classes))]
+	}
+}
+
+func generateRarity() string {
+	roll := rand.Float64()
+
+	if roll < 0.70 {
+		return "common" // 70%
+	} else if roll < 0.90 {
+		return "uncommon" // 20%
+	} else if roll < 0.98 {
+		return "rare" // 8%
+	} else {
+		return "legendary" // 2%
 	}
 }
 
