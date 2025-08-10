@@ -67,6 +67,8 @@ type PageData struct {
 	CreatorUser  *database.User         // For custom fighter creator info
 	NextFight    *database.Fight        // For countdown timer across weekend gaps
 	BettingStats *database.BettingStats // For comprehensive betting statistics
+	// CSS optimization
+	RequiredCSS []string // Page-specific CSS files to load
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -166,8 +168,9 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if now.Weekday() == time.Sunday {
 		user := GetUserFromContext(r.Context())
 		data := PageData{
-			User:  user,
-			Title: "Department of Recreational Violence - CLOSED",
+			User:        user,
+			Title:       "Department of Recreational Violence - CLOSED",
+			RequiredCSS: []string{"closed.css"},
 		}
 
 		// Add colors if user is present
@@ -231,6 +234,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Now:             now,
 		MetaDescription: "🔥 TODAY'S VIOLENCE SCHEDULE 🔥 24 IMPOSSIBLE FIGHTS EVERY 30 MINUTES. FIGHTERS WITH BLOOD TYPE 'NACHO CHEESE' AND 1000 TOES AWAIT YOUR DEGENERATE GAMBLING. WITNESS THE CHAOS. EMBRACE THE EXISTENTIAL DREAD.",
 		MetaType:        "website",
+		RequiredCSS:     []string{"schedule.css"},
 	}
 
 	// Add colors and MVP setting if user is present
@@ -251,8 +255,9 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleAuthPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
-		User:  GetUserFromContext(r.Context()),
-		Title: "Authentication",
+		User:        GetUserFromContext(r.Context()),
+		Title:       "Authentication",
+		RequiredCSS: []string{"auth.css"},
 	}
 
 	s.renderTemplate(w, "auth.html", data)
@@ -261,8 +266,9 @@ func (s *Server) handleAuthPage(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	data := PageData{
-		User:  user,
-		Title: "About & Rules",
+		User:        user,
+		Title:       "About & Rules",
+		RequiredCSS: []string{"about.css"},
 	}
 
 	// Add colors if user is present
@@ -292,6 +298,7 @@ func (s *Server) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 		Users:           users,
 		MetaDescription: "🏆 VIOLENCE CREDIT LEADERBOARD 🏆 WITNESS THE MOST SUCCESSFUL DEGENERATE GAMBLERS IN THE CHAOS DIMENSION. THESE LEGENDS HAVE MASTERED THE ART OF BETTING ON IMPOSSIBLE FIGHTER STATS. FEAR THEIR PORTFOLIOS.",
 		MetaType:        "website",
+		RequiredCSS:     []string{"leaderboard.css"},
 	}
 
 	// Add colors if user is present
@@ -321,6 +328,7 @@ func (s *Server) handleFighters(w http.ResponseWriter, r *http.Request) {
 		Fighters:        fighters,
 		MetaDescription: "👊 FIGHTER RANKINGS 👊 DISCOVER THE MOST VIOLENT COMBATANTS IN THE CHAOS DIMENSION. THESE LEGENDS HAVE CONQUERED THE UNCONQUERABLE. FEAR THEIR POWER.",
 		MetaType:        "website",
+		RequiredCSS:     []string{"fighters.css"},
 	}
 
 	// Add colors if user is present
@@ -349,9 +357,10 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 
 	user := GetUserFromContext(r.Context())
 	data := PageData{
-		User:    user,
-		Title:   "Fighter Profile",
-		Fighter: fighter,
+		User:        user,
+		Title:       "Fighter Profile",
+		Fighter:     fighter,
+		RequiredCSS: []string{"fighter.css"},
 	}
 
 	// If this is a custom fighter with a creator, get the creator's info
@@ -410,9 +419,10 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 
 	user := GetUserFromContext(r.Context())
 	data := PageData{
-		User:  user,
-		Title: "Fight Details",
-		Fight: fight,
+		User:        user,
+		Title:       "Fight Details",
+		Fight:       fight,
+		RequiredCSS: []string{"fight.css"},
 	}
 
 	if fight != nil {
@@ -648,6 +658,7 @@ func (s *Server) handleUserDashboard(w http.ResponseWriter, r *http.Request) {
 		UserBets:       userBets,
 		UserInventory:  userInventory,
 		BettingStats:   bettingStats,
+		RequiredCSS:    []string{"dashboard.css"},
 	}
 
 	s.renderTemplate(w, "dashboard.html", data)
@@ -695,6 +706,7 @@ func (s *Server) handleUserSettings(w http.ResponseWriter, r *http.Request) {
 		UserInventory:  userInventory,
 		CurrentMVP:     currentMVP,
 		CanChangeMVP:   canChangeMVP,
+		RequiredCSS:    []string{"settings.css"},
 	}
 
 	s.renderTemplate(w, "settings.html", data)
@@ -875,8 +887,9 @@ func (s *Server) handleUpdateMVP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleClosedPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
-		User:  GetUserFromContext(r.Context()),
-		Title: "Department of Recreational Violence - CLOSED",
+		User:        GetUserFromContext(r.Context()),
+		Title:       "Department of Recreational Violence - CLOSED",
+		RequiredCSS: []string{"closed.css"},
 	}
 	s.renderTemplate(w, "closed.html", data)
 }
@@ -906,8 +919,9 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			data := PageData{
-				Title: "Violence Not Found",
-				Fight: nil,
+				Title:       "Violence Not Found",
+				Fight:       nil,
+				RequiredCSS: []string{"watch.css"},
 			}
 			s.renderTemplate(w, "watch.html", data)
 			return
@@ -916,17 +930,20 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get fighters
-	fighter1, err := s.repo.GetFighter(fight.Fighter1ID)
-	if err != nil {
-		log.Printf("Error getting fighter1: %v", err)
-		fighter1 = nil
-	}
+	// Get fighters (with nil check for safety)
+	var fighter1, fighter2 *database.Fighter
+	if fight != nil {
+		fighter1, err = s.repo.GetFighter(fight.Fighter1ID)
+		if err != nil {
+			log.Printf("Error getting fighter1: %v", err)
+			fighter1 = nil
+		}
 
-	fighter2, err := s.repo.GetFighter(fight.Fighter2ID)
-	if err != nil {
-		log.Printf("Error getting fighter2: %v", err)
-		fighter2 = nil
+		fighter2, err = s.repo.GetFighter(fight.Fighter2ID)
+		if err != nil {
+			log.Printf("Error getting fighter2: %v", err)
+			fighter2 = nil
+		}
 	}
 
 	// Get viewer count
@@ -1045,6 +1062,7 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		UserEffectsOnFight: userEffectsOnFight,
 		MetaDescription:    fmt.Sprintf("🔴 LIVE VIOLENCE! WITNESS %s BATTLE %s IN THE VIOLENCE THEATER! REAL-TIME CARNAGE WITH PREMIUM DEGENERATES COMMENTARY!", fight.Fighter1Name, fight.Fighter2Name),
 		MetaType:           "article",
+		RequiredCSS:        []string{"watch.css"},
 	}
 
 	// Add colors if user is present
@@ -1075,6 +1093,7 @@ func (s *Server) handleShop(w http.ResponseWriter, r *http.Request) {
 		ShopItems:       shopItems,
 		MetaDescription: "🛒 THE CHAOS MARKETPLACE 🛒 PURCHASE ITEMS TO MANIPULATE THE FABRIC OF REALITY ITSELF. CURSES, BLESSINGS, AND COSMIC SACRIFICE AWAIT YOUR CREDITS.",
 		MetaType:        "website",
+		RequiredCSS:     []string{"shop.css"},
 	}
 
 	// Get user inventory if logged in
@@ -1330,6 +1349,7 @@ func (s *Server) handleCreateFighter(w http.ResponseWriter, r *http.Request) {
 		Title:          "Create Your Fighter",
 		PrimaryColor:   primaryColor,
 		SecondaryColor: secondaryColor,
+		RequiredCSS:    []string{"create-fighter.css"},
 	}
 
 	s.renderTemplate(w, "create-fighter.html", data)
@@ -1744,8 +1764,9 @@ func (s *Server) handleCasino(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := PageData{
-		User:  user,
-		Title: "Underground Casino",
+		User:        user,
+		Title:       "Underground Casino",
+		RequiredCSS: []string{"casino.css"},
 	}
 
 	// Render casino template directly (not through base template)

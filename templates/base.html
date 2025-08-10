@@ -29,20 +29,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
+    <!-- Always load base CSS -->
     <link rel="stylesheet" href="/static/css/base.css">
-    <link rel="stylesheet" href="/static/css/dashboard.css">
-    <link rel="stylesheet" href="/static/css/fighter.css">
-    <link rel="stylesheet" href="/static/css/schedule.css">
-    <link rel="stylesheet" href="/static/css/fight.css">
-    <link rel="stylesheet" href="/static/css/closed.css">
-    <link rel="stylesheet" href="/static/css/settings.css">
-    <link rel="stylesheet" href="/static/css/leaderboard.css">
-    <link rel="stylesheet" href="/static/css/fighters.css">
-    <link rel="stylesheet" href="/static/css/about.css">
-    <link rel="stylesheet" href="/static/css/auth.css">
-    <link rel="stylesheet" href="/static/css/watch.css">
-    <link rel="stylesheet" href="/static/css/shop.css">
-    <link rel="stylesheet" href="/static/css/casino.css">
+    
+    <!-- Load page-specific CSS files -->
+    {{range .RequiredCSS}}
+    <link rel="stylesheet" href="/static/css/{{.}}">
+    {{end}}
 </head>
 <body>
     <header>
