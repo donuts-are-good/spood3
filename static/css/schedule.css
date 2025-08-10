@@ -1,5 +1,147 @@
 /* SCHEDULE STYLES - Fight Card Grid Layout */
 
+/* Chaos Weather Advisory */
+.chaos-weather-advisory {
+    background: linear-gradient(135deg, #2a0808, #3d1010);
+    border: 2px solid #ff4444;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+    animation: advisoryPulse 3s ease-in-out infinite;
+    position: relative;
+}
+
+.advisory-header {
+    background: #ff4444;
+    color: #ffffff;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 6px 6px 0 0;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.advisory-icon {
+    font-size: 1.2rem;
+    margin-right: 8px;
+}
+
+.advisory-title {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.advisory-dismiss {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.advisory-dismiss:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.advisory-content {
+    padding: 15px 20px;
+    color: #ffffff;
+}
+
+.advisory-source {
+    font-size: 0.8rem;
+    color: #ffcccc;
+    margin-bottom: 10px;
+    text-align: center;
+    font-style: italic;
+}
+
+.advisory-source em {
+    color: #ff9999;
+    font-size: 0.75rem;
+}
+
+.advisory-message {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: #ffdddd;
+}
+
+.advisory-warning {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 0;
+    color: #ffcccc;
+    font-style: italic;
+}
+
+.advisory-message strong,
+.advisory-warning strong {
+    color: #ff6666;
+    font-weight: bold;
+}
+
+.advisory-message em,
+.advisory-warning em {
+    color: #ff9999;
+}
+
+@keyframes advisoryPulse {
+    0% { 
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 25px rgba(255, 68, 68, 0.5);
+    }
+    100% { 
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+    }
+}
+
+/* Hide advisory when dismissed */
+.chaos-weather-advisory.dismissed {
+    display: none;
+}
+
+/* Mobile responsive for advisory */
+@media (max-width: 768px) {
+    .chaos-weather-advisory {
+        margin-bottom: 20px;
+    }
+    
+    .advisory-header {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    
+    .advisory-content {
+        padding: 12px 15px;
+    }
+    
+    .advisory-message,
+    .advisory-warning {
+        font-size: 0.8rem;
+    }
+    
+    .advisory-source {
+        font-size: 0.7rem;
+    }
+}
+
 .schedule-container {
     max-width: 1000px;
     margin: 0 auto;

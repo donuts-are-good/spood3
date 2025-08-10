@@ -150,7 +150,7 @@ func (ah *AuthHandler) getDiscordUser(accessToken string) (*DiscordUser, error) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Discord API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("discord API returned status %d", resp.StatusCode)
 	}
 
 	var user DiscordUser

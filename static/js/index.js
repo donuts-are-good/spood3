@@ -1,4 +1,22 @@
-// Index page functionality - countdown timers and Sunday redirects
+// Index page functionality - countdown timers, Sunday redirects, and weather advisory
+
+// Chaos Weather Advisory dismissal
+function dismissWeatherAdvisory() {
+    const advisory = document.getElementById('chaosWeatherAdvisory');
+    if (advisory) {
+        advisory.classList.add('dismissed');
+        // Store dismissal in localStorage so it stays dismissed for the session
+        localStorage.setItem('weatherAdvisoryDismissed', 'true');
+    }
+}
+
+// Check if weather advisory should be shown
+function checkWeatherAdvisoryDismissal() {
+    const advisory = document.getElementById('chaosWeatherAdvisory');
+    if (advisory && localStorage.getItem('weatherAdvisoryDismissed') === 'true') {
+        advisory.classList.add('dismissed');
+    }
+}
 
 // Countdown timer functionality
 function initCountdown() {
@@ -110,6 +128,7 @@ function checkSundayClosure() {
 
 // Initialize everything when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    checkWeatherAdvisoryDismissal();
     initCountdown();
     checkSundayClosure();
     
