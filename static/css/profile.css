@@ -357,14 +357,14 @@
     margin-bottom: 5px;
 }
 
-.fight-link {
-    color: #ff4500;
+.bet-fighters .fight-link {
+    color: #ff4500 !important;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
-.fight-link:hover {
-    color: #ff6500;
+.bet-fighters .fight-link:hover {
+    color: #ff6500 !important;
     text-shadow: 0 0 10px rgba(255, 101, 0, 0.5);
 }
 
