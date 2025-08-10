@@ -1,0 +1,202 @@
+{{define "content"}}
+<div class="profile-container">
+    {{if .Users}}
+        {{$profileUser := index .Users 0}}
+        {{$displayName := $profileUser.CustomUsername}}
+        {{if eq $displayName ""}}{{$displayName = $profileUser.Username}}{{end}}
+        
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{if $profileUser.AvatarURL}}
+                    <img src="{{$profileUser.AvatarURL}}" alt="Avatar" class="avatar">
+                {{else}}
+                    <div class="avatar" style="background: #333; display: flex; align-items: center; justify-content: center; font-size: 3rem;">👤</div>
+                {{end}}
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name">
+                    <span class="color-indicator left" style="background-color: #{{.PrimaryColor}};" title="Primary Chaos Frequency"></span>
+                    {{$displayName}}
+                    <span class="color-indicator right" style="background-color: #{{.SecondaryColor}};" title="Secondary Violence Wavelength"></span>
+                </h1>
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">💰 Violence Credits</span>
+                        <span class="meta-value credits">{{$profileUser.Credits}}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">📅 Chaos Initiation</span>
+                        <span class="meta-value">{{$profileUser.CreatedAt.Format "January 2, 2006"}}</span>
+                    </div>
+                    {{if and .CurrentMVP .Fighter}}
+                    <div class="meta-item mvp-item">
+                        <span class="meta-label">👑 MVP Fighter</span>
+                        <span class="meta-value mvp-fighter">
+                            <a href="/fighter/{{.Fighter.ID}}">{{.Fighter.Name}}</a>
+                        </span>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <!-- Stats Widget -->
+            {{if .BettingStats}}
+            <div class="profile-widget stats-widget">
+                <div class="widget-header">
+                    <span class="widget-icon">📊</span>
+                    <h3 class="widget-title">Violence Statistics</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <span class="stat-emoji">⏳</span>
+                            <span class="stat-text">Active Bets</span>
+                        </div>
+                        <div class="stat-number">{{.BettingStats.ActiveBets}}</div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <span class="stat-emoji">🎯</span>
+                            <span class="stat-text">Total Bets</span>
+                        </div>
+                        <div class="stat-number">{{.BettingStats.TotalBets}}</div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <span class="stat-emoji">🏆</span>
+                            <span class="stat-text">Win Rate</span>
+                        </div>
+                        <div class="stat-number">{{printf "%.1f%%" .BettingStats.WinRate}}</div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <span class="stat-emoji">⚖️</span>
+                            <span class="stat-text">Win/Loss Ratio</span>
+                        </div>
+                        <div class="stat-number">
+                            {{if eq .BettingStats.BetsLost 0}}
+                                {{if gt .BettingStats.BetsWon 0}}Perfect{{else}}—{{end}}
+                            {{else}}
+                                {{printf "%.2f" .BettingStats.WinLossRatio}}
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <span class="stat-emoji">💰</span>
+                            <span class="stat-text">Net Profit</span>
+                        </div>
+                        <div class="stat-number {{if lt .BettingStats.NetProfit 0}}negative{{else if gt .BettingStats.NetProfit 0}}positive{{end}}">
+                            {{if ge .BettingStats.NetProfit 0}}+{{end}}{{.BettingStats.NetProfit}}
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-info">
+                            <span class="stat-emoji">📈</span>
+                            <span class="stat-text">Avg Bet Size</span>
+                        </div>
+                        <div class="stat-number">{{printf "%.0f" .BettingStats.AvgBetSize}}</div>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+
+            <!-- Inventory Widget -->
+            <div class="profile-widget inventory-widget">
+                <div class="widget-header">
+                    <span class="widget-icon">🎒</span>
+                    <h3 class="widget-title">Chaos Inventory</h3>
+                </div>
+                {{if .UserInventory}}
+                    <div class="inventory-grid">
+                        {{range .UserInventory}}
+                        <div class="inventory-item">
+                            <div class="inventory-emoji">{{.Emoji}}</div>
+                            <div class="inventory-name">{{.Name}}</div>
+                            <div class="inventory-quantity">×{{.Quantity}}</div>
+                        </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <div class="inventory-empty">
+                        <div class="empty-state">
+                            <span style="font-size: 3rem; opacity: 0.5;">📦</span>
+                            <p>No items in inventory</p>
+                        </div>
+                    </div>
+                {{end}}
+            </div>
+
+            <!-- Betting History Widget -->
+            <div class="profile-widget betting-history-widget">
+                <div class="widget-header">
+                    <span class="widget-icon">📈</span>
+                    <h3 class="widget-title">Recent Betting History</h3>
+                </div>
+                {{if .UserBets}}
+                    <div class="betting-history">
+                        {{range $index, $bet := .UserBets}}
+                            {{if lt $index 50}}
+                                <div class="bet-history-item status-{{$bet.Status}}">
+                                    <div class="bet-fight-info">
+                                        <div class="bet-fighters">
+                                            <a href="/fight/{{$bet.FightID}}" class="fight-link">
+                                                {{$bet.Fighter1Name}} vs {{$bet.Fighter2Name}}
+                                            </a>
+                                        </div>
+                                        <div class="bet-details">
+                                            {{$bet.Amount}} credits on {{$bet.FighterName}}
+                                            <span class="bet-status status-{{$bet.Status}}">
+                                                {{if eq $bet.Status "pending"}}⏳ Pending
+                                                {{else if eq $bet.Status "won"}}✅ Won
+                                                {{else if eq $bet.Status "lost"}}❌ Lost
+                                                {{else if eq $bet.Status "voided"}}⚪ Voided
+                                                {{end}}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {{if eq $bet.Status "won"}}
+                                        {{if $bet.Payout.Valid}}
+                                            <div class="bet-payout">+{{$bet.Payout.Int64}} credits</div>
+                                        {{end}}
+                                    {{end}}
+                                </div>
+                            {{end}}
+                        {{end}}
+                        {{if gt (len .UserBets) 50}}
+                            <div class="bet-history-more">
+                                <small>And {{sub (len .UserBets) 50}} more bets...</small>
+                            </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <div class="betting-history-empty">
+                        <div class="empty-state">
+                            <span style="font-size: 3rem; opacity: 0.5;">🏜️</span>
+                            <p>No betting activity yet</p>
+                            <small>Time to embrace the chaos!</small>
+                        </div>
+                    </div>
+                {{end}}
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <a href="/" class="back-button">← Return to Violence</a>
+            <a href="/leaderboard" class="leaderboard-button">🏆 Leaderboard</a>
+        </div>
+
+    {{else}}
+        <div class="profile-404">
+            <div class="error-404-content">
+                <h1 class="error-404-title">404</h1>
+                <h2 class="error-404-subtitle">USER NOT FOUND</h2>
+                <p class="error-404-message">This user does not exist in the violence database.</p>
+                <a href="/" class="error-404-button">← Return to Violence</a>
+            </div>
+        </div>
+    {{end}}
+</div>
+{{end}}

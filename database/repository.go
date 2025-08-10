@@ -220,6 +220,12 @@ func (r *Repository) GetUser(userID int) (*User, error) {
 	return &user, err
 }
 
+func (r *Repository) GetUserByUsername(username string) (*User, error) {
+	var user User
+	err := r.db.Get(&user, "SELECT * FROM users WHERE username = ? OR custom_username = ?", username, username)
+	return &user, err
+}
+
 func (r *Repository) UpdateUserCustomUsername(userID int, customUsername string) error {
 	_, err := r.db.Exec("UPDATE users SET custom_username = ?, updated_at = datetime('now') WHERE id = ?",
 		customUsername, userID)

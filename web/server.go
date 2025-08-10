@@ -116,6 +116,7 @@ func (s *Server) setupRoutes() {
 	public.HandleFunc("/leaderboard", s.handleLeaderboard).Methods("GET")
 	public.HandleFunc("/closed", s.handleClosedPage).Methods("GET")
 	public.HandleFunc("/favicon.ico", s.handleFavicon).Methods("GET")
+	public.HandleFunc("/user/@{username}", s.handleUserProfile).Methods("GET")
 
 	// Shop routes (public so anyone can view, but purchase requires auth)
 	public.HandleFunc("/shop", s.handleShop).Methods("GET")
@@ -2283,6 +2284,89 @@ func checkWinningLines(grid []string) []int {
 	}
 
 	return winningLines
+}
+
+// handleUserProfile renders a public user profile page
+func (s *Server) handleUserProfile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	username := vars["username"]
+
+	// Get the profile user
+	profileUser, err := s.repo.GetUserByUsername(username)
+	if err != nil {
+		log.Printf("User not found: %v", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Get the viewing user (for navigation, not required)
+	viewingUser := GetUserFromContext(r.Context())
+
+	// Get profile user's betting history (last 50 bets)
+	userBets, err := s.repo.GetUserBets(profileUser.ID)
+	if err != nil {
+		log.Printf("Error fetching user bets: %v", err)
+		userBets = nil
+	}
+
+	// Get profile user's inventory
+	userInventory, err := s.repo.GetUserInventory(profileUser.ID)
+	if err != nil {
+		log.Printf("Error fetching user inventory: %v", err)
+		userInventory = nil
+	}
+
+	// Get profile user's betting stats
+	bettingStats, err := s.repo.GetUserBettingStats(profileUser.ID)
+	if err != nil {
+		log.Printf("Error fetching betting stats: %v", err)
+		bettingStats = nil
+	}
+
+	// Get profile user's MVP setting
+	var currentMVP *database.UserSetting
+	var mvpFighter *database.Fighter
+	mvpSetting, err := s.repo.GetUserSetting(profileUser.ID, "mvp_player")
+	if err == nil {
+		currentMVP = mvpSetting
+		// Get the fighter details for the MVP
+		if currentMVP != nil && currentMVP.SettingValue != "" {
+			fighterID, err := strconv.Atoi(currentMVP.SettingValue)
+			if err == nil {
+				mvpFighter, err = s.repo.GetFighter(fighterID)
+				if err != nil {
+					log.Printf("Error getting MVP fighter: %v", err)
+					mvpFighter = nil
+				}
+			}
+		}
+	}
+
+	// Generate colors for the profile user
+	primaryColor, secondaryColor := utils.GenerateUserColors(profileUser.DiscordID)
+
+	displayName := profileUser.CustomUsername
+	if displayName == "" {
+		displayName = profileUser.Username
+	}
+
+	data := PageData{
+		User:            viewingUser, // Viewing user for navigation
+		Title:           fmt.Sprintf("%s's Profile", displayName),
+		Users:           []database.User{*profileUser}, // Profile user in Users[0]
+		UserBets:        userBets,
+		UserInventory:   userInventory,
+		BettingStats:    bettingStats,
+		CurrentMVP:      currentMVP,
+		Fighter:         mvpFighter, // MVP fighter details
+		PrimaryColor:    primaryColor,
+		SecondaryColor:  secondaryColor,
+		MetaDescription: fmt.Sprintf("🎮 %s's Violence Profile 🎮 View their betting history, inventory, and chaos statistics in the Department of Recreational Violence.", displayName),
+		MetaType:        "profile",
+		RequiredCSS:     []string{"profile.css"},
+	}
+
+	s.renderTemplate(w, "profile.html", data)
 }
 
 // renderTemplate parses templates fresh on each request for hot-reloading
