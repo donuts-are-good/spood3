@@ -328,8 +328,8 @@ INSERT OR IGNORE INTO fighters (name, team, strength, speed, endurance, techniqu
 
 -- Shop items seed data
 INSERT OR IGNORE INTO shop_items (name, description, emoji, price, item_type, effect_value) VALUES 
-('Fighter Curse', 'Weaken a fighter before their next fight', '💀', 100, 'fighter_curse', 10000),
-('Fighter Blessing', 'Strengthen a fighter before their next fight', '✨', 100, 'fighter_blessing', 10000),
+('Fighter Curse', 'Weaken a fighter before their next fight', '💀', 100, 'fighter_curse', 15),
+('Fighter Blessing', 'Strengthen a fighter before their next fight', '✨', 100, 'fighter_blessing', 15),
 ('Sacrifice to the Gods', 'Burn credits for cosmic luck', '🔥', 1, 'sacrifice', 0),
 ('Governance Vote', 'Voice in the chaos democracy', '🗳️', 20, 'governance_vote', 1),
 ('Player Curse', 'Tax another player''s winnings', '👹', 2000, 'player_curse', 10),

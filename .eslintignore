@@ -1,0 +1,5 @@
+# Ignore Go templates - they contain template syntax that breaks HTML/JS linting
+templates/
+templates/*.html
+static/html/
+

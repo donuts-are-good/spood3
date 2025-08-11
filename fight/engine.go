@@ -593,70 +593,26 @@ func (e *Engine) checkDeath(rng *rand.Rand) bool {
 	return rng.Intn(DEATH_CHANCE) == 0
 }
 
-// calculateFighterHealth calculates starting health with applied effects
+// calculateFighterHealth calculates starting health (base health only, no effect modifications)
 func (e *Engine) calculateFighterHealth(fighterID int) int {
 	baseHealth := STARTING_HEALTH
 
-	// Get applied effects for this fighter
-	effects, err := e.repo.GetAppliedEffects("fighter", fighterID)
-	if err != nil {
-		log.Printf("Error getting applied effects for fighter %d: %v", fighterID, err)
-		return baseHealth
-	}
-
-	// Apply health modifications
-	for _, effect := range effects {
-		switch effect.EffectType {
-		case "fighter_blessing":
-			baseHealth += effect.EffectValue // +100 per blessing
-		case "fighter_curse":
-			baseHealth -= effect.EffectValue // -100 per curse
-		}
-	}
-
-	// Ensure health never goes below 1
-	if baseHealth < 1 {
-		baseHealth = 1
-	}
-
-	log.Printf("Fighter %d starting health: %d (base: %d, effects applied: %d)",
-		fighterID, baseHealth, STARTING_HEALTH, len(effects))
+	// Blessings and curses now only affect stats, not health
+	// Health remains at the base value for all fighters
+	log.Printf("Fighter %d starting health: %d (base health, no effect modifications)",
+		fighterID, baseHealth)
 
 	return baseHealth
 }
 
-// calculateFighterHealthForDate calculates starting health with applied effects from a specific date
+// calculateFighterHealthForDate calculates starting health (base health only, no effect modifications)
 func (e *Engine) calculateFighterHealthForDate(fighterID int, effectDate time.Time) int {
 	baseHealth := STARTING_HEALTH
 
-	// Get day bounds for the effect date
-	startDate := time.Date(effectDate.Year(), effectDate.Month(), effectDate.Day(), 0, 0, 0, 0, effectDate.Location())
-	endDate := startDate.Add(24 * time.Hour)
-
-	// Get applied effects for this fighter on the specific date
-	effects, err := e.repo.GetAppliedEffectsForDate("fighter", fighterID, startDate, endDate)
-	if err != nil {
-		log.Printf("Error getting applied effects for fighter %d on date %s: %v", fighterID, effectDate.Format("2006-01-02"), err)
-		return baseHealth
-	}
-
-	// Apply health modifications
-	for _, effect := range effects {
-		switch effect.EffectType {
-		case "fighter_blessing":
-			baseHealth += effect.EffectValue // +100 per blessing
-		case "fighter_curse":
-			baseHealth -= effect.EffectValue // -100 per curse
-		}
-	}
-
-	// Ensure health never goes below 1
-	if baseHealth < 1 {
-		baseHealth = 1
-	}
-
-	log.Printf("Fighter %d starting health for date %s: %d (base: %d, effects applied: %d)",
-		fighterID, effectDate.Format("2006-01-02"), baseHealth, STARTING_HEALTH, len(effects))
+	// Blessings and curses now only affect stats, not health
+	// Health remains at the base value for all fighters
+	log.Printf("Fighter %d starting health for date %s: %d (base health, no effect modifications)",
+		fighterID, effectDate.Format("2006-01-02"), baseHealth)
 
 	return baseHealth
 }
