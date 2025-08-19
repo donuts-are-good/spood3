@@ -50,13 +50,13 @@
             <a href="/leaderboard">Leaderboard</a>
             {{if .User}}
                 <a href="/user/dashboard">Dashboard</a>
-                <a href="/user/settings">Settings</a>
                 <span><a href="/shop">Credits: {{.User.Credits}}</a></span>
                 <span class="user-display-name">
                     <span class="color-indicator" style="background-color: #{{.PrimaryColor}};"></span>
                     {{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}
                     <span class="color-indicator" style="background-color: #{{.SecondaryColor}};"></span>
                 </span>
+                <a href="/user/settings">Settings</a>
                 <a href="/about">❔</a>
                 <form method="POST" action="/logout" style="display:inline;">
                     <button type="submit" class="logout-link">Exit</button>
