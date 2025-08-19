@@ -58,10 +58,10 @@
                     {{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}
                     <span class="color-indicator" style="background-color: #{{.SecondaryColor}};"></span>
                 </span>
+                <a href="/about">❔</a>
                 <form method="POST" action="/logout" style="display:inline;">
                     <button type="submit" class="logout-link">Exit</button>
                 </form>
-            <a href="/about">❔</a>
 
             {{else}}
                 <a href="/auth">Login</a>
