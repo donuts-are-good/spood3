@@ -81,23 +81,24 @@
         // Format the user's credit balance in the header navigation
         const nav = document.querySelector('nav');
         if (nav) {
-            const spans = nav.querySelectorAll('span');
-            spans.forEach(span => {
-                if (span.textContent.includes('Credits:')) {
-                    const text = span.textContent;
+            // Look for the credits link specifically
+            const creditsLinks = nav.querySelectorAll('a[href="/shop"]');
+            creditsLinks.forEach(link => {
+                if (link.textContent.includes('Credits:')) {
+                    const text = link.textContent;
                     const match = text.match(/Credits:\s*(\d+)/);
                     if (match) {
                         const credits = parseInt(match[1]);
                         const formatted = formatLargeNumber(credits);
                         // Add title attribute to show full amount on hover
-                        span.title = credits.toLocaleString() + ' Violence Credits';
-                        span.textContent = text.replace(/Credits:\s*\d+/, `Credits: ${formatted}`);
+                        link.title = credits.toLocaleString() + ' Violence Credits';
+                        link.textContent = text.replace(/Credits:\s*\d+/, `Credits: ${formatted}`);
                     }
                 }
             });
         }
         
-        // Convert large numbers to abbreviated format
+        // Convert large numbers to abbreviated format with decimal precision
         function formatLargeNumber(num) {
             if (num < 1000) {
                 return num.toString();
@@ -114,8 +115,10 @@
             
             for (let i = 0; i < suffixes.length; i++) {
                 if (num >= suffixes[i].value) {
-                    const result = Math.floor(num / suffixes[i].value);
-                    return result + suffixes[i].suffix;
+                    const result = (num / suffixes[i].value).toFixed(2);
+                    // Remove trailing .00 for cleaner display, but keep other decimals
+                    const cleaned = result.endsWith('.00') ? result.slice(0, -3) : result;
+                    return cleaned + suffixes[i].suffix;
                 }
             }
             
