@@ -534,11 +534,13 @@
     text-decoration: none;
     color: inherit;
     display: block;
+    border-bottom: none !important;
 }
 
 .bet-history-link:hover {
     text-decoration: none;
     color: inherit;
+    border-bottom: none !important;
 }
 
 .bet-history-item {

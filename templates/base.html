@@ -74,5 +74,54 @@
     
     <!-- Toast notification system -->
     <script src="/static/js/toast.js"></script>
+    
+    <!-- Format header credits balance -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format the user's credit balance in the header navigation
+        const nav = document.querySelector('nav');
+        if (nav) {
+            const spans = nav.querySelectorAll('span');
+            spans.forEach(span => {
+                if (span.textContent.includes('Credits:')) {
+                    const text = span.textContent;
+                    const match = text.match(/Credits:\s*(\d+)/);
+                    if (match) {
+                        const credits = parseInt(match[1]);
+                        const formatted = formatLargeNumber(credits);
+                        // Add title attribute to show full amount on hover
+                        span.title = credits.toLocaleString() + ' Violence Credits';
+                        span.textContent = text.replace(/Credits:\s*\d+/, `Credits: ${formatted}`);
+                    }
+                }
+            });
+        }
+        
+        // Convert large numbers to abbreviated format
+        function formatLargeNumber(num) {
+            if (num < 1000) {
+                return num.toString();
+            }
+            
+            const suffixes = [
+                { value: 1e18, suffix: 'Qi' }, // Quintillion
+                { value: 1e15, suffix: 'Qa' }, // Quadrillion  
+                { value: 1e12, suffix: 'T' },  // Trillion
+                { value: 1e9,  suffix: 'B' },  // Billion
+                { value: 1e6,  suffix: 'M' },  // Million
+                { value: 1e3,  suffix: 'K' }   // Thousand
+            ];
+            
+            for (let i = 0; i < suffixes.length; i++) {
+                if (num >= suffixes[i].value) {
+                    const result = Math.floor(num / suffixes[i].value);
+                    return result + suffixes[i].suffix;
+                }
+            }
+            
+            return num.toString();
+        }
+    });
+    </script>
 </body>
 </html> 
