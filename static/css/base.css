@@ -2,7 +2,7 @@
 
 :root {
     /* Typography */
-    --font-heading: 'Playfair Display', serif;
+    --font-heading: 'Mozilla Headline', sans-serif;
     --font-body: 'Crimson Text', serif;
     
     /* Colors */
@@ -50,6 +50,13 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: normal;
     text-transform: uppercase;
     letter-spacing: 2px;
+}
+
+/* Main SPOODBLORT logo styling */
+header h1 a {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    text-decoration: none;
 }
 
 h1 {

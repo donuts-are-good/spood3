@@ -15,7 +15,7 @@ class Toast {
         }
     }
 
-    show(message, type = 'info', duration = 4000) {
+    show(message, type = 'info', duration = 8000) {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
@@ -46,19 +46,19 @@ class Toast {
         }, 300);
     }
 
-    success(message, duration = 4000) {
+    success(message, duration = 8000) {
         return this.show(message, 'success', duration);
     }
 
-    error(message, duration = 5000) {
+    error(message, duration = 10000) {
         return this.show(message, 'error', duration);
     }
 
-    warning(message, duration = 4000) {
+    warning(message, duration = 8000) {
         return this.show(message, 'warning', duration);
     }
 
-    info(message, duration = 4000) {
+    info(message, duration = 8000) {
         return this.show(message, 'info', duration);
     }
 }
