@@ -4,7 +4,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     formatCreditBalances();
-    formatHeaderCredits();
 });
 
 /**
@@ -53,28 +52,4 @@ function formatLargeNumber(num) {
     }
     
     return num.toString();
-}
-
-/**
- * Format the user's credit balance in the header navigation
- */
-function formatHeaderCredits() {
-    // Look for the credits display in the header nav
-    const nav = document.querySelector('nav');
-    if (nav) {
-        const spans = nav.querySelectorAll('span');
-        spans.forEach(span => {
-            if (span.textContent.includes('Credits:')) {
-                const text = span.textContent;
-                const match = text.match(/Credits:\s*(\d+)/);
-                if (match) {
-                    const credits = parseInt(match[1]);
-                    const formatted = formatLargeNumber(credits);
-                    // Add title attribute to show full amount on hover
-                    span.title = credits.toLocaleString() + ' Violence Credits';
-                    span.textContent = text.replace(/Credits:\s*\d+/, `Credits: ${formatted}`);
-                }
-            }
-        });
-    }
 }
