@@ -468,12 +468,12 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 	if fight != nil {
 		// Determine which date to use for effects based on fight status
 		var effectDate time.Time
-		if fight.Status == "active" {
-			// For active fights, use today's effects (live viewing) in Central Time
+		if fight.Status == "active" || fight.Status == "scheduled" {
+			// For active and scheduled fights, use today's effects (live viewing) in Central Time
 			centralTime, _ := time.LoadLocation("America/Chicago")
 			effectDate = time.Now().In(centralTime)
 		} else {
-			// For scheduled/completed/voided fights, use the fight's scheduled date (historical viewing)
+			// For completed/voided fights, use the fight's scheduled date (historical viewing)
 			effectDate = fight.ScheduledTime
 		}
 
@@ -967,12 +967,12 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 	if fight != nil {
 		// Determine which date to use for effects based on fight status
 		var effectDate time.Time
-		if fight.Status == "active" {
-			// For active fights, use today's effects (live viewing) in Central Time
+		if fight.Status == "active" || fight.Status == "scheduled" {
+			// For active and scheduled fights, use today's effects (live viewing) in Central Time
 			centralTime, _ := time.LoadLocation("America/Chicago")
 			effectDate = time.Now().In(centralTime)
 		} else {
-			// For scheduled/completed/voided fights, use the fight's scheduled date (historical viewing)
+			// For completed/voided fights, use the fight's scheduled date (historical viewing)
 			effectDate = fight.ScheduledTime
 		}
 
@@ -1027,7 +1027,7 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		// Filter effects to only show ones from the same date range as fighter effects
 		// Use the same date calculation logic as above
 		var effectDate time.Time
-		if fight.Status == "active" {
+		if fight.Status == "active" || fight.Status == "scheduled" {
 			centralTime, _ := time.LoadLocation("America/Chicago")
 			effectDate = time.Now().In(centralTime)
 		} else {
