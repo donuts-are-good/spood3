@@ -101,6 +101,12 @@
     color: #ffffff;
 }
 
+.fight-title::after {
+    content: " 🥊";
+    display: inline-block;
+    transform: scaleX(-1);
+}
+
 .fight-meta {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
