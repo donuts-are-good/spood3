@@ -42,7 +42,7 @@
             
             {{if $nextFight}}
                 <div class="next-fight-countdown {{if $activeFight}}half-width{{else}}full-width{{end}}">
-                    <div class="countdown-label">⏰ NEXT VIOLENCE IN:</div>
+                    <div class="countdown-label">⏰ NEXT FIGHT IN:</div>
                     <div class="countdown-timer" 
                          data-target-time="{{$nextFight.ScheduledTime.Format "2006-01-02T15:04:05Z07:00"}}"
                          data-fight-id="{{$nextFight.ID}}"
