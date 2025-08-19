@@ -572,9 +572,8 @@ func (r *Repository) UseInventoryItem(userID, itemID int, quantity int) error {
 }
 
 func (r *Repository) ApplyEffect(userID int, targetType string, targetID int, effectType string, effectValue int) error {
-	// Get current time in Central Time for consistent storage
-	centralTime, _ := time.LoadLocation("America/Chicago")
-	now := time.Now().In(centralTime)
+	// Store current time as UTC for consistent storage
+	now := time.Now().UTC()
 	timestampStr := now.Format("2006-01-02 15:04:05")
 
 	// For fighter effects, randomly select which stat to modify
