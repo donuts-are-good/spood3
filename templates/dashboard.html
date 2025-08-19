@@ -191,26 +191,28 @@
                         <div class="betting-history">
                             {{range $index, $bet := .UserBets}}
                                 {{if lt $index 50}}
-                                    <div class="bet-history-item status-{{$bet.Status}}">
-                                        <div class="bet-fight-info">
-                                            <div class="bet-fighters">{{$bet.Fighter1Name}} vs {{$bet.Fighter2Name}}</div>
-                                            <div class="bet-details">
-                                                {{$bet.Amount}} credits on {{$bet.FighterName}}
-                                                <span class="bet-status status-{{$bet.Status}}">
-                                                    {{if eq $bet.Status "pending"}}⏳ Pending
-                                                    {{else if eq $bet.Status "won"}}✅ Won
-                                                    {{else if eq $bet.Status "lost"}}❌ Lost
-                                                    {{else if eq $bet.Status "voided"}}⚪ Voided
-                                                    {{end}}
-                                                </span>
+                                    <a href="/fight/{{$bet.FightID}}" class="bet-history-link">
+                                        <div class="bet-history-item status-{{$bet.Status}}">
+                                            <div class="bet-fight-info">
+                                                <div class="bet-fighters">{{$bet.Fighter1Name}} vs {{$bet.Fighter2Name}}</div>
+                                                <div class="bet-details">
+                                                    {{$bet.Amount}} credits on {{$bet.FighterName}}
+                                                    <span class="bet-status status-{{$bet.Status}}">
+                                                        {{if eq $bet.Status "pending"}}⏳ Pending
+                                                        {{else if eq $bet.Status "won"}}✅ Won
+                                                        {{else if eq $bet.Status "lost"}}❌ Lost
+                                                        {{else if eq $bet.Status "voided"}}⚪ Voided
+                                                        {{end}}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        {{if eq $bet.Status "won"}}
-                                            {{if $bet.Payout.Valid}}
-                                                <div class="bet-payout">+{{$bet.Payout.Int64}} credits</div>
+                                            {{if eq $bet.Status "won"}}
+                                                {{if $bet.Payout.Valid}}
+                                                    <div class="bet-payout">+{{$bet.Payout.Int64}} credits</div>
+                                                {{end}}
                                             {{end}}
-                                        {{end}}
-                                    </div>
+                                        </div>
+                                    </a>
                                 {{end}}
                             {{end}}
                             {{if gt (len .UserBets) 50}}
