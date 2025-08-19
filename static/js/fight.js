@@ -24,6 +24,6 @@ function applyEffect(itemId, fighterId, fighterName, effectName) {
     })
     .catch(error => {
         console.error('Error:', error);
-        showError('Failed to apply effect. Please try again.');
+        showError('Woah slow down, try again.');
     });
 } 
