@@ -529,6 +529,18 @@
     background: #ffaa00;
 }
 
+/* Make betting history links invisible but clickable */
+.bet-history-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.bet-history-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
 .bet-history-item {
     display: flex;
     justify-content: space-between;
