@@ -34,18 +34,18 @@ body {
 a {
     color: #ffffff;
     text-decoration: none;
-    border-bottom: 2px solid #ffffff;
+    border-bottom: 2px solid currentColor;
     transition: all 0.3s ease;
 }
 
 a:hover {
     color: #cccccc;
-    border-bottom-color: #cccccc;
+    border-bottom-color: currentColor;
 }
 
 a:visited {
     color: #ffffff;
-    border-bottom-color: #ffffff;
+    border-bottom-color: currentColor;
 }
 
 /* Typography */
