@@ -216,7 +216,7 @@
         {{if .User}}
             {{if .AllBets}}
             <div class="betting-section">
-                <h3>💰 DEGENERATE GAMBLING STATUS</h3>
+                <h3>💰 ACTION SUMMARY</h3>
                 {{if .UserBet}}
                     <div class="user-bet-status">
                         <strong>Your Bet:</strong> {{.UserBet.Amount}} credits on 
@@ -252,7 +252,7 @@
                 </div>
 
                 <div class="detailed-bets">
-                    <h4>🎭 DEGENERATE ROSTER</h4>
+                    <h4>🎭 BETS, BLESSINGS, AND CURSES</h4>
                     <div class="bets-list">
                         {{range .AllBets}}
                         <div class="bet-notification {{if eq .UserID $.User.ID}}user-bet{{end}}">
