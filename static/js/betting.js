@@ -5,18 +5,12 @@ function confirmBet(event, fighterName) {
     const amount = parseInt(amountInput.value);
     
     if (!amount || amount <= 0) {
-        alert('Please enter a valid bet amount.');
+        showError('Please enter a valid bet amount.');
         return false;
     }
     
-    const confirmation = confirm(
-        `Are you sure you want to bet ${amount} credits on ${fighterName}?\n\n` +
-        `If ${fighterName} wins, you'll receive ${amount * 2} credits total.\n` +
-        `If ${fighterName} loses, you'll lose your ${amount} credits.\n\n` +
-        `This action cannot be undone.`
-    );
-    
-    return confirmation;
+    // Submit bet directly without confirmation
+    return true;
 }
 
 // Add some visual feedback for bet inputs

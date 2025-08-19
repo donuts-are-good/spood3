@@ -1,11 +1,6 @@
 // Apply effect (bless/curse) to a fighter
 function applyEffect(itemId, fighterId, fighterName, effectName) {
-    // Confirm effect application
-    if (!confirm(`Apply ${effectName} to ${fighterName}?`)) {
-        return;
-    }
-
-    // Send effect application request
+    // Send effect application request directly without confirmation
     fetch('/user/fight/apply-effect', {
         method: 'POST',
         headers: {
@@ -20,15 +15,15 @@ function applyEffect(itemId, fighterId, fighterName, effectName) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`Successfully applied ${effectName} to ${fighterName}!`);
+            showSuccess(`Successfully applied ${effectName} to ${fighterName}!`);
             // Reload page to update inventory and show effects
             window.location.reload();
         } else {
-            alert(`Failed to apply ${effectName}: ${data.error}`);
+            showError(`Failed to apply ${effectName}: ${data.error}`);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to apply effect. Please try again.');
+        showError('Failed to apply effect. Please try again.');
     });
 } 

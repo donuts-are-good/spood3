@@ -334,14 +334,14 @@ function createFighter() {
             // Redirect to success page or fighter profile
             window.location.href = `/fighter/${data.fighter_id}`;
         } else {
-            alert('Error creating fighter: ' + data.error);
+            showError('Error creating fighter: ' + data.error);
             createBtn.disabled = false;
             createBtn.textContent = '🥊 Create Fighter & Use License!';
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error creating fighter. Please try again.');
+        showError('Error creating fighter. Please try again.');
         createBtn.disabled = false;
         createBtn.textContent = '🥊 Create Fighter & Use License!';
     });

@@ -277,7 +277,7 @@ function fallbackCopyTextToClipboard(text) {
         showCopySuccess();
     } catch (err) {
         console.error('Failed to copy: ', err);
-        alert('Failed to copy link. Please copy manually: ' + text);
+        showError('Failed to copy link. Please copy manually: ' + text);
     }
     
     document.body.removeChild(textArea);

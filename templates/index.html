@@ -1,28 +1,6 @@
 {{define "content"}}
 <div class="schedule-container">
 
-<!-- Chaos Weather Advisory -->
-<div class="chaos-weather-advisory" id="chaosWeatherAdvisory" style="display: block;">
-    <div class="advisory-header">
-        <span class="advisory-icon">⚠️</span>
-        <span class="advisory-title">CHAOS WEATHER ADVISORY</span>
-        <button class="advisory-dismiss" onclick="dismissWeatherAdvisory()" title="Dismiss">&times;</button>
-    </div>
-    <div class="advisory-content">
-        <div class="advisory-source">From the Desk of The Commissioner<br>
-        <em>Supreme Arbiter of Recreational Violence, Department of Recreational Violence</em></div>
-        <p class="advisory-message">
-            Due to <strong>abnormal stratospheric cascades</strong> and unprecedented <strong>karmic interference patterns</strong> 
-            detected in the temporal vortex surrounding this week's tournament arena, participants are advised that 
-            <strong>fight conditions may exhibit unpredictable variances</strong> for the duration of this competition cycle.
-        </p>
-        <p class="advisory-warning">
-            Fighter statistics, class designations, and dining preferences may be subject to <em>reality fluctuations</em>. 
-            All wagers should be treated with an <strong>abundance of caution</strong> and possibly a small offering to your local chaos deity.
-        </p>
-    </div>
-</div>
-
 <div class="tournament-header">
     {{if .Tournament}}
         <div class="tournament-banner">

@@ -3,12 +3,7 @@ function purchaseItem(itemId, itemName, price, quantity = 1) {
     const totalCost = price * quantity;
     const quantityText = quantity > 1 ? ` (${quantity}x)` : '';
     
-    // Confirm purchase
-    if (!confirm(`Purchase ${itemName}${quantityText} for ${totalCost.toLocaleString()} credits?`)) {
-        return;
-    }
-
-    // Send purchase request
+    // Send purchase request directly without confirmation
     fetch('/user/shop/purchase', {
         method: 'POST',
         headers: {
@@ -22,15 +17,15 @@ function purchaseItem(itemId, itemName, price, quantity = 1) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`Successfully purchased ${itemName}${quantityText}!`);
+            showSuccess(`Successfully purchased ${itemName}${quantityText}!`);
             // Reload page to update credits and inventory
             window.location.reload();
         } else {
-            alert(`Failed to purchase ${itemName}: ${data.error}`);
+            showError(`Failed to purchase ${itemName}: ${data.error}`);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while making the purchase.');
+        showError('An error occurred while making the purchase.');
     });
 } 

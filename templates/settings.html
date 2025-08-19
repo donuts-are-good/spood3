@@ -206,17 +206,14 @@ function updateMVP(payToChange) {
     const fighterID = fighterSelect.value;
     
     if (!fighterID) {
-        alert('Please select a fighter first');
+        showError('Please select a fighter first');
         return;
     }
     
     const fighterName = fighterSelect.options[fighterSelect.selectedIndex].text.split(' (')[0];
     const action = payToChange ? 'pay 1,000 credits to change' : 'set';
     
-    if (!confirm(`Are you sure you want to ${action} your MVP to ${fighterName}?`)) {
-        return;
-    }
-    
+    // Update MVP directly without confirmation
     fetch('/user/settings/mvp', {
         method: 'POST',
         headers: {
@@ -230,15 +227,15 @@ function updateMVP(payToChange) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showSuccess(data.message);
             window.location.reload();
         } else {
-            alert('Error: ' + data.error);
+            showError('Error: ' + data.error);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while updating MVP.');
+        showError('An error occurred while updating MVP.');
     });
 }
 </script>

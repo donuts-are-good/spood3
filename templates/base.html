@@ -31,6 +31,7 @@
     
     <!-- Always load base CSS -->
     <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/toast.css">
     
     <!-- Load page-specific CSS files -->
     {{range .RequiredCSS}}
@@ -41,11 +42,6 @@
     <header>
         <h1><a href="/" style="font-size: 3rem;">🥊 SPOODBLORT</a></h1>
         
-        <!-- Weather Advisory Indicator (shown when advisory is hidden) -->
-        <div class="weather-indicator" id="weatherIndicator" onclick="restoreWeatherAdvisory()" title="Click to restore weather advisory" style="display: none;">
-            <span class="weather-emoji">☀️⚠️</span>
-            <span class="weather-text">WEATHER ADVISORY!!!</span>
-        </div>
         
         <nav>
             <a style="color: #7289da;" href="https://discord.gg/qq8442wS6B">Discord</a>
@@ -75,47 +71,8 @@
         {{template "content" .}}
     </main>
     
-    <!-- Global weather advisory functionality -->
-    <script>
-        // Global function to restore weather advisory
-        function restoreWeatherAdvisory() {
-            // Remove dismissal from localStorage
-            localStorage.removeItem('weatherAdvisoryDismissed');
-            
-            // Hide the weather indicator in the header immediately
-            const indicator = document.getElementById('weatherIndicator');
-            if (indicator) {
-                indicator.style.display = 'none';
-            }
-            
-            // If we're on the schedule page, restore the advisory immediately
-            const advisory = document.getElementById('chaosWeatherAdvisory');
-            if (advisory) {
-                advisory.style.display = 'block';
-            } else {
-                // If not on schedule page, redirect there to show the restored advisory
-                window.location.href = '/';
-            }
-        }
-        
-        // Global function to check weather indicator visibility
-        function checkWeatherIndicatorVisibility() {
-            const indicator = document.getElementById('weatherIndicator');
-            if (indicator) {
-                if (localStorage.getItem('weatherAdvisoryDismissed') === 'true') {
-                    // Advisory is dismissed, show the indicator
-                    indicator.style.display = 'block';
-                } else {
-                    // Advisory is not dismissed, hide the indicator
-                    indicator.style.display = 'none';
-                }
-            }
-        }
-        
-        // Initialize weather indicator on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            checkWeatherIndicatorVisibility();
-        });
-    </script>
+    
+    <!-- Toast notification system -->
+    <script src="/static/js/toast.js"></script>
 </body>
 </html> 
