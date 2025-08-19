@@ -232,6 +232,13 @@
     color: #ffffff;
 }
 
+.schedule-title::after {
+    content: " 🥊";
+    display: inline-block;
+    transform: scaleX(-1);
+    margin-left: 0.2em;
+}
+
 .current-time {
     font-family: var(--font-body);
     color: #888;
