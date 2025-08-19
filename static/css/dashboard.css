@@ -652,7 +652,7 @@
 /* Profile Link Widget */
 .profile-link-widget {
     margin-bottom: 25px;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: #000000;
     border: 2px solid #ff4500;
     box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
 }

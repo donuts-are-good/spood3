@@ -13,7 +13,6 @@
 /* Profile Header */
 .profile-header {
     background: #000000;
-    border: 3px solid #ffffff;
     border-radius: 15px;
     padding: 30px;
     display: flex;
