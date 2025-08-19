@@ -520,12 +520,16 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 		// Filter effects to only show ones from the same date range as fighter effects
 		var filteredUserEffects []database.AppliedEffectWithUser
 		for _, effect := range userEffectsOnFight {
+			// Convert effect's created_at to Central Time for proper comparison
+			centralTime, _ := time.LoadLocation("America/Chicago")
+			effectTimeInCentral := effect.CreatedAt.In(centralTime)
+
 			// Check if effect's created_at is within our date range
-			if (effect.CreatedAt.After(startDate) || effect.CreatedAt.Equal(startDate)) && effect.CreatedAt.Before(endDate) {
+			if (effectTimeInCentral.After(startDate) || effectTimeInCentral.Equal(startDate)) && effectTimeInCentral.Before(endDate) {
 				filteredUserEffects = append(filteredUserEffects, effect)
-				log.Printf("DEBUG: INCLUDED effect - UserID: %d, Type: %s, CreatedAt: %v", effect.UserID, effect.EffectType, effect.CreatedAt)
+				log.Printf("DEBUG: INCLUDED effect - UserID: %d, Type: %s, CreatedAt: %v (Central: %v)", effect.UserID, effect.EffectType, effect.CreatedAt, effectTimeInCentral)
 			} else {
-				log.Printf("DEBUG: EXCLUDED effect - UserID: %d, Type: %s, CreatedAt: %v", effect.UserID, effect.EffectType, effect.CreatedAt)
+				log.Printf("DEBUG: EXCLUDED effect - UserID: %d, Type: %s, CreatedAt: %v (Central: %v)", effect.UserID, effect.EffectType, effect.CreatedAt, effectTimeInCentral)
 			}
 		}
 		log.Printf("DEBUG: Final filtered count: %d", len(filteredUserEffects))
