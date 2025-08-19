@@ -20,6 +20,13 @@
     text-shadow: 3px 3px 6px rgba(255, 170, 0, 0.5);
 }
 
+.shop-header h1::after {
+    content: " 🛒";
+    display: inline-block;
+    transform: scaleX(-1);
+    margin-left: 0.2em;
+}
+
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
