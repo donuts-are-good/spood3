@@ -514,14 +514,21 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 			userEffectsOnFight = nil
 		}
 
+		log.Printf("DEBUG: Fight %d - Retrieved %d user effects", fightID, len(userEffectsOnFight))
+		log.Printf("DEBUG: Date range for filtering: %v to %v", startDate, endDate)
+
 		// Filter effects to only show ones from the same date range as fighter effects
 		var filteredUserEffects []database.AppliedEffectWithUser
 		for _, effect := range userEffectsOnFight {
 			// Check if effect's created_at is within our date range
 			if (effect.CreatedAt.After(startDate) || effect.CreatedAt.Equal(startDate)) && effect.CreatedAt.Before(endDate) {
 				filteredUserEffects = append(filteredUserEffects, effect)
+				log.Printf("DEBUG: INCLUDED effect - UserID: %d, Type: %s, CreatedAt: %v", effect.UserID, effect.EffectType, effect.CreatedAt)
+			} else {
+				log.Printf("DEBUG: EXCLUDED effect - UserID: %d, Type: %s, CreatedAt: %v", effect.UserID, effect.EffectType, effect.CreatedAt)
 			}
 		}
+		log.Printf("DEBUG: Final filtered count: %d", len(filteredUserEffects))
 		data.UserEffectsOnFight = filteredUserEffects
 	}
 
