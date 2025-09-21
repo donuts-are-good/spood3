@@ -3,12 +3,20 @@ function confirmBet(event, fighterName) {
     const form = event.target;
     const amountInput = form.querySelector('input[name="amount"]');
     const amount = parseInt(amountInput.value);
+    const max = parseInt(amountInput.getAttribute('max'));
     
     if (!amount || amount <= 0) {
         showError('Please enter a valid bet amount.');
         return false;
     }
     
+    // Hard clamp client-side to avoid accidental huge entries
+    if (max && amount > max) {
+        amountInput.value = max;
+        showError(`Max bet is ${max.toLocaleString()}. Your amount was clamped.`);
+        return false;
+    }
+
     // Submit bet directly without confirmation
     return true;
 }

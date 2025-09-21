@@ -47,7 +47,13 @@
         <div class="shop-item {{if or (lt $.User.Credits $shopItem.Price) $userOwnsItem}}disabled{{end}}" data-item-id="{{$shopItem.ID}}" data-price="{{$shopItem.Price}}">
             <div class="item-emoji">{{$shopItem.Emoji}}</div>
             <div class="item-name">{{$shopItem.Name}}</div>
-            <div class="item-description">{{$shopItem.Description}}</div>
+            <div class="item-description" title="{{if eq $shopItem.ItemType "high_roller"}}A portion of proceeds support the Little Spoodys Endowment for the Arts & Youth Enrichment (and other discretionary initiatives). Weekly patron tithe applies.{{else}}{{$shopItem.Description}}{{end}}">
+                {{if eq $shopItem.ItemType "high_roller"}}
+                    Increase max bet to 100M. Patron status included.
+                {{else}}
+                    {{$shopItem.Description}}
+                {{end}}
+            </div>
             <div class="item-price">💰 {{$shopItem.Price}} Credits</div>
             <button class="buy-button" 
                     {{if or (lt $.User.Credits $shopItem.Price) $userOwnsItem}}disabled{{end}}

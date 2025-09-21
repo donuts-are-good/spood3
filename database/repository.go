@@ -824,3 +824,87 @@ func (r *Repository) GetUserIDsWithBetsOnFight(fightID int) ([]int, error) {
 	err := r.db.Select(&userIDs, "SELECT DISTINCT user_id FROM bets WHERE fight_id = ? AND status = 'pending'", fightID)
 	return userIDs, err
 }
+
+// GetHighRollerUserIDs returns user IDs that own the High Roller Card
+func (r *Repository) GetHighRollerUserIDs() ([]int, error) {
+	var userIDs []int
+	err := r.db.Select(&userIDs, `
+        SELECT DISTINCT ui.user_id
+        FROM user_inventory ui
+        JOIN shop_items si ON ui.shop_item_id = si.id
+        WHERE si.item_type = 'high_roller' AND ui.quantity > 0`)
+	return userIDs, err
+}
+
+// TaxHighRollersIfNeeded applies a weekly 20% tax on Mondays to users with High Roller Card.
+// Idempotent per week per user using user_settings (setting_type='high_roller_tax_week').
+func (r *Repository) TaxHighRollersIfNeeded(now time.Time) error {
+	// Only run on Mondays to limit load (but still idempotent)
+	if now.Weekday() != time.Monday {
+		return nil
+	}
+
+	// Use ISO week for stability
+	year, week := now.ISOWeek()
+	weekKey := fmt.Sprintf("%04d-%02d", year, week)
+
+	userIDs, err := r.GetHighRollerUserIDs()
+	if err != nil {
+		return err
+	}
+
+	for _, uid := range userIDs {
+		// Check if already taxed this week
+		taxed, err := r.alreadyTaxedThisWeek(uid, weekKey)
+		if err != nil {
+			log.Printf("Tax check error for user %d: %v", uid, err)
+			continue
+		}
+		if taxed {
+			continue
+		}
+
+		// Get current credits
+		user, err := r.GetUser(uid)
+		if err != nil {
+			log.Printf("Failed to load user %d for tax: %v", uid, err)
+			continue
+		}
+
+		if user.Credits <= 0 {
+			_ = r.SetUserSetting(uid, "high_roller_tax_week", weekKey, nil)
+			continue
+		}
+
+		// Deduct 20%
+		tax := (user.Credits * 20) / 100
+		newCredits := user.Credits - tax
+		if newCredits < 0 {
+			newCredits = 0
+		}
+
+		err = r.UpdateUserCredits(uid, newCredits)
+		if err != nil {
+			log.Printf("Failed to apply high-roller tax to user %d: %v", uid, err)
+			continue
+		}
+
+		// Mark as taxed for this week
+		_ = r.SetUserSetting(uid, "high_roller_tax_week", weekKey, nil)
+		log.Printf("Applied weekly high-roller tithe to user %d: -%d credits", uid, tax)
+	}
+
+	return nil
+}
+
+func (r *Repository) alreadyTaxedThisWeek(userID int, weekKey string) (bool, error) {
+	var setting UserSetting
+	err := r.db.Get(&setting, `SELECT * FROM user_settings WHERE user_id = ? AND setting_type = 'high_roller_tax_week'`, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return setting.SettingValue == weekKey, nil
+}

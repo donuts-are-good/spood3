@@ -111,6 +111,9 @@ func main() {
 					continue
 				}
 
+				// Weekly high-roller tithe on Mondays (idempotent)
+				_ = repo.TaxHighRollersIfNeeded(now)
+
 				// Ensure today's schedule exists (will create if missing)
 				err := sched.EnsureTodaysSchedule(now)
 				if err != nil {

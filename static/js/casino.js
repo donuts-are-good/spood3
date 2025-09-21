@@ -15,7 +15,7 @@ function initializeCasino() {
     // Format the casino header credits display (abbreviated with full amount on hover)
     formatCasinoHeaderCredits();
     
-    // Amount adjustment buttons (1/2 and 2x)
+    // Amount adjustment buttons (1/2, 2x, MAX)
     document.querySelectorAll('.control-btn[data-action]').forEach(btn => {
         btn.addEventListener('click', function() {
             const game = this.dataset.game;
@@ -27,6 +27,10 @@ function initializeCasino() {
                 input.value = Math.floor(currentValue / 2);
             } else if (action === 'double') {
                 input.value = currentValue * 2;
+            } else if (action === 'max') {
+                // Use the input's max attribute (bound to user's credits)
+                const max = parseInt(input.max);
+                if (!isNaN(max)) input.value = max;
             }
             
             // Ensure within bounds

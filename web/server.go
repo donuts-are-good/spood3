@@ -95,6 +95,8 @@ type PageData struct {
 	BettingStats *database.BettingStats // For comprehensive betting statistics
 	// CSS optimization
 	RequiredCSS []string // Page-specific CSS files to load
+	// Access and limits
+	FightBetMax int // Per-user fight bet cap (min of credits and policy)
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -193,6 +195,28 @@ func (s *Server) setupRoutes() {
 	protected.HandleFunc("/casino/blackjack/start", s.handleBlackjackStart).Methods("POST")
 	protected.HandleFunc("/casino/blackjack/hit", s.handleBlackjackHit).Methods("POST")
 	protected.HandleFunc("/casino/blackjack/stand", s.handleBlackjackStand).Methods("POST")
+}
+
+// getUserMaxFightBet returns the per-user fight bet cap. Default 1,000,000 unless
+// the user owns a high_roller card, in which case we use the item's EffectValue
+// (e.g., 100,000,000). Falls back safely on error.
+func (s *Server) getUserMaxFightBet(user *database.User) int {
+	if user == nil {
+		return 1000000
+	}
+	inv, err := s.repo.GetUserInventory(user.ID)
+	if err != nil {
+		return 1000000
+	}
+	for _, it := range inv {
+		if it.ItemType == "high_roller" && it.Quantity > 0 {
+			if it.EffectValue > 0 {
+				return it.EffectValue
+			}
+			return 100000000
+		}
+	}
+	return 1000000
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -568,6 +592,9 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
 		data.PrimaryColor = primaryColor
 		data.SecondaryColor = secondaryColor
+
+		// Compute user's fight bet cap (frontend hint only; backend enforces)
+		data.FightBetMax = s.getUserMaxFightBet(user)
 	}
 
 	s.renderTemplate(w, "fight.html", data)
@@ -607,9 +634,15 @@ func (s *Server) handlePlaceBet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate bet amount doesn't exceed user's credits
+	// Validate bet amount doesn't exceed user's credits or per-user cap
 	if amount > user.Credits {
 		http.Error(w, "Insufficient credits", http.StatusBadRequest)
+		return
+	}
+
+	maxAllowed := s.getUserMaxFightBet(user)
+	if amount > maxAllowed {
+		http.Error(w, fmt.Sprintf("Bet exceeds allowed maximum (%d)", maxAllowed), http.StatusBadRequest)
 		return
 	}
 
@@ -1783,6 +1816,35 @@ func (s *Server) handleCasino(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
 		http.Redirect(w, r, "/auth", http.StatusSeeOther)
+		return
+	}
+
+	// Hard gate: require High Roller Card (ItemType: "high_roller")
+	hasHighRoller := false
+	inv, err := s.repo.GetUserInventory(user.ID)
+	if err == nil {
+		for _, it := range inv {
+			if it.ItemType == "high_roller" && it.Quantity > 0 {
+				hasHighRoller = true
+				break
+			}
+		}
+	}
+	if !hasHighRoller {
+		// Render a cryptic guard page; no mention of any casino
+		data := PageData{
+			User:        user,
+			Title:       "Private Area - Authorized Personnel Only",
+			RequiredCSS: []string{"closed.css"},
+		}
+		tmpl, terr := template.ParseFiles("templates/gate.html")
+		if terr != nil {
+			log.Printf("Gate template parsing error: %v", terr)
+			http.Error(w, "Access denied", http.StatusForbidden)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_ = tmpl.Execute(w, data)
 		return
 	}
 
