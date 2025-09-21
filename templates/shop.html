@@ -34,9 +34,9 @@
 
     <div class="shop-grid">
         {{range $shopItem := .ShopItems}}
-        {{/* Check if user already owns this MVP or fighter_creation item */}}
+        {{/* Check if user already owns unique items (MVP, fighter_creation, high_roller) */}}
         {{$userOwnsItem := false}}
-        {{if and (or (eq $shopItem.ItemType "mvp_player") (eq $shopItem.ItemType "fighter_creation")) $.UserInventory}}
+        {{if and (or (eq $shopItem.ItemType "mvp_player") (eq $shopItem.ItemType "fighter_creation") (eq $shopItem.ItemType "high_roller")) $.UserInventory}}
             {{range $.UserInventory}}
                 {{if and (eq .ShopItemID $shopItem.ID) (gt .Quantity 0)}}
                     {{$userOwnsItem = true}}
@@ -67,8 +67,8 @@
                 {{end}}
             </button>
             
-            {{/* Quick buy buttons - only show for non-MVP and non-fighter_creation items */}}
-            {{if and $.User (ne $shopItem.ItemType "mvp_player") (ne $shopItem.ItemType "fighter_creation")}}
+            {{/* Quick buy buttons - hide for unique items (MVP, fighter_creation, high_roller) */}}
+            {{if and $.User (ne $shopItem.ItemType "mvp_player") (ne $shopItem.ItemType "fighter_creation") (ne $shopItem.ItemType "high_roller")}}
                 <div class="quick-buy-section">
                     <div class="quick-buy-label">BULK BUY:</div>
                     <div class="quick-buy-buttons">

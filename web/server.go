@@ -1220,8 +1220,8 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if this is an MVP item and user already owns it
-	if item.ItemType == "mvp_player" {
+	// Check if this is a unique item and user already owns it
+	if item.ItemType == "mvp_player" || item.ItemType == "high_roller" {
 		userInventory, err := s.repo.GetUserInventory(user.ID)
 		if err != nil {
 			log.Printf("Failed to get user inventory: %v", err)
@@ -1241,10 +1241,21 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode(map[string]interface{}{
 					"success": false,
-					"error":   "You already own this MVP item - it can only be purchased once",
+					"error":   "You already own this item - it can only be purchased once",
 				})
 				return
 			}
+		}
+
+		// Enforce quantity = 1 for unique items
+		if req.Quantity != 1 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "This item is limited to 1 per account",
+			})
+			return
 		}
 	}
 
