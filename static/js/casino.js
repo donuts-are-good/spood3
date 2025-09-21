@@ -11,6 +11,9 @@ function initializeCasino() {
     
     // Load progressive jackpot on page load
     loadProgressiveJackpot();
+
+    // Format the casino header credits display (abbreviated with full amount on hover)
+    formatCasinoHeaderCredits();
     
     // Amount adjustment buttons (1/2 and 2x)
     document.querySelectorAll('.control-btn[data-action]').forEach(btn => {
@@ -222,6 +225,8 @@ function resetGameStates() {
 }
 
 // ---------------- Blackjack (stateless) ----------------
+// Longer post-result reset just for Blackjack so players can review results
+const BLACKJACK_RESET_DELAY_MS = 8000;
 let blackjackState = {
     amount: 0,
     dealerUpcard: '',
@@ -306,8 +311,8 @@ function blackjackHit() {
 
         if (data.bust) {
             showResult('blackjack', `Bust at ${data.player_total}. You lose. -${blackjackState.amount} credits`, false);
-            // Reset after short delay
-            setTimeout(() => window.location.reload(), 2000);
+            // Reset after longer delay for Blackjack only
+            setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
         } else {
             showResult('blackjack', `Total: ${data.player_total}. Hit or Stand?`, null);
         }
@@ -368,7 +373,7 @@ function blackjackStand() {
         if (typeof data.new_balance === 'number') {
             updateCreditsDisplay(data.new_balance);
         }
-        setTimeout(() => window.location.reload(), 2500);
+        setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
     })
     .catch(() => {
         showResult('blackjack', 'Network error', false);
@@ -667,7 +672,9 @@ function updateCreditsDisplay(newBalance) {
     // Update the credits amount in the header
     const creditsElement = document.querySelector('.credits-amount');
     if (creditsElement) {
-        creditsElement.textContent = newBalance.toLocaleString();
+        const full = (typeof newBalance === 'number') ? newBalance : parseInt(newBalance, 10) || 0;
+        creditsElement.textContent = formatLargeNumber(full);
+        creditsElement.title = full.toLocaleString();
     }
 }
 
@@ -677,7 +684,10 @@ function loadProgressiveJackpot() {
         .then(data => {
             const jackpotDisplay = document.getElementById('jackpot-display');
             if (jackpotDisplay) {
-                jackpotDisplay.textContent = data.jackpot.toLocaleString();
+                // Use abbreviated formatting similar to base.html credits
+                const formatted = formatLargeNumber(data.jackpot);
+                jackpotDisplay.textContent = formatted;
+                jackpotDisplay.title = data.jackpot.toLocaleString();
             }
         })
         .catch(error => {
@@ -687,6 +697,43 @@ function loadProgressiveJackpot() {
                 jackpotDisplay.textContent = '1,000';
             }
         });
+}
+
+// Convert large numbers to abbreviated format with decimal precision
+// Mirrors the helper in templates/base.html
+function formatLargeNumber(num) {
+    if (typeof num !== 'number') {
+        num = parseInt(num, 10) || 0;
+    }
+    if (num < 1000) {
+        return num.toString();
+    }
+    const suffixes = [
+        { value: 1e18, suffix: 'Qi' }, // Quintillion
+        { value: 1e15, suffix: 'Qa' }, // Quadrillion
+        { value: 1e12, suffix: 'T'  }, // Trillion
+        { value: 1e9,  suffix: 'B'  }, // Billion
+        { value: 1e6,  suffix: 'M'  }, // Million
+        { value: 1e3,  suffix: 'K'  }  // Thousand
+    ];
+    for (let i = 0; i < suffixes.length; i++) {
+        if (num >= suffixes[i].value) {
+            const result = (num / suffixes[i].value).toFixed(2);
+            return (result.endsWith('.00') ? result.slice(0, -3) : result) + suffixes[i].suffix;
+        }
+    }
+    return num.toString();
+}
+
+// Abbreviate the displayed player credits in the casino header and add a tooltip with full value
+function formatCasinoHeaderCredits() {
+    const el = document.querySelector('.credits-amount');
+    if (!el) return;
+    const raw = el.textContent.replace(/[^0-9]/g, '');
+    const value = parseInt(raw, 10);
+    if (isNaN(value)) return;
+    el.textContent = formatLargeNumber(value);
+    el.title = value.toLocaleString();
 }
 
 function stopSpinning() {
