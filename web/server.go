@@ -1837,14 +1837,8 @@ func (s *Server) handleCasino(w http.ResponseWriter, r *http.Request) {
 			Title:       "Private Area - Authorized Personnel Only",
 			RequiredCSS: []string{"closed.css"},
 		}
-		tmpl, terr := template.ParseFiles("templates/gate.html")
-		if terr != nil {
-			log.Printf("Gate template parsing error: %v", terr)
-			http.Error(w, "Access denied", http.StatusForbidden)
-			return
-		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_ = tmpl.Execute(w, data)
+		// Use standard renderer with base layout
+		s.renderTemplate(w, "gate.html", data)
 		return
 	}
 
@@ -2517,6 +2511,12 @@ func (s *Server) renderTemplate(w http.ResponseWriter, templateName string, data
 				return customUsername
 			}
 			return username
+		},
+		"min": func(a, b int) int {
+			if a < b {
+				return a
+			}
+			return b
 		},
 	}
 
