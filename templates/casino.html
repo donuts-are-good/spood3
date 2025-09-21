@@ -885,6 +885,7 @@
             <button class="tab-btn active" data-tab="moonflip">🌙 Lunar Flip</button>
             <button class="tab-btn" data-tab="hilow">♠️ Hi-Low Card</button>
             <button class="tab-btn" data-tab="slots">🎰 Emoji Slots</button>
+            <button class="tab-btn" data-tab="blackjack">🃏 Blackjack</button>
         </div>
 
         <!-- Moon Flip Game -->
@@ -1097,6 +1098,64 @@
                 </div>
 
                 <div class="game-result" id="slots-result"></div>
+            </div>
+        </div>
+
+        <!-- Blackjack Game -->
+        <div class="game-panel" id="blackjack-panel">
+            <div class="game-area">
+                <div class="card-area" id="blackjack-table">
+                    <div class="card placeholder" id="dealer-upcard"><span>?</span></div>
+                    <div class="vs-text">DEALER</div>
+                    <div class="card placeholder" id="player-card-1"><span>?</span></div>
+                    <div class="card placeholder" id="player-card-2"><span>?</span></div>
+                </div>
+
+                <div class="card-values-reference">
+                    <div class="reference-title">Card Values (A = 1 or 11)</div>
+                    <div class="reference-cards">
+                        <span class="ref-card">A</span>
+                        <span class="ref-card">2</span>
+                        <span class="ref-card">3</span>
+                        <span class="ref-card">4</span>
+                        <span class="ref-card">5</span>
+                        <span class="ref-card">6</span>
+                        <span class="ref-card">7</span>
+                        <span class="ref-card">8</span>
+                        <span class="ref-card">9</span>
+                        <span class="ref-card">10</span>
+                        <span class="ref-card">J</span>
+                        <span class="ref-card">Q</span>
+                        <span class="ref-card">K</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="betting-area">
+                <div class="betting-controls">
+                    <div class="control-group" id="blackjack-amount-group">
+                        <label class="control-label">Bet Amount</label>
+                        <input type="number" class="bet-input" id="blackjack-amount" min="1" max="{{.User.Credits}}" value="100">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="button-row">
+                            <button class="control-btn" data-action="half" data-game="blackjack">1/2</button>
+                            <button class="control-btn" data-action="double" data-game="blackjack">2x</button>
+                        </div>
+                    </div>
+
+                    <div class="bet-buttons" id="blackjack-start-group">
+                        <button class="bet-btn single-btn" id="blackjack-start">🃏 DEAL</button>
+                    </div>
+
+                    <div class="bet-buttons hidden" id="blackjack-play-group">
+                        <button class="bet-btn" id="blackjack-hit">➕ HIT</button>
+                        <button class="bet-btn" id="blackjack-stand">✋ STAND</button>
+                    </div>
+                </div>
+
+                <div class="game-result" id="blackjack-result"></div>
             </div>
         </div>
     </div>

@@ -1,7 +1,10 @@
 package web
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -28,6 +31,29 @@ type Server struct {
 	authMW      *AuthMiddleware
 	authH       *AuthHandler
 	broadcaster *FightBroadcaster
+}
+
+// --- Signed state helpers ---
+type signedState struct {
+	Data string `json:"data"` // base64 JSON payload
+	Sig  string `json:"sig"`  // base64 HMAC-SHA256
+}
+
+func (s *Server) signBytes(secret []byte, payload []byte) string {
+	mac := hmac.New(sha256.New, secret)
+	mac.Write(payload)
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
+}
+
+func (s *Server) verifyBytes(secret []byte, payload []byte, b64sig string) bool {
+	expected := s.signBytes(secret, payload)
+	// constant time compare
+	exp, _ := base64.StdEncoding.DecodeString(expected)
+	got, err := base64.StdEncoding.DecodeString(b64sig)
+	if err != nil {
+		return false
+	}
+	return hmac.Equal(exp, got)
 }
 
 type PageData struct {
@@ -83,6 +109,9 @@ func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessio
 		authH:       authH,
 		broadcaster: NewFightBroadcaster(repo),
 	}
+
+	// Derive HMAC key from sessionSecret; reuse sessionSecret bytes directly
+	_ = sessionSecret
 
 	// Connect the broadcaster to the scheduler so fights can broadcast live
 	scheduler.SetBroadcaster(s.broadcaster)
@@ -159,6 +188,11 @@ func (s *Server) setupRoutes() {
 	protected.HandleFunc("/casino/hilow-step2", s.handleHiLowStep2).Methods("POST")
 	protected.HandleFunc("/casino/slots", s.handleSlots).Methods("POST")
 	protected.HandleFunc("/casino/jackpot", s.handleGetJackpot).Methods("GET")
+
+	// Blackjack routes (stateless, like other games)
+	protected.HandleFunc("/casino/blackjack/start", s.handleBlackjackStart).Methods("POST")
+	protected.HandleFunc("/casino/blackjack/hit", s.handleBlackjackHit).Methods("POST")
+	protected.HandleFunc("/casino/blackjack/stand", s.handleBlackjackStand).Methods("POST")
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -2490,5 +2524,385 @@ func (s *Server) handleGetJackpot(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"jackpot": jackpot,
+	})
+}
+
+// -------------------- BLACKJACK (stateless, server-side RNG) --------------------
+
+// handleBlackjackStart charges the bet and deals initial cards
+func (s *Server) handleBlackjackStart(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		Amount int `json:"amount"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Invalid request format",
+		})
+		return
+	}
+
+	if req.Amount <= 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Invalid bet amount",
+		})
+		return
+	}
+
+	if req.Amount > user.Credits {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Insufficient credits",
+		})
+		return
+	}
+
+	// Charge immediately (like Hi-Low step 1)
+	newBalance := user.Credits - req.Amount
+	if err := s.repo.UpdateUserCredits(user.ID, newBalance); err != nil {
+		log.Printf("Failed to deduct bet amount for Blackjack start: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Failed to process bet",
+		})
+		return
+	}
+
+	// Deal initial hands (server-side RNG)
+	suits := []string{"♠️", "♥️", "♦️", "♣️"}
+	values := []string{"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
+	dealCard := func() string {
+		return values[rand.Intn(len(values))] + suits[rand.Intn(len(suits))]
+	}
+
+	player := []string{dealCard(), dealCard()}
+	dealerUp := dealCard()
+
+	// Build signed state token (bind to user ID)
+	type bjState struct {
+		UID        int      `json:"uid"`
+		Amount     int      `json:"amount"`
+		DealerUp   string   `json:"dealer_up"`
+		PlayerHand []string `json:"player_hand"`
+		Step       string   `json:"step"`
+		TS         int64    `json:"ts"`
+	}
+	st := bjState{UID: user.ID, Amount: req.Amount, DealerUp: dealerUp, PlayerHand: player, Step: "inplay", TS: time.Now().Unix()}
+	payload, _ := json.Marshal(st)
+	dataB64 := base64.StdEncoding.EncodeToString(payload)
+	secret := []byte(os.Getenv("SESSION_SECRET"))
+	sig := s.signBytes(secret, payload)
+	state := signedState{Data: dataB64, Sig: sig}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":       true,
+		"player_hand":   player,
+		"dealer_upcard": dealerUp,
+		"amount":        req.Amount,
+		"new_balance":   newBalance,
+		"state":         state,
+	})
+}
+
+// handleBlackjackHit deals one more card to the player and reports bust or continue
+func (s *Server) handleBlackjackHit(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		State signedState `json:"state"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Invalid request format",
+		})
+		return
+	}
+
+	// Verify token
+	secret := []byte(os.Getenv("SESSION_SECRET"))
+	payloadBytes, err := base64.StdEncoding.DecodeString(req.State.Data)
+	if err != nil || !s.verifyBytes(secret, payloadBytes, req.State.Sig) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Bad state token"})
+		return
+	}
+	var st struct {
+		UID        int      `json:"uid"`
+		Amount     int      `json:"amount"`
+		DealerUp   string   `json:"dealer_up"`
+		PlayerHand []string `json:"player_hand"`
+		Step       string   `json:"step"`
+		TS         int64    `json:"ts"`
+	}
+	if err := json.Unmarshal(payloadBytes, &st); err != nil || st.UID != user.ID || st.Amount <= 0 || st.Step != "inplay" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid state"})
+		return
+	}
+
+	// Server deals a random card
+	suits := []string{"♠️", "♥️", "♦️", "♣️"}
+	values := []string{"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
+	newCard := values[rand.Intn(len(values))] + suits[rand.Intn(len(suits))]
+	player := append(append([]string{}, st.PlayerHand...), newCard)
+
+	// Compute value with Aces as 11/1
+	getCardVal := func(card string) (int, bool) {
+		valueStr := ""
+		for _, ch := range card {
+			if ch != '♠' && ch != '♥' && ch != '♦' && ch != '♣' && ch != '️' {
+				valueStr += string(ch)
+			} else {
+				break
+			}
+		}
+		switch valueStr {
+		case "A":
+			return 11, true
+		case "K", "Q", "J":
+			return 10, false
+		default:
+			val, _ := strconv.Atoi(valueStr)
+			return val, false
+		}
+	}
+
+	calc := func(hand []string) (int, bool) {
+		sum := 0
+		aces := 0
+		for _, c := range hand {
+			v, isAce := getCardVal(c)
+			sum += v
+			if isAce {
+				aces++
+			}
+		}
+		for sum > 21 && aces > 0 {
+			sum -= 10
+			aces--
+		}
+		return sum, sum <= 21
+	}
+
+	playerTotal, ok := calc(player)
+	bust := !ok
+
+	// Build new signed state if not bust
+	var nextState *signedState
+	if !bust {
+		st.PlayerHand = player
+		st.TS = time.Now().Unix()
+		payload, _ := json.Marshal(st)
+		dataB64 := base64.StdEncoding.EncodeToString(payload)
+		sig := s.signBytes(secret, payload)
+		ns := signedState{Data: dataB64, Sig: sig}
+		nextState = &ns
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	resp := map[string]interface{}{
+		"success":      true,
+		"player_hand":  player,
+		"new_card":     newCard,
+		"player_total": playerTotal,
+		"bust":         bust,
+	}
+	if nextState != nil {
+		resp["state"] = nextState
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// handleBlackjackStand resolves the round by drawing dealer cards and paying out
+func (s *Server) handleBlackjackStand(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		State signedState `json:"state"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Invalid request format",
+		})
+		return
+	}
+	// Verify token
+	secret := []byte(os.Getenv("SESSION_SECRET"))
+	payloadBytes, err := base64.StdEncoding.DecodeString(req.State.Data)
+	if err != nil || !s.verifyBytes(secret, payloadBytes, req.State.Sig) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Bad state token"})
+		return
+	}
+	var st struct {
+		UID        int      `json:"uid"`
+		Amount     int      `json:"amount"`
+		DealerUp   string   `json:"dealer_up"`
+		PlayerHand []string `json:"player_hand"`
+		Step       string   `json:"step"`
+		TS         int64    `json:"ts"`
+	}
+	if err := json.Unmarshal(payloadBytes, &st); err != nil || st.UID != user.ID || st.Amount <= 0 || st.Step != "inplay" || len(st.PlayerHand) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid state"})
+		return
+	}
+
+	// Helpers
+	getCardVal := func(card string) (int, bool) {
+		valueStr := ""
+		for _, ch := range card {
+			if ch != '♠' && ch != '♥' && ch != '♦' && ch != '♣' && ch != '️' {
+				valueStr += string(ch)
+			} else {
+				break
+			}
+		}
+		switch valueStr {
+		case "A":
+			return 11, true
+		case "K", "Q", "J":
+			return 10, false
+		default:
+			val, _ := strconv.Atoi(valueStr)
+			return val, false
+		}
+	}
+
+	calc := func(hand []string) (int, bool) {
+		sum := 0
+		aces := 0
+		for _, c := range hand {
+			v, isAce := getCardVal(c)
+			sum += v
+			if isAce {
+				aces++
+			}
+		}
+		for sum > 21 && aces > 0 {
+			sum -= 10
+			aces--
+		}
+		return sum, sum <= 21
+	}
+
+	// Build dealer hand starting from upcard
+	suits := []string{"♠️", "♥️", "♦️", "♣️"}
+	values := []string{"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
+	dealCard := func() string {
+		return values[rand.Intn(len(values))] + suits[rand.Intn(len(suits))]
+	}
+
+	dealer := []string{st.DealerUp, dealCard()}
+	dealerTotal, _ := calc(dealer)
+	for dealerTotal < 17 {
+		dealer = append(dealer, dealCard())
+		dealerTotal, _ = calc(dealer)
+	}
+
+	playerTotal, playerOk := calc(st.PlayerHand)
+	if !playerOk {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":      true,
+			"dealer_hand":  dealer,
+			"dealer_total": dealerTotal,
+			"player_total": playerTotal,
+			"won":          false,
+			"push":         false,
+			"payout":       0,
+			"new_balance":  user.Credits,
+			"amount":       st.Amount,
+		})
+		return
+	}
+
+	var won, push bool
+	if dealerTotal > 21 || playerTotal > dealerTotal {
+		won = true
+		push = false
+	} else if playerTotal == dealerTotal {
+		won = false
+		push = true
+	} else {
+		won = false
+		push = false
+	}
+
+	newBalance := user.Credits
+	payout := 0
+	if won {
+		payout = st.Amount * 2
+		newBalance = user.Credits + payout
+		if err := s.repo.UpdateUserCredits(user.ID, newBalance); err != nil {
+			log.Printf("Failed to pay Blackjack winnings: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "Failed to process winnings",
+			})
+			return
+		}
+	} else if push {
+		payout = st.Amount
+		newBalance = user.Credits + payout
+		if err := s.repo.UpdateUserCredits(user.ID, newBalance); err != nil {
+			log.Printf("Failed to refund Blackjack push: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "Failed to process refund",
+			})
+			return
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":      true,
+		"dealer_hand":  dealer,
+		"dealer_total": dealerTotal,
+		"player_total": playerTotal,
+		"won":          won,
+		"push":         push,
+		"payout":       payout,
+		"new_balance":  newBalance,
+		"amount":       st.Amount,
 	})
 }

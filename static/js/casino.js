@@ -90,6 +90,20 @@ function initializeCasino() {
     document.getElementById('slots-spin-btn').addEventListener('click', function() {
         spinSlots();
     });
+
+    // Blackjack controls
+    const bjStart = document.getElementById('blackjack-start');
+    if (bjStart) {
+        bjStart.addEventListener('click', blackjackStart);
+    }
+    const bjHit = document.getElementById('blackjack-hit');
+    if (bjHit) {
+        bjHit.addEventListener('click', blackjackHit);
+    }
+    const bjStand = document.getElementById('blackjack-stand');
+    if (bjStand) {
+        bjStand.addEventListener('click', blackjackStand);
+    }
 }
 
 function initializeTabs() {
@@ -192,6 +206,176 @@ function resetGameStates() {
     document.querySelectorAll('.game-result').forEach(result => {
         result.innerHTML = '';
         result.className = 'game-result'; // Reset class to remove win/lose/neutral styling
+    });
+
+    // Reset Blackjack UI
+    const up = document.getElementById('dealer-upcard');
+    if (up) { up.className = 'card placeholder'; up.innerHTML = '<span>?</span>'; }
+    const p1 = document.getElementById('player-card-1');
+    if (p1) { p1.className = 'card placeholder'; p1.innerHTML = '<span>?</span>'; }
+    const p2 = document.getElementById('player-card-2');
+    if (p2) { p2.className = 'card placeholder'; p2.innerHTML = '<span>?</span>'; }
+    const playGroup = document.getElementById('blackjack-play-group');
+    const startGroup = document.getElementById('blackjack-start-group');
+    if (playGroup) playGroup.classList.add('hidden');
+    if (startGroup) startGroup.classList.remove('hidden');
+}
+
+// ---------------- Blackjack (stateless) ----------------
+let blackjackState = {
+    amount: 0,
+    dealerUpcard: '',
+    playerHand: [],
+    state: null
+};
+
+function blackjackStart() {
+    const amount = parseInt(document.getElementById('blackjack-amount').value);
+    if (!amount || amount <= 0) {
+        showResult('blackjack', 'Invalid bet amount', false);
+        return;
+    }
+    // Disable start to prevent double submits
+    document.getElementById('blackjack-start').disabled = true;
+
+    fetch('/user/casino/blackjack/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            showResult('blackjack', 'Error: ' + data.error, false);
+            document.getElementById('blackjack-start').disabled = false;
+            return;
+        }
+        blackjackState.amount = data.amount;
+        blackjackState.dealerUpcard = data.dealer_upcard;
+        blackjackState.playerHand = data.player_hand;
+        blackjackState.state = data.state;
+
+        // Update UI
+        const up = document.getElementById('dealer-upcard');
+        up.classList.remove('placeholder');
+        up.classList.add('revealed');
+        up.innerHTML = `<span>${data.dealer_upcard}</span>`;
+
+        const p1 = document.getElementById('player-card-1');
+        const p2 = document.getElementById('player-card-2');
+        p1.classList.remove('placeholder'); p1.classList.add('revealed'); p1.innerHTML = `<span>${data.player_hand[0]}</span>`;
+        p2.classList.remove('placeholder'); p2.classList.add('revealed'); p2.innerHTML = `<span>${data.player_hand[1]}</span>`;
+
+        // Show Hit/Stand
+        document.getElementById('blackjack-start-group').classList.add('hidden');
+        document.getElementById('blackjack-play-group').classList.remove('hidden');
+        showResult('blackjack', 'Cards dealt. Hit or Stand?', null);
+    })
+    .catch(() => {
+        showResult('blackjack', 'Network error', false);
+        document.getElementById('blackjack-start').disabled = false;
+    });
+}
+
+function blackjackHit() {
+    // Disable buttons during request
+    document.getElementById('blackjack-hit').disabled = true;
+    document.getElementById('blackjack-stand').disabled = true;
+
+    fetch('/user/casino/blackjack/hit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: blackjackState.state })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
+            return;
+        }
+        blackjackState.playerHand = data.player_hand;
+        if (data.state) {
+            blackjackState.state = data.state;
+        }
+        // Render newest card into a new slot element
+        const table = document.getElementById('blackjack-table');
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card revealed';
+        cardDiv.innerHTML = `<span>${data.new_card}</span>`;
+        table.appendChild(cardDiv);
+
+        if (data.bust) {
+            showResult('blackjack', `Bust at ${data.player_total}. You lose. -${blackjackState.amount} credits`, false);
+            // Reset after short delay
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            showResult('blackjack', `Total: ${data.player_total}. Hit or Stand?`, null);
+        }
+    })
+    .catch(() => {
+        showResult('blackjack', 'Network error', false);
+    })
+    .finally(() => {
+        document.getElementById('blackjack-hit').disabled = false;
+        document.getElementById('blackjack-stand').disabled = false;
+    });
+}
+
+function blackjackStand() {
+    // Disable buttons during request
+    document.getElementById('blackjack-hit').disabled = true;
+    document.getElementById('blackjack-stand').disabled = true;
+
+    fetch('/user/casino/blackjack/stand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: blackjackState.state })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
+            return;
+        }
+        // Render dealer final hand additions
+        const table = document.getElementById('blackjack-table');
+        // Remove all existing dealer upcard element and re-render dealer hand in place of first slot
+        table.innerHTML = '';
+        data.dealer_hand.forEach((c, idx) => {
+            const d = document.createElement('div');
+            d.className = 'card revealed';
+            d.innerHTML = `<span>${c}</span>`;
+            table.appendChild(d);
+        });
+        // append separator
+        const sep = document.createElement('div');
+        sep.className = 'vs-text';
+        sep.textContent = 'DEALER';
+        table.appendChild(sep);
+        // render player hand
+        blackjackState.playerHand.forEach(c => {
+            const d = document.createElement('div');
+            d.className = 'card revealed';
+            d.innerHTML = `<span>${c}</span>`;
+            table.appendChild(d);
+        });
+
+        const outcome = data.push ? 'PUSH' : (data.won ? 'YOU WIN!' : 'You lose.');
+        const delta = data.push ? 0 : (data.won ? `+${data.payout}` : `-${blackjackState.amount}`);
+        showResult('blackjack', `Dealer: ${data.dealer_total}, You: ${data.player_total}. ${outcome} ${delta} credits`, data.won ? true : (data.push ? null : false));
+
+        // Update credits and reset after short delay
+        if (typeof data.new_balance === 'number') {
+            updateCreditsDisplay(data.new_balance);
+        }
+        setTimeout(() => window.location.reload(), 2500);
+    })
+    .catch(() => {
+        showResult('blackjack', 'Network error', false);
+    })
+    .finally(() => {
+        document.getElementById('blackjack-hit').disabled = false;
+        document.getElementById('blackjack-stand').disabled = false;
     });
 }
 
