@@ -2,6 +2,7 @@ package fight
 
 import (
 	"fmt"
+	"sort"
 	"spoodblort/database"
 	"spoodblort/utils"
 	"time"
@@ -42,6 +43,17 @@ func (g *Generator) GenerateFightSchedule(tournament *database.Tournament, fight
 	if len(fighters)%2 != 0 {
 		fighters = fighters[:len(fighters)-1]
 	}
+
+	// Sort fighters by total combat stat points (strength + speed + endurance + technique)
+	sort.Slice(fighters, func(i, j int) bool {
+		ti := fighters[i].Strength + fighters[i].Speed + fighters[i].Endurance + fighters[i].Technique
+		tj := fighters[j].Strength + fighters[j].Speed + fighters[j].Endurance + fighters[j].Technique
+		if ti == tj {
+			// Stable tie-breaker by ID to keep determinism across runs
+			return fighters[i].ID < fighters[j].ID
+		}
+		return ti < tj
+	})
 
 	var fights []database.Fight
 

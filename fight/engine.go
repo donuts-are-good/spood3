@@ -390,8 +390,8 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 	seed := utils.FightTickSeed(fightID, tickNumber)
 	rng := utils.NewSeededRNG(seed)
 
-	// Random coinflip determines who gets advantage this tick (pure chaos!)
-	fighter1Advantage := rng.Intn(2) == 0
+	// Determine advantage using a random stat and coinflip aggregation
+	fighter1Advantage := e.determineStatBasedAdvantage(fighter1, fighter2, rng)
 
 	// Calculate base damage for both fighters (simultaneous combat)
 	baseDamage1 := e.calculateDamage(fighter1, rng)
@@ -517,8 +517,8 @@ func (e *Engine) simulateTickQuiet(fightID, tickNumber int, fighter1, fighter2 d
 	seed := utils.FightTickSeed(fightID, tickNumber)
 	rng := utils.NewSeededRNG(seed)
 
-	// Random coinflip determines who gets advantage this tick (pure chaos!)
-	fighter1Advantage := rng.Intn(2) == 0
+	// Determine advantage using a random stat and coinflip aggregation
+	fighter1Advantage := e.determineStatBasedAdvantage(fighter1, fighter2, rng)
 
 	// Calculate base damage for both fighters (simultaneous combat)
 	baseDamage1 := e.calculateDamage(fighter1, rng)
@@ -593,16 +593,51 @@ func (e *Engine) checkDeath(rng *rand.Rand) bool {
 	return rng.Intn(DEATH_CHANCE) == 0
 }
 
-// calculateFighterHealth calculates starting health (base health only, no effect modifications)
-func (e *Engine) calculateFighterHealth(fighterID int) int {
-	baseHealth := STARTING_HEALTH
+// determineStatBasedAdvantage picks a random combat stat and gives advantage to the fighter
+// with more "heads" from coin flips equal to that stat value. Ties break randomly.
+func (e *Engine) determineStatBasedAdvantage(f1, f2 database.Fighter, rng *rand.Rand) bool {
+	// Choose a stat: 0=strength, 1=speed, 2=endurance, 3=technique
+	statIdx := rng.Intn(4)
 
-	// Blessings and curses now only affect stats, not health
-	// Health remains at the base value for all fighters
-	log.Printf("Fighter %d starting health: %d (base health, no effect modifications)",
-		fighterID, baseHealth)
+	var v1, v2 int
+	switch statIdx {
+	case 0:
+		v1, v2 = f1.Strength, f2.Strength
+	case 1:
+		v1, v2 = f1.Speed, f2.Speed
+	case 2:
+		v1, v2 = f1.Endurance, f2.Endurance
+	default:
+		v1, v2 = f1.Technique, f2.Technique
+	}
 
-	return baseHealth
+	// Bound to non-negative just in case
+	if v1 < 0 {
+		v1 = 0
+	}
+	if v2 < 0 {
+		v2 = 0
+	}
+
+	heads1 := 0
+	heads2 := 0
+
+	for i := 0; i < v1; i++ {
+		if rng.Intn(2) == 0 {
+			heads1++
+		}
+	}
+	for i := 0; i < v2; i++ {
+		if rng.Intn(2) == 0 {
+			heads2++
+		}
+	}
+
+	if heads1 == heads2 {
+		// random tie-breaker
+		return rng.Intn(2) == 0
+	}
+	return heads1 > heads2
 }
 
 // calculateFighterHealthForDate calculates starting health (base health only, no effect modifications)
