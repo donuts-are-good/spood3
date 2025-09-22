@@ -1862,6 +1862,14 @@ func (s *Server) handleCasino(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Only accessible on Sundays (America/Chicago). Redirect home otherwise.
+	centralTime, _ := time.LoadLocation("America/Chicago")
+	now := time.Now().In(centralTime)
+	if now.Weekday() != time.Sunday {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	// Hard gate: require High Roller Card (ItemType: "high_roller")
 	hasHighRoller := false
 	inv, err := s.repo.GetUserInventory(user.ID)
@@ -1886,8 +1894,7 @@ func (s *Server) handleCasino(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if it's Sunday and assign VIP role if they don't have it
-	centralTime, _ := time.LoadLocation("America/Chicago")
-	now := time.Now().In(centralTime)
+	// Note: centralTime/now already defined above
 	if now.Weekday() == time.Sunday {
 		// Get the role manager from the scheduler's engine
 		engine := s.scheduler.GetEngine()
