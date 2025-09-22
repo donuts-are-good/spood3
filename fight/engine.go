@@ -841,12 +841,7 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 			// Continue - don't fail fight completion if Discord notification fails
 		}
 
-		// Post terse settlement summary to action channel if there were wagers
-		if state.WinnerID != 0 {
-			if err := e.discordNotifier.NotifyActionSummary(fight, state.WinnerID); err != nil {
-				log.Printf("Failed to send action summary for fight %d: %v", fight.ID, err)
-			}
-		}
+		// Removed Action channel settlement summary
 
 		// Update the Discord event to mark it as completed
 		if e.DiscordEvents != nil {

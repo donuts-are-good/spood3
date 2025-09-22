@@ -36,8 +36,37 @@
             </div>
         </div>
 
-        <div class="fighter-matchup">
-            <div class="matchup-grid">
+		<div class="fighter-matchup">
+			{{/* Tale of the Tape (shown before betting and before the cards) */}}
+			{{if and .Fighter1 .Fighter2}}
+			<div class="tale-of-tape">
+				<div class="tot-col left">
+					<div class="tot-row"><span class="label">Strength</span><span class="value">{{.Fighter1.Strength}}</span></div>
+					<div class="tot-row"><span class="label">Speed</span><span class="value">{{.Fighter1.Speed}}</span></div>
+					<div class="tot-row"><span class="label">Endurance</span><span class="value">{{.Fighter1.Endurance}}</span></div>
+					<div class="tot-row"><span class="label">Technique</span><span class="value">{{.Fighter1.Technique}}</span></div>
+					<div class="tot-row subtle"><span class="label">Molecular Density</span><span class="value">{{printf "%.1f" .Fighter1.MolecularDensity}}</span></div>
+					<div class="tot-row subtle"><span class="label">Existential Dread</span><span class="value">{{.Fighter1.ExistentialDread}}</span></div>
+					<div class="tot-row subtle"><span class="label">Fingers</span><span class="value">{{.Fighter1.Fingers}}</span></div>
+					<div class="tot-row subtle"><span class="label">Toes</span><span class="value">{{.Fighter1.Toes}}</span></div>
+				</div>
+				<div class="tot-center">
+					<div class="tot-title">TALE OF THE TAPE</div>
+					<div class="tot-faceoff">{{.Fight.Fighter1Name}} <span class="vs-dot">VS</span> {{.Fight.Fighter2Name}}</div>
+				</div>
+				<div class="tot-col right">
+					<div class="tot-row"><span class="value">{{.Fighter2.Strength}}</span><span class="label">Strength</span></div>
+					<div class="tot-row"><span class="value">{{.Fighter2.Speed}}</span><span class="label">Speed</span></div>
+					<div class="tot-row"><span class="value">{{.Fighter2.Endurance}}</span><span class="label">Endurance</span></div>
+					<div class="tot-row"><span class="value">{{.Fighter2.Technique}}</span><span class="label">Technique</span></div>
+					<div class="tot-row subtle"><span class="value">{{printf "%.1f" .Fighter2.MolecularDensity}}</span><span class="label">Molecular Density</span></div>
+					<div class="tot-row subtle"><span class="value">{{.Fighter2.ExistentialDread}}</span><span class="label">Existential Dread</span></div>
+					<div class="tot-row subtle"><span class="value">{{.Fighter2.Fingers}}</span><span class="label">Fingers</span></div>
+					<div class="tot-row subtle"><span class="value">{{.Fighter2.Toes}}</span><span class="label">Toes</span></div>
+				</div>
+			</div>
+			{{end}}
+			<div class="matchup-grid">
                 <div class="fighter-card">
                     <h4 class="fighter-name">
                         <a href="/fighter/{{.Fight.Fighter1ID}}">{{.Fight.Fighter1Name}}</a>
@@ -109,35 +138,6 @@
                 </div>
 		</div>
 
-			{{/* Tale of the Tape */}}
-			{{if and .Fighter1 .Fighter2}}
-			<div class="tale-of-tape">
-				<div class="tot-col left">
-					<div class="tot-row"><span class="label">Strength</span><span class="value">{{.Fighter1.Strength}}</span></div>
-					<div class="tot-row"><span class="label">Speed</span><span class="value">{{.Fighter1.Speed}}</span></div>
-					<div class="tot-row"><span class="label">Endurance</span><span class="value">{{.Fighter1.Endurance}}</span></div>
-					<div class="tot-row"><span class="label">Technique</span><span class="value">{{.Fighter1.Technique}}</span></div>
-					<div class="tot-row subtle"><span class="label">Molecular Density</span><span class="value">{{printf "%.1f" .Fighter1.MolecularDensity}}</span></div>
-					<div class="tot-row subtle"><span class="label">Existential Dread</span><span class="value">{{.Fighter1.ExistentialDread}}</span></div>
-					<div class="tot-row subtle"><span class="label">Fingers</span><span class="value">{{.Fighter1.Fingers}}</span></div>
-					<div class="tot-row subtle"><span class="label">Toes</span><span class="value">{{.Fighter1.Toes}}</span></div>
-				</div>
-				<div class="tot-center">
-					<div class="tot-title">TALE OF THE TAPE</div>
-					<div class="tot-faceoff">{{.Fight.Fighter1Name}} <span class="vs-dot">VS</span> {{.Fight.Fighter2Name}}</div>
-				</div>
-				<div class="tot-col right">
-					<div class="tot-row"><span class="value">{{.Fighter2.Strength}}</span><span class="label">Strength</span></div>
-					<div class="tot-row"><span class="value">{{.Fighter2.Speed}}</span><span class="label">Speed</span></div>
-					<div class="tot-row"><span class="value">{{.Fighter2.Endurance}}</span><span class="label">Endurance</span></div>
-					<div class="tot-row"><span class="value">{{.Fighter2.Technique}}</span><span class="label">Technique</span></div>
-					<div class="tot-row subtle"><span class="value">{{printf "%.1f" .Fighter2.MolecularDensity}}</span><span class="label">Molecular Density</span></div>
-					<div class="tot-row subtle"><span class="value">{{.Fighter2.ExistentialDread}}</span><span class="label">Existential Dread</span></div>
-					<div class="tot-row subtle"><span class="value">{{.Fighter2.Fingers}}</span><span class="label">Fingers</span></div>
-					<div class="tot-row subtle"><span class="value">{{.Fighter2.Toes}}</span><span class="label">Toes</span></div>
-				</div>
-			</div>
-			{{end}}
 
 			{{/* Betting forms row below Tale of the Tape */}}
 			<div class="betting-row">
