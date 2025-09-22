@@ -112,13 +112,7 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 			return fmt.Errorf("failed to process active fights: %w", err)
 		}
 
-		// Sync Discord events for existing fights (in background)
-		go func() {
-			err := s.syncDiscordEvents(existingFights)
-			if err != nil {
-				log.Printf("Failed to sync Discord events: %v", err)
-			}
-		}()
+		// Discord events are synced once daily by a dedicated scheduler
 
 		return nil
 	}
@@ -165,19 +159,7 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 		return fmt.Errorf("failed to process active fights: %w", err)
 	}
 
-	// Get today's fights for Discord events sync
-	newTodaysFights, err := s.repo.GetTodaysFights(tournament.ID, today, tomorrow)
-	if err != nil {
-		log.Printf("Failed to get today's fights for Discord sync: %v", err)
-	} else {
-		// Sync Discord events for newly created fights (in background)
-		go func() {
-			err := s.syncDiscordEvents(newTodaysFights)
-			if err != nil {
-				log.Printf("Failed to sync Discord events: %v", err)
-			}
-		}()
-	}
+	// Discord events are synced once daily by a dedicated scheduler
 
 	return nil
 }
@@ -190,6 +172,21 @@ func (s *Scheduler) syncDiscordEvents(fights []database.Fight) error {
 
 	serverBaseURL := getServerBaseURL()
 	return s.engine.DiscordEvents.SyncFightEvents(fights, serverBaseURL)
+}
+
+// SyncDiscordEventsForToday runs a one-shot Discord events sync for today's fights.
+// Exported for use by main's daily scheduler.
+func (s *Scheduler) SyncDiscordEventsForToday(now time.Time) error {
+	// Skip Sundays
+	if now.Weekday() == time.Sunday {
+		return nil
+	}
+
+	fights, err := s.GetTodaysSchedule(now)
+	if err != nil {
+		return err
+	}
+	return s.syncDiscordEvents(fights)
 }
 
 // getServerBaseURL determines the server's base URL for Discord events

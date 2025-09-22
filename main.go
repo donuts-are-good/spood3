@@ -147,6 +147,44 @@ func main() {
 		}
 	}()
 
+	// Daily Discord event sync at 4:00 AM Central
+	go func() {
+		for {
+			centralTime, _ := time.LoadLocation("America/Chicago")
+			now := time.Now().In(centralTime)
+			// compute next 4:00 AM
+			next := time.Date(now.Year(), now.Month(), now.Day(), 4, 0, 0, 0, centralTime)
+			if !now.Before(next) {
+				next = next.Add(24 * time.Hour)
+			}
+			dur := time.Until(next)
+			timer := time.NewTimer(dur)
+			<-timer.C
+			// Skip Sundays
+			now = time.Now().In(centralTime)
+			if now.Weekday() == time.Sunday {
+				continue
+			}
+			// Get today's fights and sync Discord events once
+			fights, err := sched.GetTodaysSchedule(now)
+			if err != nil {
+				log.Printf("Daily Discord sync: failed to get today's schedule: %v", err)
+				continue
+			}
+			if len(fights) == 0 {
+				// Ensure schedule then re-fetch
+				if err := sched.EnsureTodaysSchedule(now); err != nil {
+					log.Printf("Daily Discord sync: ensure schedule error: %v", err)
+					continue
+				}
+				fights, _ = sched.GetTodaysSchedule(now)
+			}
+			if err := sched.SyncDiscordEventsForToday(now); err != nil {
+				log.Printf("Daily Discord sync: error syncing events: %v", err)
+			}
+		}
+	}()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
