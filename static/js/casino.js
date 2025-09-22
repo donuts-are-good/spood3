@@ -302,6 +302,33 @@ function resetBlackjackUI() {
     if (bjStand) bjStand.disabled = false;
 }
 
+// ---- Recent outcomes (last 5) ----
+const BJ_RECENT_KEY = 'bj_recent_outcomes';
+function pushRecentOutcome(text, kind) {
+    try {
+        const entry = { text, kind };
+        const arr = JSON.parse(localStorage.getItem(BJ_RECENT_KEY) || '[]');
+        arr.unshift(entry);
+        while (arr.length > 5) arr.pop();
+        localStorage.setItem(BJ_RECENT_KEY, JSON.stringify(arr));
+        renderRecentOutcomes();
+    } catch (_) {}
+}
+function renderRecentOutcomes() {
+    const container = document.getElementById('blackjack-recent');
+    if (!container) return;
+    const arr = JSON.parse(localStorage.getItem(BJ_RECENT_KEY) || '[]');
+    container.innerHTML = '';
+    arr.forEach(({ text, kind }) => {
+        const div = document.createElement('div');
+        div.className = `recent-item ${kind || ''}`;
+        div.textContent = text;
+        container.appendChild(div);
+    });
+}
+// Render on load
+renderRecentOutcomes();
+
 // ---------------- Blackjack (stateless) ----------------
 // Longer post-result reset just for Blackjack so players can review results
 const BLACKJACK_RESET_DELAY_MS = 4000;
@@ -352,6 +379,7 @@ function blackjackStart() {
             p2.classList.remove('placeholder'); p2.classList.add('revealed'); p2.innerHTML = `<span>${data.player_hand[1]}</span>`;
             p1.classList.add('win-outline');
             p2.classList.add('win-outline');
+            pushRecentOutcome(`Blackjack! +${data.payout.toLocaleString()}`, 'blackjack');
             resetBlackjackUI();
             return;
         }
@@ -424,6 +452,7 @@ function blackjackHit() {
 
         if (data.bust) {
             if (window.toast && window.toast.error) window.toast.error(`Bust at ${data.player_total}. -${blackjackState.amount.toLocaleString()} credits`, 5000);
+            pushRecentOutcome(`You lost -${blackjackState.amount.toLocaleString()}`, 'loss');
             // Snapshot losing hand to history
             const history = document.getElementById('blackjack-history');
             if (history) history.innerHTML = '';
@@ -507,6 +536,10 @@ function blackjackStand() {
             else if (data.won && window.toast.success) window.toast.success(`You win! ${deltaNum.toLocaleString()} credits`, 5000);
             else if (!data.won && window.toast.error) window.toast.error(`You lose. ${deltaNum.toLocaleString()} credits`, 5000);
         }
+        // Record outcome
+        if (data.push) pushRecentOutcome('Push', 'push');
+        else if (data.won) pushRecentOutcome(`You won +${deltaNum.toLocaleString()}`, 'win');
+        else pushRecentOutcome(`You lost ${deltaNum.toLocaleString()}`, 'loss');
 
         // Winner highlight and snapshot to history
         const tableCards = Array.from(table.querySelectorAll('.card.revealed'));

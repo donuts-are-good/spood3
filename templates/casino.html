@@ -377,6 +377,14 @@
             padding: 24px;
         }
 
+        /* Recent outcomes list */
+        .recent-outcomes { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 1.2rem; }
+        .recent-item { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px; }
+        .recent-item.win { color: #00ff88; }
+        .recent-item.loss { color: #ff4444; }
+        .recent-item.push { color: #aaaaaa; }
+        .recent-item.blackjack { color: #ffcc02; text-shadow: 0 0 10px rgba(255,204,2,0.6), 0 0 18px rgba(255,107,53,0.35); }
+
         .control-group {
             margin-bottom: 20px;
         }
@@ -1174,6 +1182,8 @@
                             <button class="control-btn" data-action="max" data-game="blackjack">MAX</button>
                         </div>
                     </div>
+
+                    <div id="blackjack-recent" class="recent-outcomes"></div>
 
                     <div class="bet-buttons" id="blackjack-start-group">
                         <button class="bet-btn single-btn" id="blackjack-start">🃏 DEAL</button>
