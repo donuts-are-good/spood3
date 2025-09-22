@@ -1362,6 +1362,7 @@ func (s *Server) handleApplyEffect(w http.ResponseWriter, r *http.Request) {
 	// Parse JSON request
 	var req struct {
 		ItemID     int    `json:"item_id"`
+		FightID    int    `json:"fight_id"`
 		FighterID  int    `json:"fighter_id"`
 		TargetType string `json:"target_type"`
 	}
@@ -1413,6 +1414,50 @@ func (s *Server) handleApplyEffect(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
 			"error":   "Invalid item type for this action",
+		})
+		return
+	}
+
+	// Enforce per-player per-fight cap: max 10 total effects (blessings + curses)
+	// We count effects for this user across both fighters of the fight on the fight day.
+	if req.FightID <= 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Missing fight context",
+		})
+		return
+	}
+
+	// Determine the correct date window for counting based on fight status
+	fight, _ := s.repo.GetFight(req.FightID)
+	var effectDate time.Time
+	if fight != nil {
+		if fight.Status == "active" {
+			centralTime, _ := time.LoadLocation("America/Chicago")
+			effectDate = time.Now().In(centralTime)
+		} else {
+			effectDate = fight.ScheduledTime
+		}
+	} else {
+		// Fallback to today's date if fight not found
+		centralTime, _ := time.LoadLocation("America/Chicago")
+		effectDate = time.Now().In(centralTime)
+	}
+	startDate := time.Date(effectDate.Year(), effectDate.Month(), effectDate.Day(), 0, 0, 0, 0, effectDate.Location())
+	endDate := startDate.Add(24 * time.Hour)
+
+	count, err := s.repo.CountUserEffectsForFightOnDate(user.ID, req.FightID, startDate, endDate)
+	if err == nil && count >= 10 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":       false,
+			"error":         "You have reached the max of 10 effects for this fight.",
+			"limit_reached": true,
+			"limit":         10,
+			"current":       count,
 		})
 		return
 	}

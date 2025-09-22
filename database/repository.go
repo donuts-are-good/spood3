@@ -665,6 +665,34 @@ func (r *Repository) GetAppliedEffectsByUserForFight(fightID int) ([]AppliedEffe
 	return effects, err
 }
 
+// CountUserEffectsForFightOnDate returns how many effects a specific user has applied
+// to either fighter participating in the given fight within the provided date window.
+func (r *Repository) CountUserEffectsForFightOnDate(userID int, fightID int, startDate, endDate time.Time) (int, error) {
+	// Convert to Central Time and format to match SQLite storage conventions
+	centralTime, _ := time.LoadLocation("America/Chicago")
+	startCentral := startDate.In(centralTime)
+	endCentral := endDate.In(centralTime)
+
+	startStr := startCentral.Format("2006-01-02 15:04:05")
+	endStr := endCentral.Format("2006-01-02 15:04:05")
+
+	var count int
+	// Count across both fighters in the fight
+	err := r.db.Get(&count, `
+        SELECT COUNT(*)
+        FROM applied_effects ae
+        WHERE ae.user_id = ?
+          AND ae.target_type = 'fighter'
+          AND ae.target_id IN (
+              SELECT fighter1_id FROM fights WHERE id = ?
+              UNION
+              SELECT fighter2_id FROM fights WHERE id = ?
+          )
+          AND ae.created_at >= ? AND ae.created_at < ?
+    `, userID, fightID, fightID, startStr, endStr)
+	return count, err
+}
+
 // User Settings methods
 func (r *Repository) GetUserSetting(userID int, settingType string) (*UserSetting, error) {
 	var setting UserSetting

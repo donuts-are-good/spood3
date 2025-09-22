@@ -222,10 +222,22 @@
                                 </div>
                                 <div class="effect-description">{{.Description}}</div>
                                 <div class="effect-targets">
-                                    <button class="effect-button" onclick="applyEffect({{.ShopItemID}}, {{$.Fight.Fighter1ID}}, '{{$.Fight.Fighter1Name}}', '{{.Name}}')">
+                                    <button class="effect-button" 
+                                        data-item-id="{{.ShopItemID}}"
+                                        data-fight-id="{{$.Fight.ID}}"
+                                        data-fighter-id="{{$.Fight.Fighter1ID}}"
+                                        data-fighter-name="{{$.Fight.Fighter1Name}}"
+                                        data-effect-name="{{.Name}}"
+                                        onclick="applyEffectFromButton(this)">
                                         Apply to {{$.Fight.Fighter1Name}}
                                     </button>
-                                    <button class="effect-button" onclick="applyEffect({{.ShopItemID}}, {{$.Fight.Fighter2ID}}, '{{$.Fight.Fighter2Name}}', '{{.Name}}')">
+                                    <button class="effect-button"
+                                        data-item-id="{{.ShopItemID}}"
+                                        data-fight-id="{{$.Fight.ID}}"
+                                        data-fighter-id="{{$.Fight.Fighter2ID}}"
+                                        data-fighter-name="{{$.Fight.Fighter2Name}}"
+                                        data-effect-name="{{.Name}}"
+                                        onclick="applyEffectFromButton(this)">
                                         Apply to {{$.Fight.Fighter2Name}}
                                     </button>
                                 </div>
