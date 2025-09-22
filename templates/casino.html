@@ -916,7 +916,7 @@
                 <div class="betting-controls">
                     <div class="control-group">
                         <label class="control-label">Bet Amount <span class="amount-abbrev" id="moonflip-amount-abbrev"></span></label>
-                        <input type="number" class="bet-input" id="moonflip-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{min .User.Credits .CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
+                        <input type="number" class="bet-input" id="moonflip-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{.CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
                     </div>
                     
                     <div class="control-group">
@@ -982,7 +982,7 @@
                 <div class="betting-controls">
                     <div class="control-group" id="bet-amount-group">
                         <label class="control-label">Bet Amount <span class="amount-abbrev" id="hilow-amount-abbrev"></span></label>
-                        <input type="number" class="bet-input" id="hilow-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{min .User.Credits .CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
+                        <input type="number" class="bet-input" id="hilow-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{.CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
                     </div>
                     
                     <div class="control-group" id="amount-controls-group">
@@ -1075,7 +1075,7 @@
                 <div class="betting-controls">
                     <div class="control-group">
                         <label class="control-label">Bet Amount <span class="amount-abbrev" id="slots-amount-abbrev"></span></label>
-                        <input type="number" class="bet-input" id="slots-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{min .User.Credits .CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
+                        <input type="number" class="bet-input" id="slots-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{.CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
                     </div>
                     
                     <div class="control-group">
@@ -1138,7 +1138,7 @@
                 <div class="betting-controls">
                     <div class="control-group" id="blackjack-amount-group">
                         <label class="control-label">Bet Amount <span class="amount-abbrev" id="blackjack-amount-abbrev"></span></label>
-                        <input type="number" class="bet-input" id="blackjack-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{min .User.Credits .CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
+                        <input type="number" class="bet-input" id="blackjack-amount" min="1" max="{{if gt .CasinoBetMax 0}}{{.CasinoBetMax}}{{else}}{{.User.Credits}}{{end}}" value="100">
                     </div>
 
                     <div class="control-group">
