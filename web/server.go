@@ -196,6 +196,9 @@ func (s *Server) setupRoutes() {
 	protected.HandleFunc("/casino/blackjack/start", s.handleBlackjackStart).Methods("POST")
 	protected.HandleFunc("/casino/blackjack/hit", s.handleBlackjackHit).Methods("POST")
 	protected.HandleFunc("/casino/blackjack/stand", s.handleBlackjackStand).Methods("POST")
+
+	// Extortion event resolver
+	protected.HandleFunc("/casino/extortion", s.handleExtortionResolve).Methods("POST")
 }
 
 // userHasSacrificeExemption returns true if the user has at least 1000 sacrifices
@@ -1925,6 +1928,12 @@ func (s *Server) handleMoonFlip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 1% random extortion event
+	if rand.Intn(100) == 0 {
+		s.respondWithExtortion(w, user)
+		return
+	}
+
 	// Parse JSON request
 	var req struct {
 		Amount int    `json:"amount"`
@@ -2032,6 +2041,11 @@ func (s *Server) handleHiLowStep1(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if rand.Intn(100) == 0 {
+		s.respondWithExtortion(w, user)
 		return
 	}
 
@@ -2268,6 +2282,11 @@ func (s *Server) handleSlots(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if rand.Intn(100) == 0 {
+		s.respondWithExtortion(w, user)
 		return
 	}
 
@@ -2659,6 +2678,87 @@ func (s *Server) handleGetJackpot(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// -------------------- Extortion Event --------------------
+// respondWithExtortion immediately charges 70% of the user's credits and returns
+// a payload instructing the client to show an extortion modal. The client must
+// call /user/casino/extortion with the user's choice to settle.
+func (s *Server) respondWithExtortion(w http.ResponseWriter, user *database.User) {
+	// Deduct 70% as a hold
+	hold := (user.Credits * 70) / 100
+	newBalance := user.Credits - hold
+	if newBalance < 0 {
+		newBalance = 0
+	}
+	_ = s.repo.UpdateUserCredits(user.ID, newBalance)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":     false,
+		"extortion":   true,
+		"message":     "A pair of goons corner you by the bathroom. They want 20% to 'keep the peace'. Pay up or run?",
+		"hold":        hold,
+		"new_balance": newBalance,
+	})
+}
+
+// handleExtortionResolve applies the user's choice after the 70% hold.
+// Body: { choice: "pay"|"run" }
+func (s *Server) handleExtortionResolve(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		Choice string `json:"choice"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
+		return
+	}
+
+	// Compute amounts based on current credits after hold
+	// If they choose pay: total cost should be 20% of original; since 70% already held,
+	// refund 50% (net 20%). If they run and fail: net 50% loss → refund 20%.
+	// If they run and succeed: refund all 70%.
+	var refund int
+	switch req.Choice {
+	case "pay":
+		refund = (user.Credits * 50) / 100 // refund half, net 20% loss
+	case "run":
+		// coin flip
+		if rand.Intn(2) == 0 {
+			// fail → net 50% loss
+			refund = (user.Credits * 20) / 100
+		} else {
+			// succeed → refund all 70%
+			refund = (user.Credits * 70) / 100
+		}
+	default:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid choice"})
+		return
+	}
+
+	finalBalance := user.Credits + refund
+	if err := s.repo.UpdateUserCredits(user.ID, finalBalance); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Failed to settle"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":     true,
+		"new_balance": finalBalance,
+	})
+}
+
 // -------------------- BLACKJACK (stateless, server-side RNG) --------------------
 
 // handleBlackjackStart charges the bet and deals initial cards
@@ -2666,6 +2766,11 @@ func (s *Server) handleBlackjackStart(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if rand.Intn(100) == 0 {
+		s.respondWithExtortion(w, user)
 		return
 	}
 
@@ -2768,6 +2873,12 @@ func (s *Server) handleBlackjackHit(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// extortion can also trigger mid-hand
+	if rand.Intn(100) == 0 {
+		s.respondWithExtortion(w, user)
 		return
 	}
 
@@ -2886,6 +2997,11 @@ func (s *Server) handleBlackjackStand(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if rand.Intn(100) == 0 {
+		s.respondWithExtortion(w, user)
 		return
 	}
 

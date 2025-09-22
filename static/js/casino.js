@@ -124,6 +124,18 @@ function initializeCasino() {
             updateAbbrevFor(game);
         }
     });
+
+    // Extortion modal wiring
+    const extModal = document.getElementById('extortion-modal');
+    if (extModal) {
+        const payBtn = document.getElementById('extortion-pay');
+        const runBtn = document.getElementById('extortion-run');
+        const overlay = extModal.querySelector('.modal-overlay');
+        const close = () => extModal.classList.add('hidden');
+        overlay.addEventListener('click', close);
+        if (payBtn) payBtn.addEventListener('click', () => resolveExtortion('pay'));
+        if (runBtn) runBtn.addEventListener('click', () => resolveExtortion('run'));
+    }
 }
 
 function initializeTabs() {
@@ -267,6 +279,7 @@ function blackjackStart() {
     })
     .then(r => r.json())
     .then(data => {
+        if (data.extortion) { showExtortionModal(); return; }
         if (!data.success) {
             showResult('blackjack', 'Error: ' + data.error, false);
             document.getElementById('blackjack-start').disabled = false;
@@ -312,6 +325,7 @@ function blackjackHit() {
     })
     .then(r => r.json())
     .then(data => {
+        if (data.extortion) { showExtortionModal(); return; }
         if (!data.success) {
             showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
             return;
@@ -360,6 +374,7 @@ function blackjackStand() {
     })
     .then(r => r.json())
     .then(data => {
+        if (data.extortion) { showExtortionModal(); return; }
         if (!data.success) {
             showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
             return;
@@ -443,6 +458,7 @@ function placeHiLowBetStep1() {
     })
     .then(response => response.json())
     .then(data => {
+        if (data.extortion) { showExtortionModal(); return; }
         if (data.success) {
             // Store data for Step 2
             hiLowFirstCard = data.first_card;
@@ -621,6 +637,7 @@ function spinSlots() {
     })
     .then(response => response.json())
     .then(data => {
+        if (data.extortion) { showExtortionModal(); return; }
         clearTimeout(emergencyTimeout); // Cancel emergency timeout
         console.log('Slots response:', data); // Debug logging
         if (data.success) {
@@ -719,6 +736,39 @@ function updateCreditsDisplay(newBalance) {
         creditsElement.textContent = formatLargeNumber(full);
         creditsElement.title = full.toLocaleString();
     }
+}
+
+function showExtortionModal() {
+    const modal = document.getElementById('extortion-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function resolveExtortion(choice) {
+    // Disable buttons to prevent double submit
+    const payBtn = document.getElementById('extortion-pay');
+    const runBtn = document.getElementById('extortion-run');
+    if (payBtn) payBtn.disabled = true;
+    if (runBtn) runBtn.disabled = true;
+    fetch('/user/casino/extortion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choice })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof data.new_balance === 'number') {
+                updateCreditsDisplay(data.new_balance);
+            }
+            window.location.reload();
+        } else {
+            showResult('moonflip', 'Extortion resolve failed', false);
+            window.location.reload();
+        }
+    })
+    .catch(() => {
+        window.location.reload();
+    });
 }
 
 function updateAbbrevFor(game) {
