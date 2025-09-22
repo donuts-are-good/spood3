@@ -772,6 +772,15 @@
     font-style: italic;
 }
 
+/* Card wrapper to align sections consistently */
+.fight-section-card {
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
 /* Update existing betting section styles */
 .betting-section {
     margin: 30px 0;
@@ -800,6 +809,7 @@
 /* Tale of the Tape */
 .tale-of-tape {
     margin-top: 20px;
+    margin-bottom: 20px;
     background: #0b0b0b;
     border: 1px solid #333;
     border-radius: 6px;
@@ -845,6 +855,10 @@
     color: #fff;
     font-weight: bold;
     font-size: 1rem;
+}
+
+.tot-row .value.win {
+    color: #9acd32; /* green highlight for winner */
 }
 
 .tot-row.subtle .label,
