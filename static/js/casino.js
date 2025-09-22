@@ -492,8 +492,8 @@ function blackjackStand() {
         const history = document.getElementById('blackjack-history');
         const summary = document.createElement('div');
         summary.className = 'hand-summary';
-        const dealerWrap = document.createElement('div');
-        const playerWrap = document.createElement('div');
+        const dealerWrap = document.createElement('div'); dealerWrap.className = 'hand-cards';
+        const playerWrap = document.createElement('div'); playerWrap.className = 'hand-cards';
         dealerCards.forEach(el => {
             const c = el.cloneNode(true); c.classList.add('mini'); dealerWrap.appendChild(c);
         });
