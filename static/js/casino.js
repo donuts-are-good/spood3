@@ -291,6 +291,14 @@ function resetBlackjackUI() {
 
     // Clear state for next round
     blackjackState = { amount: 0, dealerUpcard: '', playerHand: [], state: null };
+
+    // Re-enable input and buttons to avoid cursor lockouts
+    const amountInput = document.getElementById('blackjack-amount');
+    if (amountInput) amountInput.disabled = false;
+    const bjHit = document.getElementById('blackjack-hit');
+    const bjStand = document.getElementById('blackjack-stand');
+    if (bjHit) bjHit.disabled = false;
+    if (bjStand) bjStand.disabled = false;
 }
 
 // ---------------- Blackjack (stateless) ----------------
@@ -332,7 +340,7 @@ function blackjackStart() {
             p2.classList.remove('placeholder'); p2.classList.add('revealed'); p2.innerHTML = `<span>${data.player_hand[1]}</span>`;
             p1.classList.add('win-outline');
             p2.classList.add('win-outline');
-            setTimeout(() => resetBlackjackUI(), BLACKJACK_RESET_DELAY_MS);
+            resetBlackjackUI();
             return;
         }
         console.log('[Extortion Debug] blackjack start: clear');
@@ -416,7 +424,7 @@ function blackjackHit() {
             playerWrap.querySelectorAll('.card').forEach(el => el.classList.add('lose-muted'));
             summary.appendChild(dealerWrap); const sep = document.createElement('div'); sep.className='vs-text'; sep.textContent='DEALER'; summary.appendChild(sep); summary.appendChild(playerWrap);
             if (history) history.prepend(summary);
-            setTimeout(() => resetBlackjackUI(), BLACKJACK_RESET_DELAY_MS);
+            resetBlackjackUI();
             roundEnded = true;
         } else {
             if (window.toast && window.toast.info) window.toast.info(`Total: ${data.player_total}. Hit or Stand?`, 2000);
@@ -488,7 +496,8 @@ function blackjackStand() {
         const tableCards = Array.from(table.querySelectorAll('.card.revealed'));
         const dealerCount = data.dealer_hand.length;
         const dealerCards = tableCards.slice(0, dealerCount);
-        const playerCards = tableCards.slice(dealerCount + 1);
+        // All remaining revealed cards after dealer belong to player; separator is not a .card
+        const playerCards = tableCards.slice(dealerCount);
         const history = document.getElementById('blackjack-history');
         const summary = document.createElement('div');
         summary.className = 'hand-summary';
@@ -510,7 +519,7 @@ function blackjackStand() {
         if (typeof data.new_balance === 'number') {
             updateCreditsDisplay(data.new_balance);
         }
-        setTimeout(() => resetBlackjackUI(), BLACKJACK_RESET_DELAY_MS);
+        resetBlackjackUI();
         roundEnded = true;
     })
     .catch(() => {
