@@ -378,7 +378,7 @@
         }
 
         /* Recent outcomes list */
-        .recent-outcomes { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 1.2rem; }
+        .recent-outcomes { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; min-height: 1.2rem; text-align: center; align-items: center; }
         .recent-item { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px; }
         .recent-item.win { color: #00ff88; }
         .recent-item.loss { color: #ff4444; }
@@ -1183,8 +1183,6 @@
                         </div>
                     </div>
 
-                    <div id="blackjack-recent" class="recent-outcomes"></div>
-
                     <div class="bet-buttons" id="blackjack-start-group">
                         <button class="bet-btn single-btn" id="blackjack-start">🃏 DEAL</button>
                     </div>
@@ -1194,6 +1192,8 @@
                         <button class="bet-btn" id="blackjack-stand">✋ STAND</button>
                     </div>
                 </div>
+
+                <div id="blackjack-recent" class="recent-outcomes"></div>
 
                 <div class="game-result" id="blackjack-result"></div>
             </div>
