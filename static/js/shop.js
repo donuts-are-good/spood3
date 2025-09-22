@@ -130,21 +130,50 @@ function updateShopInventoryItem(inv) {
         if (!grid) return;
         const sel = `.inventory-item[data-shop-item-id="${inv.shop_item_id}"]`;
         let itemEl = grid.querySelector(sel);
+        // Fallback: older markup may not have data attribute; match by name text
+        if (!itemEl) {
+            const items = Array.from(grid.querySelectorAll('.inventory-item'));
+            itemEl = items.find(el => {
+                const n = el.querySelector('.inventory-name');
+                return n && (n.textContent || '').trim() === (inv.name || '').trim();
+            }) || null;
+        }
+
+        const isLicense = inv.item_type === 'fighter_creation';
         if (!itemEl) {
             // Create a new inventory card if not present
             itemEl = document.createElement('div');
-            itemEl.className = 'inventory-item';
+            itemEl.className = 'inventory-item' + (isLicense ? ' clickable-license' : '');
             itemEl.setAttribute('data-shop-item-id', String(inv.shop_item_id));
+            if (isLicense) {
+                itemEl.setAttribute('onclick', "window.location.href='/user/create-fighter'");
+            }
             itemEl.innerHTML = `
                 <div class="inventory-emoji"></div>
                 <div class="inventory-name"></div>
                 <div class="inventory-quantity"></div>
+                ${isLicense ? '<div class="license-hint">Click to create fighter!</div>' : ''}
             `;
             grid.prepend(itemEl);
         }
         const emojiEl = itemEl.querySelector('.inventory-emoji');
         const nameEl = itemEl.querySelector('.inventory-name');
         const qtyEl = itemEl.querySelector('.inventory-quantity');
+        // Ensure attributes/classes consistent for existing element
+        if (!itemEl.getAttribute('data-shop-item-id')) {
+            itemEl.setAttribute('data-shop-item-id', String(inv.shop_item_id));
+        }
+        if (isLicense) {
+            itemEl.classList.add('clickable-license');
+            itemEl.setAttribute('onclick', "window.location.href='/user/create-fighter'");
+            let hint = itemEl.querySelector('.license-hint');
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.className = 'license-hint';
+                hint.textContent = 'Click to create fighter!';
+                itemEl.appendChild(hint);
+            }
+        }
         if (emojiEl) emojiEl.textContent = inv.emoji || '';
         if (nameEl) nameEl.textContent = inv.name || '';
         if (qtyEl) qtyEl.textContent = `×${inv.quantity || 0}`;
