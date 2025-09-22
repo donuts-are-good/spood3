@@ -423,8 +423,12 @@ func (n *Notifier) NotifyActionSummary(fightData database.Fight, winnerID int) e
 		var delta int
 		switch b.Status {
 		case "won":
-			// payout is 2x amount; net gain is +amount
-			delta = b.Amount
+			// net change = payout - amount debited at placement
+			if b.Payout.Valid {
+				delta = int(b.Payout.Int64) - b.Amount
+			} else {
+				delta = b.Amount
+			}
 		case "lost":
 			delta = -b.Amount
 		default:

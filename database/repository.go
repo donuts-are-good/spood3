@@ -301,9 +301,29 @@ func (r *Repository) ProcessBetsForFight(fightID int, winnerID *int) error {
 			newStatus = "voided"
 			payout = bet.Amount
 		} else if bet.FighterID == *winnerID {
-			// Won - double the bet (1:1 odds)
+			// Won - default 2x payout; 10x if this is user's MVP fighter and they own MVP item
 			newStatus = "won"
-			payout = bet.Amount * 2
+			// Check MVP status for this user and fighter
+			var cnt int
+			// Use transaction to ensure consistent read while settling
+			err := tx.QueryRow(`
+				SELECT COUNT(*)
+				FROM user_settings us
+				WHERE us.user_id = ?
+				  AND us.setting_type = 'mvp_player'
+				  AND us.setting_value = ?
+				  AND EXISTS (
+				    SELECT 1 FROM user_inventory ui
+				    JOIN shop_items si ON ui.shop_item_id = si.id
+				    WHERE ui.user_id = us.user_id
+				      AND si.item_type = 'mvp_player'
+				      AND ui.quantity > 0
+				  )`, bet.UserID, fmt.Sprintf("%d", bet.FighterID)).Scan(&cnt)
+			if err == nil && cnt > 0 {
+				payout = bet.Amount * 10
+			} else {
+				payout = bet.Amount * 2
+			}
 		} else {
 			// Lost - no payout
 			newStatus = "lost"

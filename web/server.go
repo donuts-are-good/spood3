@@ -538,6 +538,12 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			data.UserInventory = userInventory
 		}
+
+		// Expose user's MVP selection for UI hints
+		mvpSetting, err := s.repo.GetUserSetting(user.ID, "mvp_player")
+		if err == nil {
+			data.CurrentMVP = mvpSetting
+		}
 	}
 
 	// Get applied effects for both fighters (for display)
