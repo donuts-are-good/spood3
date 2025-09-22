@@ -877,26 +877,56 @@ function resolveExtortion(choice) {
         if (data.success) {
             // Compose flavorful outcome message
             let msg = '';
+            let kind = 'info';
             if (data.outcome === 'paid') {
                 msg = `You pay the fee and keep walking. Net -20%. Refund: ${data.refund?.toLocaleString?.() || data.refund} credits.`;
+                kind = 'warning';
             } else if (data.outcome === 'run_success') {
                 msg = `You run like the wind. You slip away with everything. Refund: ${data.refund?.toLocaleString?.()} credits.`;
+                kind = 'success';
             } else if (data.outcome === 'run_fail') {
                 msg = `You tried to run. They clipped your wings. Net -50%. Refund: ${data.refund?.toLocaleString?.()} credits.`;
+                kind = 'error';
             }
-            if (window.toast && window.toast.info) {
-                window.toast.info(msg, 6000);
-            }
+            try {
+                if (window.toast) {
+                    const d = 7000;
+                    if (kind === 'success' && window.toast.success) window.toast.success(msg, d);
+                    else if (kind === 'warning' && window.toast.warning) window.toast.warning(msg, d);
+                    else if (kind === 'error' && window.toast.error) window.toast.error(msg, d);
+                    else if (window.toast.info) window.toast.info(msg, d);
+                }
+            } catch (_) {}
             if (typeof data.new_balance === 'number') {
                 updateCreditsDisplay(data.new_balance);
             }
-            // Close modal and refresh to fully reset flow
+            // Close modal and restore UI without reloading
             const modal = document.getElementById('extortion-modal');
             if (modal) modal.classList.add('hidden');
-            setTimeout(() => window.location.reload(), 200);
+            // Attempt to restore common game controls
+            try {
+                stopSpinning();
+                resetSpinButton();
+            } catch (_) {}
+            const spinBtn = document.getElementById('slots-spin-btn');
+            const spin10Btn = document.getElementById('slots-spin10-btn');
+            if (spinBtn) spinBtn.disabled = false;
+            if (spin10Btn) spin10Btn.disabled = false;
+            const bjStart = document.getElementById('blackjack-start');
+            const bjHit = document.getElementById('blackjack-hit');
+            const bjStand = document.getElementById('blackjack-stand');
+            if (bjStart) bjStart.disabled = false;
+            if (bjHit) bjHit.disabled = false;
+            if (bjStand) bjStand.disabled = false;
+            const placeBetButton = document.getElementById('place-hilow-bet');
+            if (placeBetButton) placeBetButton.disabled = false;
+            document.querySelectorAll('.bet-btn[data-choice]').forEach(btn => btn.disabled = false);
+            document.querySelectorAll('.bet-btn[data-guess]').forEach(btn => btn.disabled = false);
         } else {
-            showResult('moonflip', 'Extortion resolve failed', false);
-            window.location.reload();
+            try { if (window.toast && window.toast.error) window.toast.error('Extortion resolve failed', 4000); } catch (_) {}
+            const modal = document.getElementById('extortion-modal');
+            if (modal) modal.classList.add('hidden');
+            // Do not reload; user can continue
         }
     })
     .catch(() => {
