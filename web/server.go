@@ -2687,8 +2687,9 @@ func (s *Server) handleGetJackpot(w http.ResponseWriter, r *http.Request) {
 // call /user/casino/extortion with the user's choice to settle.
 func (s *Server) respondWithExtortion(w http.ResponseWriter, user *database.User) {
 	// Deduct 70% as a hold
-	hold := (user.Credits * 70) / 100
-	newBalance := user.Credits - hold
+	original := user.Credits
+	hold := (original * 70) / 100
+	newBalance := original - hold
 	if newBalance < 0 {
 		newBalance = 0
 	}
@@ -2696,11 +2697,13 @@ func (s *Server) respondWithExtortion(w http.ResponseWriter, user *database.User
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success":     false,
-		"extortion":   true,
-		"message":     "A pair of goons corner you by the bathroom. They want 20% to 'keep the peace'. Pay up or run?",
-		"hold":        hold,
-		"new_balance": newBalance,
+		"success":          false,
+		"extortion":        true,
+		"message":          "A pair of goons corner you by the bathroom. They want 20% to 'keep the peace'. Pay up or run?",
+		"hold":             hold,
+		"new_balance":      newBalance,
+		"original_balance": original,
+		"fee_amount":       (original * 20) / 100,
 	})
 }
 
@@ -2728,17 +2731,25 @@ func (s *Server) handleExtortionResolve(w http.ResponseWriter, r *http.Request) 
 	// refund 50% (net 20%). If they run and fail: net 50% loss → refund 20%.
 	// If they run and succeed: refund all 70%.
 	var refund int
+	var outcome string
+	var message string
 	switch req.Choice {
 	case "pay":
 		refund = (user.Credits * 50) / 100 // refund half, net 20% loss
+		outcome = "paid"
+		message = "You hand over the envelope. The room relaxes. Net loss: 20%."
 	case "run":
 		// coin flip
 		if rand.Intn(2) == 0 {
 			// fail → net 50% loss
 			refund = (user.Credits * 20) / 100
+			outcome = "run_fail"
+			message = "You bolt. A meaty hand catches your collar. They keep half."
 		} else {
 			// succeed → refund all 70%
 			refund = (user.Credits * 70) / 100
+			outcome = "run_success"
+			message = "You slip the grasp and vanish into the crowd. They get nothing."
 		}
 	default:
 		w.Header().Set("Content-Type", "application/json")
@@ -2759,6 +2770,9 @@ func (s *Server) handleExtortionResolve(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success":     true,
 		"new_balance": finalBalance,
+		"refund":      refund,
+		"outcome":     outcome,
+		"message":     message,
 	})
 }
 

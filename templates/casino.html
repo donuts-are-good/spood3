@@ -1172,16 +1172,21 @@
     <!-- Extortion Modal -->
     <div id="extortion-modal" class="modal hidden">
         <div class="modal-overlay"></div>
-        <div class="modal-content">
+        <div class="modal-content ominous">
             <div class="modal-header">
-                <h3>Unexpected Attention</h3>
+                <h3>UNEXPECTED ATTENTION</h3>
             </div>
             <div class="modal-body">
-                <p>Two goons corner you by the bathroom. "Management fee," they say. They want <strong>20%</strong> to keep the peace.</p>
-                <p>Do you quietly pay or try to run?</p>
+                <p class="ominous-lead">Two goons drift out of the shadows near the restroom.</p>
+                <p class="ominous-copy">“Management fee,” one mutters. “Twenty percent to keep the peace.”</p>
+                <div class="fee-breakdown">
+                    <div class="fee-row"><span class="fee-label">Balance spotted:</span> <span id="ext-original" class="fee-value">—</span></div>
+                    <div class="fee-row subtle"><span class="fee-label">If you pay (20% total):</span> <span id="ext-fee" class="fee-value">—</span></div>
+                </div>
+                <p class="ominous-question">Do you quietly pay, or try to run?</p>
             </div>
             <div class="modal-actions">
-                <button id="extortion-pay" class="modal-btn primary">Pay 20%</button>
+                <button id="extortion-pay" class="modal-btn primary"><span id="ext-pay-label">Pay 20%</span></button>
                 <button id="extortion-run" class="modal-btn secondary">Run</button>
             </div>
         </div>
@@ -1192,9 +1197,18 @@
     .hidden { display: none; }
     .modal { position: fixed; inset: 0; z-index: 9999; }
     .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(2px); }
-    .modal-content { position: relative; max-width: 560px; margin: 10vh auto; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px 24px; color: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-    .modal-header h3 { margin: 0 0 8px 0; font-size: 1.5rem; letter-spacing: 1px; text-transform: uppercase; }
-    .modal-body p { margin: 6px 0; color: rgba(255,255,255,0.85); }
+    .modal-content { position: relative; max-width: 560px; margin: 10vh auto; background: linear-gradient(180deg, rgba(10,10,10,0.85), rgba(16,8,0,0.9)); border: 1px solid rgba(255,165,0,0.25); border-radius: 14px; padding: 22px 24px; color: #fff; box-shadow: 0 30px 80px rgba(0,0,0,0.8); }
+    .modal-content.ominous { box-shadow: 0 0 80px rgba(255,107,53,0.15), inset 0 0 30px rgba(255,107,53,0.08); }
+    .modal-header h3 { margin: 0 0 12px 0; font-size: 1.6rem; letter-spacing: 2px; text-transform: uppercase; color: #ffcc02; text-shadow: 0 0 16px rgba(255,204,2,0.35); }
+    .modal-body p { margin: 8px 0; color: rgba(255,255,255,0.9); }
+    .ominous-lead { font-weight: 600; color: rgba(255,255,255,0.95); }
+    .ominous-copy { font-style: italic; color: rgba(255,200,150,0.95); }
+    .ominous-question { margin-top: 10px; font-weight: 600; color: rgba(255,255,255,0.9); }
+    .fee-breakdown { margin: 10px 0 2px; padding: 10px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,165,0,0.2); border-radius: 10px; }
+    .fee-row { display: flex; justify-content: space-between; padding: 4px 0; }
+    .fee-row.subtle { opacity: 0.85; }
+    .fee-label { color: rgba(255,255,255,0.75); }
+    .fee-value { color: #ffcc02; font-weight: 700; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
     .modal-btn { border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; letter-spacing: 0.5px; }
     .modal-btn.primary { background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: #000; }

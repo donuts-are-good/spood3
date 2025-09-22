@@ -283,7 +283,7 @@ function blackjackStart() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(); return; }
+        if (data.extortion) { showExtortionModal(data); return; }
         if (!data.success) {
             showResult('blackjack', 'Error: ' + data.error, false);
             document.getElementById('blackjack-start').disabled = false;
@@ -329,7 +329,7 @@ function blackjackHit() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(); return; }
+        if (data.extortion) { showExtortionModal(data); return; }
         if (!data.success) {
             showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
             return;
@@ -378,7 +378,7 @@ function blackjackStand() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(); return; }
+        if (data.extortion) { showExtortionModal(data); return; }
         if (!data.success) {
             showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
             return;
@@ -462,7 +462,7 @@ function placeHiLowBetStep1() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(); return; }
+        if (data.extortion) { showExtortionModal(data); return; }
         if (data.success) {
             // Store data for Step 2
             hiLowFirstCard = data.first_card;
@@ -641,7 +641,7 @@ function spinSlots() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(); return; }
+        if (data.extortion) { showExtortionModal(data); return; }
         clearTimeout(emergencyTimeout); // Cancel emergency timeout
         console.log('Slots response:', data); // Debug logging
         if (data.success) {
@@ -709,7 +709,7 @@ function spinSlotsSeries(times) {
         })
         .then(r => r.json())
         .then(data => {
-            if (data.extortion) { showExtortionModal(); throw new Error('extortion'); }
+            if (data.extortion) { showExtortionModal(data); throw new Error('extortion'); }
             if (!data.success) throw new Error(data.error || 'Spin failed');
             lastData = data;
             const linesLen = Array.isArray(data.winning_lines) ? data.winning_lines.length : 0;
@@ -829,9 +829,21 @@ function updateCreditsDisplay(newBalance) {
     }
 }
 
-function showExtortionModal() {
+function showExtortionModal(payload) {
     const modal = document.getElementById('extortion-modal');
-    if (modal) modal.classList.remove('hidden');
+    if (!modal) return;
+    if (payload) {
+        const fmt = (n) => (typeof n === 'number' ? n.toLocaleString() : '—');
+        const orig = modal.querySelector('#ext-original');
+        const hold = modal.querySelector('#ext-hold');
+        const fee = modal.querySelector('#ext-fee');
+        const payLabel = modal.querySelector('#ext-pay-label');
+        if (orig && typeof payload.original_balance === 'number') orig.textContent = `${fmt(payload.original_balance)} credits`;
+        if (hold && typeof payload.hold === 'number') hold.textContent = `${fmt(payload.hold)} credits`;
+        if (fee && typeof payload.fee_amount === 'number') fee.textContent = `${fmt(payload.fee_amount)} credits`;
+        if (payLabel && typeof payload.fee_amount === 'number') payLabel.textContent = `Pay ${fmt(payload.fee_amount)} credits`;
+    }
+    modal.classList.remove('hidden');
 }
 
 function resolveExtortion(choice) {
@@ -848,10 +860,25 @@ function resolveExtortion(choice) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
+            // Compose flavorful outcome message
+            let msg = '';
+            if (data.outcome === 'paid') {
+                msg = `You pay the fee and keep walking. Net -20%. Refund: ${data.refund?.toLocaleString?.() || data.refund} credits.`;
+            } else if (data.outcome === 'run_success') {
+                msg = `You run like the wind. You slip away with everything. Refund: ${data.refund?.toLocaleString?.()} credits.`;
+            } else if (data.outcome === 'run_fail') {
+                msg = `You tried to run. They clipped your wings. Net -50%. Refund: ${data.refund?.toLocaleString?.()} credits.`;
+            }
+            if (window.toast && window.toast.info) {
+                window.toast.info(msg, 6000);
+            }
             if (typeof data.new_balance === 'number') {
                 updateCreditsDisplay(data.new_balance);
             }
-            window.location.reload();
+            // Close modal and refresh to fully reset flow
+            const modal = document.getElementById('extortion-modal');
+            if (modal) modal.classList.add('hidden');
+            setTimeout(() => window.location.reload(), 200);
         } else {
             showResult('moonflip', 'Extortion resolve failed', false);
             window.location.reload();
