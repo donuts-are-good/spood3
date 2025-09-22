@@ -650,12 +650,38 @@ function placeHiLowBetStep2(guess) {
             nextCardElement.classList.add('revealed');
             
             const resultText = `${data.second_card} vs ${data.first_card}! ${data.won ? 'YOU WIN!' : 'You lose.'} ${data.won ? `+${data.payout}` : `-${data.amount}`} credits`;
+            // Toast and non-reload UX
+            try {
+                if (data.won && window.toast && window.toast.success) window.toast.success(resultText, 4000);
+                else if (!data.won && window.toast && window.toast.error) window.toast.error(resultText, 4000);
+            } catch (_) {}
             showResult('hilow', resultText, data.won);
-            
-            // Reset for next round after 3 seconds
+            // Disable guess buttons until reset
+            document.querySelectorAll('.bet-btn[data-guess]').forEach(btn => btn.disabled = true);
+            // Reset UI for next round without page reload
             setTimeout(() => {
-                window.location.reload();
-            }, 3000);
+                // Clear cards
+                const firstCard = document.getElementById('first-card-display');
+                const nextCard = document.getElementById('next-card-display');
+                if (firstCard) { firstCard.className = 'card placeholder'; firstCard.innerHTML = '<span>?</span>'; }
+                if (nextCard) { nextCard.className = 'card placeholder'; nextCard.innerHTML = '<span>?</span>'; }
+                // Restore controls
+                document.getElementById('step2-text').classList.remove('active');
+                document.getElementById('step1-text').classList.add('active');
+                document.getElementById('bet-amount-group').classList.remove('hidden');
+                document.getElementById('amount-controls-group').classList.remove('hidden');
+                document.getElementById('place-bet-group').classList.remove('hidden');
+                document.getElementById('guess-buttons-group').classList.add('hidden');
+                // Re-enable bet button
+                const placeBtn = document.getElementById('place-hilow-bet');
+                if (placeBtn) placeBtn.disabled = false;
+                // Reset state
+                hiLowFirstCard = '';
+                hiLowBetAmount = 0;
+                // Clear result banner
+                const res = document.getElementById('hilow-result');
+                if (res) { res.innerHTML = ''; res.className = 'game-result'; }
+            }, 2500);
         } else {
             showResult('hilow', 'Error: ' + data.error, false);
         }
@@ -663,10 +689,7 @@ function placeHiLowBetStep2(guess) {
     .catch(error => {
         showResult('hilow', 'Network error', false);
     })
-    .finally(() => {
-        // Re-enable guess buttons
-        document.querySelectorAll('.bet-btn[data-guess]').forEach(btn => btn.disabled = false);
-    });
+    .finally(() => {});
 }
 
 // Moon Flip - ALL GAME LOGIC IS SERVER-SIDE
