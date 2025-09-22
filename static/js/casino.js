@@ -411,6 +411,7 @@ function blackjackHit() {
             if (window.toast && window.toast.error) window.toast.error(`Bust at ${data.player_total}. -${blackjackState.amount.toLocaleString()} credits`, 5000);
             // Snapshot losing hand to history
             const history = document.getElementById('blackjack-history');
+            if (history) history.innerHTML = '';
             const summary = document.createElement('div');
             summary.className = 'hand-summary';
             const dealerWrap = document.createElement('div');
@@ -499,6 +500,7 @@ function blackjackStand() {
         // All remaining revealed cards after dealer belong to player; separator is not a .card
         const playerCards = tableCards.slice(dealerCount);
         const history = document.getElementById('blackjack-history');
+        if (history) history.innerHTML = '';
         const summary = document.createElement('div');
         summary.className = 'hand-summary';
         const dealerWrap = document.createElement('div'); dealerWrap.className = 'hand-cards';
