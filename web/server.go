@@ -559,6 +559,18 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Load full fighter records for Tale of the Tape display
+	if fight != nil {
+		f1, err1 := s.repo.GetFighter(fight.Fighter1ID)
+		if err1 == nil {
+			data.Fighter1 = f1
+		}
+		f2, err2 := s.repo.GetFighter(fight.Fighter2ID)
+		if err2 == nil {
+			data.Fighter2 = f2
+		}
+	}
+
 	// Get applied effects for both fighters (for display)
 	if fight != nil {
 		// Determine which date to use for effects based on fight status

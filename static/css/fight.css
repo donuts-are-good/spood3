@@ -781,6 +781,98 @@
     border-radius: 8px;
 }
 
+/* Tale of the Tape */
+.tale-of-tape {
+    margin-top: 20px;
+    background: #0b0b0b;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: center;
+}
+
+.tot-col {
+    display: grid;
+    gap: 8px;
+}
+
+.tot-col.left .tot-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+}
+
+.tot-col.right .tot-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+}
+
+.tot-row {
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+
+.tot-row .label {
+    color: #aaa;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tot-row .value {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.tot-row.subtle .label,
+.tot-row.subtle .value {
+    color: #bbb;
+    font-size: 0.9rem;
+}
+
+.tot-center {
+    text-align: center;
+}
+
+.tot-title {
+    font-family: var(--font-heading);
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.tot-faceoff {
+    color: #ccc;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.vs-dot {
+    color: #ffaa00;
+    margin: 0 6px;
+}
+
+@media (max-width: 768px) {
+    .tale-of-the-tape,
+    .tale-of-tape {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .tot-center { order: -1; }
+    .tot-title { font-size: 0.9rem; }
+    .tot-faceoff { font-size: 0.85rem; }
+}
+
 .betting-section h4 {
     color: #ffffff;
     margin-bottom: 20px;
