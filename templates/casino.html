@@ -299,7 +299,17 @@
 
         /* Blackjack hand history */
         .hand-history { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
-        .hand-summary { display: flex; align-items: center; gap: 12px; opacity: 0.95; flex-wrap: nowrap; overflow-x: auto; }
+        .hand-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0.95;
+            flex-wrap: nowrap;
+            overflow-x: auto; /* allow horizontal scroll when needed */
+            -ms-overflow-style: none; /* IE/Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        .hand-summary::-webkit-scrollbar { display: none; }
         .card.mini { width: 48px; height: 68px; font-size: 1.2rem; }
         .hand-summary .vs-text { font-size: 1rem; }
         .hand-cards { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
@@ -1140,7 +1150,6 @@
         <!-- Blackjack Game -->
         <div class="game-panel" id="blackjack-panel">
             <div class="game-area">
-                <div id="blackjack-history" class="hand-history"></div>
                 <div class="card-area" id="blackjack-table">
                     <div class="card placeholder" id="dealer-upcard"><span>?</span></div>
                     <div class="vs-text">DEALER</div>

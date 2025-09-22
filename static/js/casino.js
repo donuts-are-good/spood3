@@ -322,12 +322,23 @@ function renderRecentOutcomes() {
     arr.forEach(({ text, kind }) => {
         const div = document.createElement('div');
         div.className = `recent-item ${kind || ''}`;
-        div.textContent = text;
+        div.textContent = formatInlineNumbers(text);
         container.appendChild(div);
     });
 }
 // Render on load
 renderRecentOutcomes();
+
+// Formats any long integer substrings (>=4 digits) inside a string with locale commas,
+// preserving a leading '+' sign if present.
+function formatInlineNumbers(str) {
+    return String(str).replace(/([+-]?)(\d{4,})/g, (m, sign, digits) => {
+        const n = Number((sign || '') + digits.replace(/,/g, ''));
+        if (!isFinite(n)) return m;
+        const formatted = n.toLocaleString();
+        return sign === '+' ? '+' + formatted : formatted;
+    });
+}
 
 // ---------------- Blackjack (stateless) ----------------
 // Longer post-result reset just for Blackjack so players can review results
@@ -453,23 +464,8 @@ function blackjackHit() {
 
         if (data.bust) {
             if (window.toast && window.toast.error) window.toast.error(`Bust at ${data.player_total}. -${blackjackState.amount.toLocaleString()} credits`, 5000);
-            pushRecentOutcome(`You lost -${blackjackState.amount.toLocaleString()}`, 'loss');
-            // Snapshot losing hand to history
-            const history = document.getElementById('blackjack-history');
-            if (history) history.innerHTML = '';
-            const summary = document.createElement('div');
-            summary.className = 'hand-summary';
-            const dealerWrap = document.createElement('div');
-            const playerWrap = document.createElement('div');
-            // Current table cards include dealer upcard + separator + current player cards
-            const table = document.getElementById('blackjack-table');
-            const cards = Array.from(table.querySelectorAll('.card.revealed'));
-            const dealerCard = cards[0]; if (dealerCard) { const c = dealerCard.cloneNode(true); c.classList.add('mini'); dealerWrap.appendChild(c); }
-            blackjackState.playerHand.forEach(() => {});
-            Array.from(table.querySelectorAll('.card.revealed')).slice(1).forEach(el => { const c = el.cloneNode(true); c.classList.add('mini'); playerWrap.appendChild(c); });
-            playerWrap.querySelectorAll('.card').forEach(el => el.classList.add('lose-muted'));
-            summary.appendChild(dealerWrap); const sep = document.createElement('div'); sep.className='vs-text'; sep.textContent='DEALER'; summary.appendChild(sep); summary.appendChild(playerWrap);
-            if (history) history.prepend(summary);
+            const totalsLine = `${data.player_total ?? '??'} vs ${data.dealer_total ?? '??'}`;
+            pushRecentOutcome(`${totalsLine} Bust! -${blackjackState.amount.toLocaleString()}`, 'loss');
             resetBlackjackUI();
             roundEnded = true;
         } else {
@@ -538,38 +534,19 @@ function blackjackStand() {
             else if (!data.won && window.toast.error) window.toast.error(`You lose. ${deltaNum.toLocaleString()} credits`, 5000);
         }
         // Record outcome
-        if (data.push) pushRecentOutcome('Push', 'push');
-        else if (data.won) pushRecentOutcome(`You won +${deltaNum.toLocaleString()}`, 'win');
-        else pushRecentOutcome(`You lost ${deltaNum.toLocaleString()}`, 'loss');
+        const totalsLine2 = `${data.player_total ?? '??'} vs ${data.dealer_total ?? '??'}`;
+        if (data.push) pushRecentOutcome(`${totalsLine2} Push`, 'push');
+        else if (data.won) pushRecentOutcome(`${totalsLine2} You win! +${deltaNum.toLocaleString()}`, 'win');
+        else pushRecentOutcome(`${totalsLine2} You lose ${deltaNum.toLocaleString()}`, 'loss');
 
-        // Winner highlight and snapshot to history
-        const tableCards = Array.from(table.querySelectorAll('.card.revealed'));
-        const dealerCount = data.dealer_hand.length;
-        const dealerCards = tableCards.slice(0, dealerCount);
-        // All remaining revealed cards after dealer belong to player; separator is not a .card
-        const playerCards = tableCards.slice(dealerCount);
-        const history = document.getElementById('blackjack-history');
-        if (history) history.innerHTML = '';
-        const summary = document.createElement('div');
-        summary.className = 'hand-summary';
-        const dealerWrap = document.createElement('div'); dealerWrap.className = 'hand-cards';
-        const playerWrap = document.createElement('div'); playerWrap.className = 'hand-cards';
-        dealerCards.forEach(el => {
-            const c = el.cloneNode(true); c.classList.add('mini'); dealerWrap.appendChild(c);
-        });
-        const sepMini = document.createElement('div'); sepMini.className = 'vs-text'; sepMini.textContent = 'DEALER';
-        playerCards.forEach(el => { const c = el.cloneNode(true); c.classList.add('mini'); playerWrap.appendChild(c); });
-        if (!data.push) {
-            if (data.won) { playerWrap.querySelectorAll('.card').forEach(el => el.classList.add('win-outline')); dealerWrap.querySelectorAll('.card').forEach(el => el.classList.add('lose-muted')); }
-            else { dealerWrap.querySelectorAll('.card').forEach(el => el.classList.add('win-outline')); playerWrap.querySelectorAll('.card').forEach(el => el.classList.add('lose-muted')); }
-        }
-        summary.appendChild(dealerWrap); summary.appendChild(sepMini); summary.appendChild(playerWrap);
-        if (history) history.prepend(summary);
-
-        // Update credits and reset after short delay
+        // Record concise outcome line with totals, update credits, and reset
         if (typeof data.new_balance === 'number') {
             updateCreditsDisplay(data.new_balance);
         }
+        const totalsLine = `${data.player_total ?? '??'} vs ${data.dealer_total ?? '??'}`;
+        if (data.push) pushRecentOutcome(`${totalsLine} Push`, 'push');
+        else if (data.won) pushRecentOutcome(`${totalsLine} You win! +${deltaNum.toLocaleString()}`, 'win');
+        else pushRecentOutcome(`${totalsLine} You lose ${deltaNum.toLocaleString()}`, 'loss');
         resetBlackjackUI();
         roundEnded = true;
     })
