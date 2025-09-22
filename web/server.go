@@ -2631,6 +2631,30 @@ func (s *Server) renderTemplate(w http.ResponseWriter, templateName string, data
 			}
 			return b
 		},
+		"commas": func(n interface{}) string {
+			var val int64
+			switch v := n.(type) {
+			case int:
+				val = int64(v)
+			case int64:
+				val = v
+			default:
+				return fmt.Sprintf("%v", n)
+			}
+			s := strconv.FormatInt(val, 10)
+			negative := false
+			if strings.HasPrefix(s, "-") {
+				negative = true
+				s = s[1:]
+			}
+			for i := len(s) - 3; i > 0; i -= 3 {
+				s = s[:i] + "," + s[i:]
+			}
+			if negative {
+				s = "-" + s
+			}
+			return s
+		},
 	}
 
 	// Parse base template and the specific template with functions

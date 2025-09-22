@@ -83,7 +83,7 @@
                             </div>
                         {{else if eq .UserBet.FighterID .Fight.Fighter1ID}}
                             <div class="fighter-bet-placed">
-                                <div class="bet-amount">{{.UserBet.Amount}} credits</div>
+                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
                                 <div class="bet-label">YOUR BET</div>
                             </div>
                         {{end}}
@@ -145,7 +145,7 @@
                             </div>
                         {{else if eq .UserBet.FighterID .Fight.Fighter2ID}}
                             <div class="fighter-bet-placed">
-                                <div class="bet-amount">{{.UserBet.Amount}} credits</div>
+                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
                                 <div class="bet-label">YOUR BET</div>
                             </div>
                         {{end}}
@@ -156,7 +156,7 @@
             {{/* Available credits info */}}
             {{if and .User (eq .Fight.Status "scheduled") (not .UserBet)}}
                 <div class="betting-info-bar">
-                    Available credits: {{.User.Credits}} | 1:1 odds (bet 100, win 200 total)
+                    Available credits: {{commas .User.Credits}} | 1:1 odds (bet 100, win 200 total)
                     {{/* If either fighter is MVP for this user, show a global hint too */}}
                     {{if and .CurrentMVP (or (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter1ID)) (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter2ID)))}}
                         <span class="mvp-hint-inline">| 👑 MVP bonus: 10x payout if your MVP wins</span>
@@ -231,11 +231,11 @@
                 <h3>💰 ACTION SUMMARY</h3>
                 {{if .UserBet}}
                     <div class="user-bet-status">
-                        <strong>Your Bet:</strong> {{.UserBet.Amount}} credits on 
+                        <strong>Your Bet:</strong> {{commas .UserBet.Amount}} credits on 
                         {{if eq .UserBet.FighterID .Fight.Fighter1ID}}{{.Fight.Fighter1Name}}{{else}}{{.Fight.Fighter2Name}}{{end}}
                         {{if eq .UserBet.Status "resolved"}}
                             {{if .UserBet.Payout.Valid}}
-                                - <span class="win-status">WON {{.UserBet.Payout.Int64}} credits! 🎉</span>
+                                - <span class="win-status">WON {{commas .UserBet.Payout.Int64}} credits! 🎉</span>
                             {{else}}
                                 - <span class="loss-status">LOST 💸</span>
                             {{end}}
@@ -259,7 +259,7 @@
                     <div class="bet-stats-quick">
                         <span><strong>{{.Fight.Fighter1Name}}:</strong> {{$fighter1Bets}} bets</span> | 
                         <span><strong>{{.Fight.Fighter2Name}}:</strong> {{$fighter2Bets}} bets</span> | 
-                        <span><strong>Total Wagered:</strong> {{$totalAmount}} credits</span>
+                        <span><strong>Total Wagered:</strong> {{commas $totalAmount}} credits</span>
                     </div>
                 </div>
 
@@ -271,10 +271,10 @@
                             <div class="bet-main-line">
                                 <span class="bettor-name">{{getDisplayName .Username .CustomUsername}}</span>
                                 <span class="bet-info">
-                                    {{.Amount}} credits → {{.FighterName}}
+                                    {{commas .Amount}} credits → {{.FighterName}}
                                     {{if eq .Status "resolved"}}
                                         {{if .Payout.Valid}}
-                                            <span class="win-badge">+{{.Payout.Int64}}</span>
+                                            <span class="win-badge">+{{commas .Payout.Int64}}</span>
                                         {{else}}
                                             <span class="loss-badge">LOST</span>
                                         {{end}}
