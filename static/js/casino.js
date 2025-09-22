@@ -879,16 +879,19 @@ function resolveExtortion(choice) {
     .then(data => {
         if (data.success) {
             // Compose flavorful outcome message
+            const kept = (data.new_balance !== undefined && data.new_balance !== null)
+                ? Number(data.new_balance)
+                : undefined;
             let msg = '';
             let kind = 'info';
             if (data.outcome === 'paid') {
-                msg = `You pay the fee and keep walking. Net -20%. You kept: ${data.refund?.toLocaleString?.() || data.refund} credits.`;
+                msg = `You pay the fee and keep walking. Net -20%. You kept: ${kept?.toLocaleString?.() || kept} credits.`;
                 kind = 'warning';
             } else if (data.outcome === 'run_success') {
-                msg = `You run like the wind. You slip away with everything. You kept: ${data.refund?.toLocaleString?.()} credits.`;
+                msg = `You run like the wind. You slip away with everything. You kept: ${kept?.toLocaleString?.()} credits.`;
                 kind = 'success';
             } else if (data.outcome === 'run_fail') {
-                msg = `You tried to run. They clipped your wings. Net -50%. You kept: ${data.refund?.toLocaleString?.()} credits.`;
+                msg = `You tried to run. They clipped your wings. Net -50%. You kept: ${kept?.toLocaleString?.()} credits.`;
                 kind = 'error';
             }
             try {
@@ -900,8 +903,8 @@ function resolveExtortion(choice) {
                     else if (window.toast.info) window.toast.info(msg, d);
                 }
             } catch (_) {}
-            if (typeof data.new_balance === 'number') {
-                updateCreditsDisplay(data.new_balance);
+            if (data.new_balance !== undefined && data.new_balance !== null) {
+                updateCreditsDisplay(Number(data.new_balance));
             }
             // Close modal and restore UI without reloading
             const modal = document.getElementById('extortion-modal');
