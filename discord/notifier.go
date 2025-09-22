@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"spoodblort/database"
 	"strconv"
 	"strings"
@@ -28,11 +29,12 @@ type FightState struct {
 }
 
 type Notifier struct {
-	repo          *database.Repository
-	botToken      string
-	channelID     string
-	webhookURL    string
-	serverBaseURL string
+	repo            *database.Repository
+	botToken        string
+	channelID       string
+	actionChannelID string
+	webhookURL      string
+	serverBaseURL   string
 }
 
 type DiscordEmbed struct {
@@ -67,11 +69,12 @@ type DiscordMessage struct {
 
 func NewNotifier(repo *database.Repository) *Notifier {
 	return &Notifier{
-		repo:          repo,
-		botToken:      os.Getenv("DISCORD_BOT_TOKEN"),
-		channelID:     os.Getenv("DISCORD_CHANNEL_ID"),
-		webhookURL:    os.Getenv("DISCORD_WEBHOOK_URL"),
-		serverBaseURL: getServerBaseURL(),
+		repo:            repo,
+		botToken:        os.Getenv("DISCORD_BOT_TOKEN"),
+		channelID:       os.Getenv("DISCORD_CHANNEL_ID"),
+		actionChannelID: "1419508683171168296", // hard-coded action channel ID
+		webhookURL:      os.Getenv("DISCORD_WEBHOOK_URL"),
+		serverBaseURL:   getServerBaseURL(),
 	}
 }
 
@@ -349,6 +352,106 @@ func (n *Notifier) sendViaBot(embed DiscordEmbed) error {
 
 	log.Printf("Successfully sent fight result to Discord via bot")
 	return nil
+}
+
+// sendTextViaBot posts a plain text message to a specific channel via the bot API
+func (n *Notifier) sendTextViaBot(channelID, content string) error {
+	if n.botToken == "" {
+		return fmt.Errorf("no bot token configured")
+	}
+	payload := map[string]string{"content": content}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message: %w", err)
+	}
+	url := fmt.Sprintf("https://discord.com/api/v10/channels/%s/messages", channelID)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bot "+n.botToken)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send message: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Discord API returned status %d", resp.StatusCode)
+	}
+	return nil
+}
+
+// NotifyActionSummary posts a terse, plaintext settlement summary to the action channel
+// Only called for fights that had wagers and a decisive result (non-draw)
+func (n *Notifier) NotifyActionSummary(fightData database.Fight, winnerID int) error {
+	if n.botToken == "" {
+		return nil
+	}
+
+	// Fetch all bets for this fight
+	bets, err := n.repo.GetAllBetsOnFight(fightData.ID)
+	if err != nil {
+		return err
+	}
+	if len(bets) == 0 || winnerID == 0 {
+		return nil // nothing to announce
+	}
+
+	// Header: strike loser, bold winner
+	f1 := fightData.Fighter1Name
+	f2 := fightData.Fighter2Name
+	var header string
+	if winnerID == fightData.Fighter1ID {
+		header = fmt.Sprintf("~~%s~~ vs **%s** (%s/fight/%d)", f2, f1, n.serverBaseURL, fightData.ID)
+	} else {
+		header = fmt.Sprintf("~~%s~~ vs **%s** (%s/fight/%d)", f1, f2, n.serverBaseURL, fightData.ID)
+	}
+
+	// Build lines with net deltas
+	type line struct {
+		name  string
+		delta int
+	}
+	var lines []line
+	for _, b := range bets {
+		displayName := b.CustomUsername
+		if strings.TrimSpace(displayName) == "" {
+			displayName = b.Username
+		}
+		var delta int
+		switch b.Status {
+		case "won":
+			// payout is 2x amount; net gain is +amount
+			delta = b.Amount
+		case "lost":
+			delta = -b.Amount
+		default:
+			continue // skip voided/pending
+		}
+		lines = append(lines, line{name: displayName, delta: delta})
+	}
+	if len(lines) == 0 {
+		return nil
+	}
+
+	// Sort winners first by biggest gain, then losers by most lost
+	sort.Slice(lines, func(i, j int) bool { return lines[i].delta > lines[j].delta })
+
+	var sb strings.Builder
+	sb.WriteString(header)
+	for _, l := range lines {
+		sign := ""
+		if l.delta >= 0 {
+			sign = "+"
+		}
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("%s %s%s", l.name, sign, formatNumber(l.delta)))
+	}
+
+	content := sb.String()
+	return n.sendTextViaBot(n.actionChannelID, content)
 }
 
 // Helper functions
