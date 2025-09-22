@@ -2705,6 +2705,10 @@ func (s *Server) respondWithExtortion(w http.ResponseWriter, user *database.User
 		newBalance = 0
 	}
 	_ = s.repo.UpdateUserCredits(user.ID, newBalance)
+	// Persist authoritative extortion context for secure settlement
+	_ = s.repo.SetUserSetting(user.ID, "extortion_original", fmt.Sprintf("%d", original), nil)
+	_ = s.repo.SetUserSetting(user.ID, "extortion_hold", fmt.Sprintf("%d", hold), nil)
+	_ = s.repo.SetUserSetting(user.ID, "extortion_active", "1", nil)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -2737,28 +2741,39 @@ func (s *Server) handleExtortionResolve(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Compute amounts based on current credits after hold
-	// If they choose pay: total cost should be 20% of original; since 70% already held,
-	// refund 50% (net 20%). If they run and fail: net 50% loss → refund 20%.
-	// If they run and succeed: refund all 70%.
+	// Compute amounts using authoritative original/hold stored at trigger time
+	// If they choose pay: final = original - 20% → refund = (original - 20%) - (original - 70%) = 50%
+	// If they run and fail: final = 50% → refund = 20%
+	// If they run and succeed: final = 100% → refund = 70%
+	origSetting, _ := s.repo.GetUserSetting(user.ID, "extortion_original")
+	holdSetting, _ := s.repo.GetUserSetting(user.ID, "extortion_hold")
+	activeSetting, _ := s.repo.GetUserSetting(user.ID, "extortion_active")
+	if activeSetting == nil || activeSetting.SettingValue != "1" || origSetting == nil || holdSetting == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Extortion state missing or expired"})
+		return
+	}
+	originalCredits, _ := strconv.Atoi(origSetting.SettingValue)
+	heldCredits, _ := strconv.Atoi(holdSetting.SettingValue)
 	var refund int
 	var outcome string
 	var message string
 	switch req.Choice {
 	case "pay":
-		refund = (user.Credits * 50) / 100 // refund half, net 20% loss
+		refund = (originalCredits * 50) / 100
 		outcome = "paid"
 		message = "You hand over the envelope. The room relaxes. Net loss: 20%."
 	case "run":
 		// coin flip
 		if rand.Intn(2) == 0 {
 			// fail → net 50% loss
-			refund = (user.Credits * 20) / 100
+			refund = (originalCredits * 20) / 100
 			outcome = "run_fail"
 			message = "You bolt. A meaty hand catches your collar. They keep half."
 		} else {
 			// succeed → refund all 70%
-			refund = (user.Credits * 70) / 100
+			refund = heldCredits
 			outcome = "run_success"
 			message = "You slip the grasp and vanish into the crowd. They get nothing."
 		}
@@ -2776,6 +2791,11 @@ func (s *Server) handleExtortionResolve(w http.ResponseWriter, r *http.Request) 
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Failed to settle"})
 		return
 	}
+
+	// Clear extortion state
+	_ = s.repo.SetUserSetting(user.ID, "extortion_active", "0", nil)
+	_ = s.repo.SetUserSetting(user.ID, "extortion_original", "", nil)
+	_ = s.repo.SetUserSetting(user.ID, "extortion_hold", "", nil)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
