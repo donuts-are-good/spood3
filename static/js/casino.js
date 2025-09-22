@@ -738,7 +738,7 @@ function spinSlotsSeries(times) {
         if (lastData) {
             // Reveal the final grid, then show summary toast
             animateSlotSequences(lastData.sequences, lastData.final_grid, lastData.winning_lines, lastData.won, lastData.payout, lastData.amount, lastData.new_balance);
-            const summary = `${wins}/${times} wins <br> best lines: ${maxLines} <br> net: ${(netCredits>=0?'+':'')}${netCredits.toLocaleString()} credits`;
+            const summary = `${wins}/${times} wins • best lines: ${maxLines} • net: ${(netCredits>=0?'+':'')}${netCredits.toLocaleString()} credits`;
             showInfo(`${summary}`, 10000);
         }
         stopSpinning();
