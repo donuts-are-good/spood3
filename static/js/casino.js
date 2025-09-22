@@ -134,9 +134,7 @@ function initializeCasino() {
     if (extModal) {
         const payBtn = document.getElementById('extortion-pay');
         const runBtn = document.getElementById('extortion-run');
-        const overlay = extModal.querySelector('.modal-overlay');
-        const close = () => extModal.classList.add('hidden');
-        overlay.addEventListener('click', close);
+        // Do NOT close on overlay click for extortion; force explicit choice
         if (payBtn) payBtn.addEventListener('click', () => resolveExtortion('pay'));
         if (runBtn) runBtn.addEventListener('click', () => resolveExtortion('run'));
     }
@@ -858,6 +856,11 @@ function showExtortionModal(payload) {
         if (fee && typeof payload.fee_amount === 'number') fee.textContent = `${fmt(payload.fee_amount)} credits`;
         if (payLabel && typeof payload.fee_amount === 'number') payLabel.textContent = `Pay ${fmt(payload.fee_amount)} credits`;
     }
+    // Ensure action buttons are clickable
+    const payBtn = document.getElementById('extortion-pay');
+    const runBtn = document.getElementById('extortion-run');
+    if (payBtn) payBtn.disabled = false;
+    if (runBtn) runBtn.disabled = false;
     modal.classList.remove('hidden');
 }
 
