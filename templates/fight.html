@@ -73,6 +73,7 @@
                                     <input type="hidden" name="fighter_id" value="{{.Fight.Fighter1ID}}">
                                     <div class="bet-controls">
                                         <input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
+                                        <button type="button" class="bet-max-button" title="Set to max">MAX</button>
                                         <button type="submit" class="bet-button">BET</button>
                                     </div>
                                     {{/* MVP 10x hint if this is user's MVP */}}
@@ -135,6 +136,7 @@
                                     <input type="hidden" name="fighter_id" value="{{.Fight.Fighter2ID}}">
                                     <div class="bet-controls">
                                         <input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
+                                        <button type="button" class="bet-max-button" title="Set to max">MAX</button>
                                         <button type="submit" class="bet-button">BET</button>
                                     </div>
                                     {{/* MVP 10x hint if this is user's MVP */}}

@@ -24,6 +24,7 @@ function confirmBet(event, fighterName) {
 // Add some visual feedback for bet inputs
 document.addEventListener('DOMContentLoaded', function() {
     const betInputs = document.querySelectorAll('.bet-input');
+    const maxButtons = document.querySelectorAll('.bet-max-button');
     
     betInputs.forEach(input => {
         input.addEventListener('input', function() {
@@ -52,6 +53,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.style.borderColor = '#555';
                 this.style.color = '#fff';
             }
+        });
+    });
+
+    // Wire up MAX buttons
+    maxButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const form = this.closest('form');
+            if (!form) return;
+            const input = form.querySelector('.bet-input');
+            if (!input) return;
+            const maxAttr = parseInt(input.getAttribute('max')) || 0;
+            // Safety clamp to 100,000,000 absolute cap
+            const hardCap = 100000000;
+            const target = Math.min(maxAttr > 0 ? maxAttr : hardCap, hardCap);
+            input.value = target;
+            // Trigger input event for visual feedback
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         });
     });
 }); 

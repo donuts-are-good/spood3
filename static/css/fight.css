@@ -718,6 +718,25 @@
     background: #357ABD;
 }
 
+/* Max button */
+.bet-max-button {
+    padding: 8px 10px;
+    background: #222;
+    color: #fff;
+    border: 1px solid #555;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Times New Roman', serif;
+    font-size: 0.85em;
+    border-radius: 3px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.bet-max-button:hover {
+    background: #2a2a2a;
+    border-color: #888;
+}
+
 .fighter-bet-placed {
     margin-top: 15px;
     padding: 10px;
