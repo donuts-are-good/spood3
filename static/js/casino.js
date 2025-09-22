@@ -303,6 +303,7 @@ function blackjackHit() {
     // Disable buttons during request
     document.getElementById('blackjack-hit').disabled = true;
     document.getElementById('blackjack-stand').disabled = true;
+    let roundEnded = false;
 
     fetch('/user/casino/blackjack/hit', {
         method: 'POST',
@@ -330,6 +331,7 @@ function blackjackHit() {
             showResult('blackjack', `Bust at ${data.player_total}. You lose. -${blackjackState.amount} credits`, false);
             // Reset after longer delay for Blackjack only
             setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
+            roundEnded = true;
         } else {
             showResult('blackjack', `Total: ${data.player_total}. Hit or Stand?`, null);
         }
@@ -338,8 +340,10 @@ function blackjackHit() {
         showResult('blackjack', 'Network error', false);
     })
     .finally(() => {
-        document.getElementById('blackjack-hit').disabled = false;
-        document.getElementById('blackjack-stand').disabled = false;
+        if (!roundEnded) {
+            document.getElementById('blackjack-hit').disabled = false;
+            document.getElementById('blackjack-stand').disabled = false;
+        }
     });
 }
 
@@ -347,6 +351,7 @@ function blackjackStand() {
     // Disable buttons during request
     document.getElementById('blackjack-hit').disabled = true;
     document.getElementById('blackjack-stand').disabled = true;
+    let roundEnded = false;
 
     fetch('/user/casino/blackjack/stand', {
         method: 'POST',
@@ -391,13 +396,16 @@ function blackjackStand() {
             updateCreditsDisplay(data.new_balance);
         }
         setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
+        roundEnded = true;
     })
     .catch(() => {
         showResult('blackjack', 'Network error', false);
     })
     .finally(() => {
-        document.getElementById('blackjack-hit').disabled = false;
-        document.getElementById('blackjack-stand').disabled = false;
+        if (!roundEnded) {
+            document.getElementById('blackjack-hit').disabled = false;
+            document.getElementById('blackjack-stand').disabled = false;
+        }
     });
 }
 
