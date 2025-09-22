@@ -11,6 +11,57 @@ function purchaseItem(itemId, itemName, price, quantity = 1) {
     return doPurchase(itemId, itemName, quantity);
 }
 
+// Format large numbers on the shop page (credits balance and item prices)
+document.addEventListener('DOMContentLoaded', function() {
+    formatShopNumbers();
+});
+
+function formatShopNumbers() {
+    // Header credits
+    const creditsEl = document.querySelector('.shop-container .credits-amount');
+    if (creditsEl) {
+        const raw = creditsEl.textContent.replace(/[^0-9]/g, '');
+        const value = parseInt(raw, 10);
+        if (!isNaN(value)) {
+            creditsEl.textContent = `💰 ${formatLargeNumber(value)} Credits`;
+            creditsEl.title = `${value.toLocaleString()} Credits`;
+        }
+    }
+
+    // Item prices
+    document.querySelectorAll('.shop-grid .item-price').forEach(el => {
+        const raw = el.textContent.replace(/[^0-9]/g, '');
+        const value = parseInt(raw, 10);
+        if (!isNaN(value)) {
+            el.textContent = `💰 ${formatLargeNumber(value)} Credits`;
+            el.title = `${value.toLocaleString()} Credits`;
+        }
+    });
+}
+
+// Abbreviated number formatting (shared with base/casino style)
+function formatLargeNumber(num) {
+    if (typeof num !== 'number') {
+        num = parseInt(num, 10) || 0;
+    }
+    if (num < 1000) return num.toString();
+    const suffixes = [
+        { value: 1e18, suffix: 'Qi' },
+        { value: 1e15, suffix: 'Qa' },
+        { value: 1e12, suffix: 'T'  },
+        { value: 1e9,  suffix: 'B'  },
+        { value: 1e6,  suffix: 'M'  },
+        { value: 1e3,  suffix: 'K'  },
+    ];
+    for (let i = 0; i < suffixes.length; i++) {
+        if (num >= suffixes[i].value) {
+            const result = (num / suffixes[i].value).toFixed(2);
+            return (result.endsWith('.00') ? result.slice(0, -3) : result) + suffixes[i].suffix;
+        }
+    }
+    return num.toString();
+}
+
 function doPurchase(itemId, itemName, quantity) {
     // Send purchase request
     fetch('/user/shop/purchase', {
