@@ -103,9 +103,21 @@ func (n *Notifier) NotifyFightResult(fightData database.Fight, state *FightState
 		return nil
 	}
 
-	// Get applied effects for both fighters
-	fighter1Effects, _ := n.repo.GetAppliedEffects("fighter", fightData.Fighter1ID)
-	fighter2Effects, _ := n.repo.GetAppliedEffects("fighter", fightData.Fighter2ID)
+	// Get applied effects for both fighters, limited to the fight's day (Central Time),
+	// matching how the website displays them
+	var fighter1Effects, fighter2Effects []database.AppliedEffect
+	{
+		// Determine date window based on fight status
+		// For completed fights (which this notifier handles), use the fight's scheduled date
+		effectDate := fightData.ScheduledTime
+		// Compute day bounds in the same timezone used in web layer
+		centralTime, _ := time.LoadLocation("America/Chicago")
+		startDate := time.Date(effectDate.In(centralTime).Year(), effectDate.In(centralTime).Month(), effectDate.In(centralTime).Day(), 0, 0, 0, 0, centralTime)
+		endDate := startDate.Add(24 * time.Hour)
+
+		fighter1Effects, _ = n.repo.GetAppliedEffectsForDate("fighter", fightData.Fighter1ID, startDate, endDate)
+		fighter2Effects, _ = n.repo.GetAppliedEffectsForDate("fighter", fightData.Fighter2ID, startDate, endDate)
+	}
 
 	// Get betting information
 	allBets, _ := n.repo.GetAllBetsOnFight(fightData.ID)
@@ -211,9 +223,10 @@ func (n *Notifier) buildEffectsSummary(fighter1Name string, fighter1Effects []da
 	// Count effects for fighter 1
 	var f1Blessings, f1Curses int
 	for _, effect := range fighter1Effects {
-		if effect.EffectType == "fighter_blessing" {
+		// Effects are stored as stat-suffixed types (e.g., speed_blessing, strength_curse)
+		if strings.HasSuffix(effect.EffectType, "_blessing") {
 			f1Blessings++
-		} else if effect.EffectType == "fighter_curse" {
+		} else if strings.HasSuffix(effect.EffectType, "_curse") {
 			f1Curses++
 		}
 	}
@@ -221,9 +234,9 @@ func (n *Notifier) buildEffectsSummary(fighter1Name string, fighter1Effects []da
 	// Count effects for fighter 2
 	var f2Blessings, f2Curses int
 	for _, effect := range fighter2Effects {
-		if effect.EffectType == "fighter_blessing" {
+		if strings.HasSuffix(effect.EffectType, "_blessing") {
 			f2Blessings++
-		} else if effect.EffectType == "fighter_curse" {
+		} else if strings.HasSuffix(effect.EffectType, "_curse") {
 			f2Curses++
 		}
 	}
@@ -461,6 +474,10 @@ func (n *Notifier) NotifyActionSummary(fightData database.Fight, winnerID int) e
 // Helper functions
 
 func formatNumber(n int) string {
+	// Handle negatives cleanly and avoid malformed "-,467" outputs
+	if n < 0 {
+		return "-" + formatNumber(-n)
+	}
 	str := strconv.Itoa(n)
 	if len(str) <= 3 {
 		return str
