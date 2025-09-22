@@ -2713,7 +2713,7 @@ func (s *Server) respondWithExtortion(w http.ResponseWriter, user *database.User
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success":           false,
 			"extortion_blessed": true,
-			"message":           "The gods were on your side. A quiet hand steers you past two waiting hooligans.",
+			"message":           "😉 The gods were on your side. A quiet hand steers you past two waiting hooligans.",
 		})
 		return
 	}
