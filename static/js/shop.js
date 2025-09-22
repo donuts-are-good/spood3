@@ -3,26 +3,16 @@ function purchaseItem(itemId, itemName, price, quantity = 1) {
     const totalCost = price * quantity;
     const quantityText = quantity > 1 ? ` (${quantity}x)` : '';
     
-    // If buying the High Roller Card, show a compact disclosure
+    // If buying the High Roller Card, open styled modal instead of native confirm
     if (itemName && itemName.toLowerCase().includes('high roller')) {
-        const receipt = [
-            'Patron Disclosure — Itemized Receipt',
-            'Weekly Patron Tithe: 20% of account balance (applied Mondays)\n',
-            'Estimated allocation:',
-            '  • Little Spoodys Endowment for the Arts ............ 11%',
-            '  • Youth Enrichment & After‑Naps .................... 3%',
-            '  • Administrative Handling Fee ...................... 3%',
-            '  • Community Outreach ░░░░░░ ........................ 1%',
-            '  • Executive Wellness & Recovery .................... 2%\n',
-            'Terms: Non‑refundable patronage; allocations may drift; filings may be decorative;',
-            '       access may be revoked for cause or vibes.\n',
-            'Proceed with purchase?'
-        ].join('\n');
-        const ok = confirm(receipt);
-        if (!ok) return;
+        return openHighRollerModal(() => doPurchase(itemId, itemName, quantity));
     }
 
-    // Send purchase request directly without confirmation
+    return doPurchase(itemId, itemName, quantity);
+}
+
+function doPurchase(itemId, itemName, quantity) {
+    // Send purchase request
     fetch('/user/shop/purchase', {
         method: 'POST',
         headers: {
@@ -36,6 +26,7 @@ function purchaseItem(itemId, itemName, price, quantity = 1) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            const quantityText = quantity > 1 ? ` (${quantity}x)` : '';
             showSuccess(`Successfully purchased ${itemName}${quantityText}!`);
             // Reload page to update credits and inventory
             window.location.reload();
@@ -48,3 +39,27 @@ function purchaseItem(itemId, itemName, price, quantity = 1) {
         showError('An error occurred while making the purchase.');
     });
 } 
+
+// High Roller modal wiring
+function openHighRollerModal(onConfirm) {
+    const modal = document.getElementById('highroller-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    const overlay = modal.querySelector('.modal-overlay');
+    const cancel = modal.querySelector('#hr-cancel');
+    const confirmBtn = modal.querySelector('#hr-confirm');
+
+    const close = () => modal.classList.add('hidden');
+    const cleanup = () => {
+        overlay.removeEventListener('click', onOverlay);
+        cancel.removeEventListener('click', onCancel);
+        confirmBtn.removeEventListener('click', onOk);
+    };
+    const onOverlay = () => { close(); cleanup(); };
+    const onCancel = () => { close(); cleanup(); };
+    const onOk = () => { close(); cleanup(); if (typeof onConfirm === 'function') onConfirm(); };
+
+    overlay.addEventListener('click', onOverlay);
+    cancel.addEventListener('click', onCancel);
+    confirmBtn.addEventListener('click', onOk);
+}
