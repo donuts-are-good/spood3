@@ -288,6 +288,9 @@ function resetBlackjackUI() {
     if (playGroup) playGroup.classList.add('hidden');
     const bjStart = document.getElementById('blackjack-start');
     if (bjStart) bjStart.disabled = false;
+
+    // Clear state for next round
+    blackjackState = { amount: 0, dealerUpcard: '', playerHand: [], state: null };
 }
 
 // ---------------- Blackjack (stateless) ----------------
@@ -398,6 +401,21 @@ function blackjackHit() {
 
         if (data.bust) {
             if (window.toast && window.toast.error) window.toast.error(`Bust at ${data.player_total}. -${blackjackState.amount.toLocaleString()} credits`, 5000);
+            // Snapshot losing hand to history
+            const history = document.getElementById('blackjack-history');
+            const summary = document.createElement('div');
+            summary.className = 'hand-summary';
+            const dealerWrap = document.createElement('div');
+            const playerWrap = document.createElement('div');
+            // Current table cards include dealer upcard + separator + current player cards
+            const table = document.getElementById('blackjack-table');
+            const cards = Array.from(table.querySelectorAll('.card.revealed'));
+            const dealerCard = cards[0]; if (dealerCard) { const c = dealerCard.cloneNode(true); c.classList.add('mini'); dealerWrap.appendChild(c); }
+            blackjackState.playerHand.forEach(() => {});
+            Array.from(table.querySelectorAll('.card.revealed')).slice(1).forEach(el => { const c = el.cloneNode(true); c.classList.add('mini'); playerWrap.appendChild(c); });
+            playerWrap.querySelectorAll('.card').forEach(el => el.classList.add('lose-muted'));
+            summary.appendChild(dealerWrap); const sep = document.createElement('div'); sep.className='vs-text'; sep.textContent='DEALER'; summary.appendChild(sep); summary.appendChild(playerWrap);
+            if (history) history.prepend(summary);
             setTimeout(() => resetBlackjackUI(), BLACKJACK_RESET_DELAY_MS);
             roundEnded = true;
         } else {
@@ -466,20 +484,27 @@ function blackjackStand() {
             else if (!data.won && window.toast.error) window.toast.error(`You lose. ${deltaNum.toLocaleString()} credits`, 5000);
         }
 
-        // Winner highlight
+        // Winner highlight and snapshot to history
         const tableCards = Array.from(table.querySelectorAll('.card.revealed'));
         const dealerCount = data.dealer_hand.length;
         const dealerCards = tableCards.slice(0, dealerCount);
         const playerCards = tableCards.slice(dealerCount + 1);
+        const history = document.getElementById('blackjack-history');
+        const summary = document.createElement('div');
+        summary.className = 'hand-summary';
+        const dealerWrap = document.createElement('div');
+        const playerWrap = document.createElement('div');
+        dealerCards.forEach(el => {
+            const c = el.cloneNode(true); c.classList.add('mini'); dealerWrap.appendChild(c);
+        });
+        const sepMini = document.createElement('div'); sepMini.className = 'vs-text'; sepMini.textContent = 'DEALER';
+        playerCards.forEach(el => { const c = el.cloneNode(true); c.classList.add('mini'); playerWrap.appendChild(c); });
         if (!data.push) {
-            if (data.won) {
-                playerCards.forEach(el => el.classList.add('win-outline'));
-                dealerCards.forEach(el => el.classList.add('lose-muted'));
-            } else {
-                dealerCards.forEach(el => el.classList.add('win-outline'));
-                playerCards.forEach(el => el.classList.add('lose-muted'));
-            }
+            if (data.won) { playerWrap.querySelectorAll('.card').forEach(el => el.classList.add('win-outline')); dealerWrap.querySelectorAll('.card').forEach(el => el.classList.add('lose-muted')); }
+            else { dealerWrap.querySelectorAll('.card').forEach(el => el.classList.add('win-outline')); playerWrap.querySelectorAll('.card').forEach(el => el.classList.add('lose-muted')); }
         }
+        summary.appendChild(dealerWrap); summary.appendChild(sepMini); summary.appendChild(playerWrap);
+        if (history) history.prepend(summary);
 
         // Update credits and reset after short delay
         if (typeof data.new_balance === 'number') {

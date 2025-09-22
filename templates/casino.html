@@ -297,6 +297,12 @@
             gap: 24px;
         }
 
+        /* Blackjack hand history */
+        .hand-history { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+        .hand-summary { display: flex; align-items: center; gap: 16px; opacity: 0.95; }
+        .card.mini { width: 60px; height: 84px; font-size: 1.4rem; }
+        .hand-summary .vs-text { font-size: 1rem; }
+
         .card {
             width: 100px;
             height: 140px;
@@ -1119,6 +1125,7 @@
         <!-- Blackjack Game -->
         <div class="game-panel" id="blackjack-panel">
             <div class="game-area">
+                <div id="blackjack-history" class="hand-history"></div>
                 <div class="card-area" id="blackjack-table">
                     <div class="card placeholder" id="dealer-upcard"><span>?</span></div>
                     <div class="vs-text">DEALER</div>
