@@ -78,11 +78,16 @@ function doPurchase(itemId, itemName, quantity) {
     .then(data => {
         if (data.success) {
             const quantityText = quantity > 1 ? ` (${quantity}x)` : '';
-            showSuccess(`Successfully purchased ${itemName}${quantityText}!`);
-            // Reload page to update credits and inventory
-            window.location.reload();
+            if (window.toast && window.toast.success) window.toast.success(`Purchased ${itemName}${quantityText}`, 4000);
+            // Live update header wallet and shop balance display
+            if (typeof data.new_balance === 'number') {
+                updateGlobalCreditsDisplay(data.new_balance);
+                updateShopHeaderCredits(data.new_balance);
+            }
+            // Optionally disable unique item button immediately
+            disableUniqueIfNeeded(itemId);
         } else {
-            showError(`Failed to purchase ${itemName}: ${data.error}`);
+            if (window.toast && window.toast.error) window.toast.error(`Purchase failed: ${data.error}`, 5000);
         }
     })
     .catch(error => {
@@ -113,4 +118,36 @@ function openHighRollerModal(onConfirm) {
     overlay.addEventListener('click', onOverlay);
     cancel.addEventListener('click', onCancel);
     confirmBtn.addEventListener('click', onOk);
+}
+
+// Update base layout header credits link
+function updateGlobalCreditsDisplay(newBalance) {
+    try {
+        const nav = document.querySelector('nav');
+        if (!nav) return;
+        const link = nav.querySelector('a[href="/shop"]');
+        if (!link) return;
+        const formatted = formatLargeNumber(newBalance);
+        link.textContent = `Credits: ${formatted}`;
+        link.title = `${newBalance.toLocaleString()} Violence Credits`;
+    } catch (_) {}
+}
+
+// Update the shop page header credit display
+function updateShopHeaderCredits(newBalance) {
+    const creditsEl = document.querySelector('.shop-container .credits-amount');
+    if (!creditsEl) return;
+    creditsEl.textContent = `💰 ${formatLargeNumber(newBalance)} Credits`;
+    creditsEl.title = `${newBalance.toLocaleString()} Credits`;
+}
+
+function disableUniqueIfNeeded(itemId) {
+    const card = document.querySelector(`.shop-item[data-item-id="${itemId}"]`);
+    if (!card) return;
+    // If this was a unique item, disable its buy button
+    const btn = card.querySelector('.buy-button');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'ALREADY OWNED';
+    }
 }

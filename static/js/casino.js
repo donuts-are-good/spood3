@@ -283,6 +283,21 @@ function blackjackStart() {
     .then(data => {
         if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] blackjack start: TRIGGERED'); showExtortionModal(data); return; }
+        if (data.natural_blackjack) {
+            // Immediate payout; show toast and reset UI
+            if (window.toast && window.toast.success) window.toast.success(`Blackjack! +${data.payout.toLocaleString()} credits`, 6000);
+            if (typeof data.new_balance === 'number') updateCreditsDisplay(data.new_balance);
+            // Reveal cards
+            const up = document.getElementById('dealer-upcard');
+            up.classList.remove('placeholder'); up.classList.add('revealed'); up.innerHTML = `<span>${data.dealer_upcard}</span>`;
+            const p1 = document.getElementById('player-card-1');
+            const p2 = document.getElementById('player-card-2');
+            p1.classList.remove('placeholder'); p1.classList.add('revealed'); p1.innerHTML = `<span>${data.player_hand[0]}</span>`;
+            p2.classList.remove('placeholder'); p2.classList.add('revealed'); p2.innerHTML = `<span>${data.player_hand[1]}</span>`;
+            showResult('blackjack', `BLACKJACK! Payout: +${data.payout.toLocaleString()}`, true);
+            setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
+            return;
+        }
         console.log('[Extortion Debug] blackjack start: clear');
         if (!data.success) {
             showResult('blackjack', 'Error: ' + data.error, false);

@@ -1304,11 +1304,19 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Reload fresh balance and inventory for live-update
+	updatedUser, _ := s.repo.GetUser(user.ID)
+	newBalance := 0
+	if updatedUser != nil {
+		newBalance = updatedUser.Credits
+	}
+
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": fmt.Sprintf("Successfully purchased %s!", item.Name),
+		"success":     true,
+		"message":     fmt.Sprintf("Successfully purchased %s!", item.Name),
+		"new_balance": newBalance,
 	})
 }
 
@@ -2889,6 +2897,71 @@ func (s *Server) handleBlackjackStart(w http.ResponseWriter, r *http.Request) {
 
 	player := []string{dealCard(), dealCard()}
 	dealerUp := dealCard()
+
+	// Helper to compute hand total with ace logic
+	getVal := func(card string) (int, bool) {
+		valStr := ""
+		for _, ch := range card {
+			if ch != '♠' && ch != '♥' && ch != '♦' && ch != '♣' && ch != '️' {
+				valStr += string(ch)
+			} else {
+				break
+			}
+		}
+		switch valStr {
+		case "A":
+			return 11, true
+		case "K", "Q", "J":
+			return 10, false
+		default:
+			v, _ := strconv.Atoi(valStr)
+			return v, false
+		}
+	}
+	calc := func(hand []string) (int, int) {
+		sum := 0
+		aces := 0
+		for _, c := range hand {
+			v, isAce := getVal(c)
+			sum += v
+			if isAce {
+				aces++
+			}
+		}
+		for sum > 21 && aces > 0 {
+			sum -= 10
+			aces--
+		}
+		return sum, aces
+	}
+
+	// Natural blackjack immediate payout (3:2) – return 2.5x (stake included)
+	if total, _ := calc(player); total == 21 {
+		payout := (req.Amount * 5) / 2 // 2.5x return credited after stake was already deducted
+		finalBalance := newBalance + payout
+		if err := s.repo.UpdateUserCredits(user.ID, finalBalance); err != nil {
+			log.Printf("Failed to pay natural blackjack: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "Failed to process blackjack payout",
+			})
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":           true,
+			"player_hand":       player,
+			"dealer_upcard":     dealerUp,
+			"amount":            req.Amount,
+			"natural_blackjack": true,
+			"payout":            payout,
+			"new_balance":       finalBalance,
+		})
+		return
+	}
 
 	// Build signed state token (bind to user ID)
 	type bjState struct {
