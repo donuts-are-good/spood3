@@ -35,6 +35,7 @@ function initializeCasino() {
             
             // Ensure within bounds
             input.value = Math.max(1, Math.min(parseInt(input.max), parseInt(input.value)));
+            updateAbbrevFor(game);
         });
     });
     
@@ -111,6 +112,18 @@ function initializeCasino() {
     if (bjStand) {
         bjStand.addEventListener('click', blackjackStand);
     }
+
+    // Live abbreviated number display for each bet input
+    ['moonflip','hilow','slots','blackjack'].forEach(game => {
+        const input = document.getElementById(game + '-amount');
+        if (input) {
+            const handler = () => updateAbbrevFor(game);
+            input.addEventListener('input', handler);
+            input.addEventListener('change', handler);
+            // initial
+            updateAbbrevFor(game);
+        }
+    });
 }
 
 function initializeTabs() {
@@ -680,6 +693,20 @@ function updateCreditsDisplay(newBalance) {
         creditsElement.textContent = formatLargeNumber(full);
         creditsElement.title = full.toLocaleString();
     }
+}
+
+function updateAbbrevFor(game) {
+    const input = document.getElementById(game + '-amount');
+    const label = document.getElementById(game + '-amount-abbrev');
+    if (!input || !label) return;
+    const value = parseInt(input.value || '0', 10);
+    if (!value || value <= 0) {
+        label.textContent = '';
+        label.removeAttribute('title');
+        return;
+    }
+    label.textContent = `(${formatLargeNumber(value)})`;
+    label.title = value.toLocaleString();
 }
 
 function loadProgressiveJackpot() {
