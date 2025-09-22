@@ -415,10 +415,16 @@ let hiLowBetAmount = 0;
 
 // Hi-Low Step 1: Place bet and get first card - ALL LOGIC SERVER-SIDE
 function placeHiLowBetStep1() {
-    const amount = parseInt(document.getElementById('hilow-amount').value);
+    const amountInput = document.getElementById('hilow-amount');
+    const amount = parseInt(amountInput.value);
+    const cap = parseInt(amountInput.max);
     
     if (!amount || amount <= 0) {
         showResult('hilow', 'Invalid bet amount', false);
+        return;
+    }
+    if (cap && amount > cap) {
+        showResult('hilow', `Max bet is ${cap.toLocaleString()}`, false);
         return;
     }
     
@@ -516,10 +522,16 @@ function placeHiLowBetStep2(guess) {
 
 // Moon Flip - ALL GAME LOGIC IS SERVER-SIDE
 function placeMoonFlipBet(choice) {
-    const amount = parseInt(document.getElementById('moonflip-amount').value);
+    const amountInput = document.getElementById('moonflip-amount');
+    const amount = parseInt(amountInput.value);
+    const cap = parseInt(amountInput.max);
     
     if (!amount || amount <= 0) {
         showResult('moonflip', 'Invalid bet amount', false);
+        return;
+    }
+    if (cap && amount > cap) {
+        showResult('moonflip', `Max bet is ${cap.toLocaleString()}`, false);
         return;
     }
     
@@ -561,10 +573,16 @@ function placeMoonFlipBet(choice) {
 
 // Slots - ALL GAME LOGIC IS SERVER-SIDE
 function spinSlots() {
-    const amount = parseInt(document.getElementById('slots-amount').value);
+    const amountInput = document.getElementById('slots-amount');
+    const amount = parseInt(amountInput.value);
+    const cap = parseInt(amountInput.max);
     
     if (!amount || amount <= 0) {
         showResult('slots', 'Invalid bet amount', false);
+        return;
+    }
+    if (cap && amount > cap) {
+        showResult('slots', `Max bet is ${cap.toLocaleString()}`, false);
         return;
     }
     

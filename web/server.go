@@ -96,7 +96,8 @@ type PageData struct {
 	// CSS optimization
 	RequiredCSS []string // Page-specific CSS files to load
 	// Access and limits
-	FightBetMax int // Per-user fight bet cap (min of credits and policy)
+	FightBetMax  int // Per-user fight bet cap (min of credits and policy)
+	CasinoBetMax int // Casino wager cap (100M unless sacrifice exemption)
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -195,6 +196,20 @@ func (s *Server) setupRoutes() {
 	protected.HandleFunc("/casino/blackjack/start", s.handleBlackjackStart).Methods("POST")
 	protected.HandleFunc("/casino/blackjack/hit", s.handleBlackjackHit).Methods("POST")
 	protected.HandleFunc("/casino/blackjack/stand", s.handleBlackjackStand).Methods("POST")
+}
+
+// userHasSacrificeExemption returns true if the user has at least 1000 sacrifices
+func (s *Server) userHasSacrificeExemption(userID int) bool {
+	inv, err := s.repo.GetUserInventory(userID)
+	if err != nil {
+		return false
+	}
+	for _, it := range inv {
+		if it.ItemType == "sacrifice" && it.Quantity >= 1000 {
+			return true
+		}
+	}
+	return false
 }
 
 // getUserMaxFightBet returns the per-user fight bet cap. Default 1,000,000 unless
@@ -1869,10 +1884,21 @@ func (s *Server) handleCasino(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Determine casino bet cap (100M unless user has >=1000 sacrifices)
+	casinoCap := 100000000
+	inv2, _ := s.repo.GetUserInventory(user.ID)
+	for _, it := range inv2 {
+		if it.ItemType == "sacrifice" && it.Quantity >= 1000 {
+			casinoCap = 0 // 0 means unlimited for our client-side logic; backend will skip cap if 0
+			break
+		}
+	}
+
 	data := PageData{
-		User:        user,
-		Title:       "Underground Casino",
-		RequiredCSS: []string{"casino.css"},
+		User:         user,
+		Title:        "Underground Casino",
+		RequiredCSS:  []string{"casino.css"},
+		CasinoBetMax: casinoCap,
 	}
 
 	// Render casino template directly (not through base template)
@@ -1944,6 +1970,17 @@ func (s *Server) handleMoonFlip(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
 			"error":   "Insufficient credits",
+		})
+		return
+	}
+
+	// Enforce casino cap (100M unless user has >=1000 sacrifices)
+	if !s.userHasSacrificeExemption(user.ID) && req.Amount > 100000000 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Max bet is 100,000,000",
 		})
 		return
 	}
@@ -2033,6 +2070,17 @@ func (s *Server) handleHiLowStep1(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
 			"error":   "Insufficient credits",
+		})
+		return
+	}
+
+	// Enforce casino cap
+	if !s.userHasSacrificeExemption(user.ID) && req.Amount > 100000000 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Max bet is 100,000,000",
 		})
 		return
 	}
@@ -2258,6 +2306,17 @@ func (s *Server) handleSlots(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
 			"error":   "Insufficient credits",
+		})
+		return
+	}
+
+	// Enforce casino cap
+	if !s.userHasSacrificeExemption(user.ID) && req.Amount > 100000000 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Max bet is 100,000,000",
 		})
 		return
 	}
@@ -2639,6 +2698,17 @@ func (s *Server) handleBlackjackStart(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
 			"error":   "Insufficient credits",
+		})
+		return
+	}
+
+	// Enforce casino cap
+	if !s.userHasSacrificeExemption(user.ID) && req.Amount > 100000000 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Max bet is 100,000,000",
 		})
 		return
 	}
