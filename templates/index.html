@@ -66,7 +66,7 @@
     {{if or (eq $fight.Status "scheduled") (eq $fight.Status "active")}}
     
     {{/* Desktop Fight Card */}}
-    <div class="fight-card desktop-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+    <div class="fight-card desktop-only status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
         <div class="fight-content">
             <div class="fight-time">
                 <span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span>
@@ -110,7 +110,7 @@
     </div>
     
     {{/* Mobile Fight Card */}}
-    <div class="fight-card-mobile mobile-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+    <div class="fight-card-mobile mobile-only status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
         <div class="mobile-fight-content">
             <div class="mobile-fighter-name">
                 <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>

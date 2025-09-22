@@ -57,20 +57,21 @@ func (s *Server) verifyBytes(secret []byte, payload []byte, b64sig string) bool 
 }
 
 type PageData struct {
-	User           *database.User
-	Title          string
-	Tournament     *database.Tournament
-	Fights         []database.Fight
-	Fighter        *database.Fighter
-	Fight          *database.Fight
-	Users          []database.User
-	Fighters       []database.Fighter
-	Now            time.Time
-	PrimaryColor   string
-	SecondaryColor string
-	UserBet        *database.Bet
-	AllBets        []database.BetWithUser
-	UserBets       []database.BetWithFight
+	User            *database.User
+	Title           string
+	Tournament      *database.Tournament
+	Fights          []database.Fight
+	Fighter         *database.Fighter
+	Fight           *database.Fight
+	Users           []database.User
+	Fighters        []database.Fighter
+	Now             time.Time
+	PrimaryColor    string
+	SecondaryColor  string
+	UserBet         *database.Bet
+	AllBets         []database.BetWithUser
+	UserBets        []database.BetWithFight
+	UserBetFightIDs map[int]bool
 	// Meta tags for social media
 	MetaDescription    string
 	MetaImage          string
@@ -324,6 +325,18 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		mvpSetting, err := s.repo.GetUserSetting(user.ID, "mvp_player")
 		if err == nil {
 			data.CurrentMVP = mvpSetting
+		}
+
+		// Build a set of fight IDs the user has active/pending bets on
+		bets, err := s.repo.GetUserBets(user.ID)
+		if err == nil {
+			betFightIDs := make(map[int]bool)
+			for _, b := range bets {
+				if b.FightStatus == "scheduled" && b.Status == "pending" {
+					betFightIDs[b.FightID] = true
+				}
+			}
+			data.UserBetFightIDs = betFightIDs
 		}
 	}
 

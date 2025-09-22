@@ -584,6 +584,11 @@
     background: #ffaa00;
 }
 
+/* User has placed a bet: highlight scheduled fight border */
+.fight-card.bet-placed.status-scheduled::before {
+    background: #4A90E2;
+}
+
 .fight-content {
     display: contents;
 }
@@ -855,6 +860,11 @@
 
 .fight-card-mobile.status-scheduled::before {
     background: #ffaa00;
+}
+
+/* Mobile: user has placed a bet */
+.fight-card-mobile.bet-placed.status-scheduled::before {
+    background: #4A90E2;
 }
 
 .mobile-fight-content {
