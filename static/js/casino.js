@@ -533,13 +533,7 @@ function blackjackStand() {
             else if (data.won && window.toast.success) window.toast.success(`You win! ${deltaNum.toLocaleString()} credits`, 5000);
             else if (!data.won && window.toast.error) window.toast.error(`You lose. ${deltaNum.toLocaleString()} credits`, 5000);
         }
-        // Record outcome
-        const totalsLine2 = `${data.player_total ?? '??'} vs ${data.dealer_total ?? '??'}`;
-        if (data.push) pushRecentOutcome(`${totalsLine2} Push`, 'push');
-        else if (data.won) pushRecentOutcome(`${totalsLine2} You win! +${deltaNum.toLocaleString()}`, 'win');
-        else pushRecentOutcome(`${totalsLine2} You lose ${deltaNum.toLocaleString()}`, 'loss');
-
-        // Record concise outcome line with totals, update credits, and reset
+        // Update credits and record single concise outcome line with totals, then reset
         if (typeof data.new_balance === 'number') {
             updateCreditsDisplay(data.new_balance);
         }
