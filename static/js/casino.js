@@ -280,6 +280,7 @@ function resetBlackjackUI() {
         p2.innerHTML = '<span>?</span>';
         table.appendChild(p2);
     }
+    // Do NOT clear history here; it should persist until next snapshot
     const resultDiv = document.getElementById('blackjack-result');
     if (resultDiv) { resultDiv.innerHTML = ''; resultDiv.className = 'game-result'; }
     const startGroup = document.getElementById('blackjack-start-group');
@@ -312,6 +313,17 @@ let blackjackState = {
 };
 
 function blackjackStart() {
+    // Defensive: ensure history shows last hand only and isn't used as a target
+    const hist = document.getElementById('blackjack-history');
+    if (hist && hist.children.length > 1) {
+        // keep only the newest summary if somehow multiple exist
+        while (hist.children.length > 1) hist.removeChild(hist.lastChild);
+    }
+    // Also ensure the live table exists and is clean before dealing
+    const tbl = document.getElementById('blackjack-table');
+    if (!tbl || tbl.children.length === 0) {
+        resetBlackjackUI();
+    }
     const amount = parseInt(document.getElementById('blackjack-amount').value);
     if (!amount || amount <= 0) {
         showResult('blackjack', 'Invalid bet amount', false);
@@ -402,10 +414,13 @@ function blackjackHit() {
         }
         // Render newest card into a new slot element
         const table = document.getElementById('blackjack-table');
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card revealed';
-        cardDiv.innerHTML = `<span>${data.new_card}</span>`;
-        table.appendChild(cardDiv);
+        // Append new card to live table only (never to history)
+        if (table) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card revealed';
+            cardDiv.innerHTML = `<span>${data.new_card}</span>`;
+            table.appendChild(cardDiv);
+        }
 
         if (data.bust) {
             if (window.toast && window.toast.error) window.toast.error(`Bust at ${data.player_total}. -${blackjackState.amount.toLocaleString()} credits`, 5000);
