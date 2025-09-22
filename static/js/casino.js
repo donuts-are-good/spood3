@@ -610,6 +610,8 @@ function placeHiLowBetStep1() {
             document.getElementById('amount-controls-group').classList.add('hidden');
             document.getElementById('place-bet-group').classList.add('hidden');
             document.getElementById('guess-buttons-group').classList.remove('hidden');
+            // Ensure guess buttons are enabled for this round
+            document.querySelectorAll('.bet-btn[data-guess]').forEach(btn => btn.disabled = false);
             
             showResult('hilow', `First card: ${data.first_card}. Credits charged: ${data.amount}. Now pick higher or lower!`, null);
         } else {
@@ -649,7 +651,7 @@ function placeHiLowBetStep2(guess) {
             nextCardElement.classList.remove('placeholder');
             nextCardElement.classList.add('revealed');
             
-            const resultText = `${data.second_card} vs ${data.first_card}! ${data.won ? 'YOU WIN!' : 'You lose.'} ${data.won ? `+${data.payout}` : `-${data.amount}`} credits`;
+            const resultText = `${data.second_card} vs ${data.first_card}! ${data.won ? 'YOU WIN!' : 'You lose.'} ${data.won ? `+${Number(data.payout).toLocaleString()}` : `-${Number(data.amount).toLocaleString()}`} credits`;
             // Toast and non-reload UX
             try {
                 if (data.won && window.toast && window.toast.success) window.toast.success(resultText, 4000);
@@ -675,6 +677,8 @@ function placeHiLowBetStep2(guess) {
                 // Re-enable bet button
                 const placeBtn = document.getElementById('place-hilow-bet');
                 if (placeBtn) placeBtn.disabled = false;
+                // Re-enable guess buttons for next round (will be shown after step 1)
+                document.querySelectorAll('.bet-btn[data-guess]').forEach(btn => btn.disabled = false);
                 // Reset state
                 hiLowFirstCard = '';
                 hiLowBetAmount = 0;
