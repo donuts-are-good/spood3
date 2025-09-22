@@ -442,7 +442,8 @@ function blackjackHit() {
         }
         // Render newest card into a new slot element
         const table = document.getElementById('blackjack-table');
-        // Append new card to live table only (never to history)
+        // Append new card to live table only (never to history).
+        // Guard against CSS flex-wrap pushing cards into another container accidentally by using an explicit wrapper.
         if (table) {
             const cardDiv = document.createElement('div');
             cardDiv.className = 'card revealed';

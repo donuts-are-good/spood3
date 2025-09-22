@@ -299,16 +299,16 @@
 
         /* Blackjack hand history */
         .hand-history { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
-        .hand-summary { display: flex; align-items: center; gap: 16px; opacity: 0.95; }
-        .card.mini { width: 60px; height: 84px; font-size: 1.4rem; }
+        .hand-summary { display: flex; align-items: center; gap: 12px; opacity: 0.95; flex-wrap: nowrap; overflow-x: auto; }
+        .card.mini { width: 48px; height: 68px; font-size: 1.2rem; }
         .hand-summary .vs-text { font-size: 1rem; }
-        .hand-cards { display: flex; align-items: center; gap: 8px; }
+        .hand-cards { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
         /* Subtle fanned tilt */
-        .hand-cards .card.mini:nth-child(1) { transform: rotate(-6deg); }
-        .hand-cards .card.mini:nth-child(2) { transform: rotate(-3deg); }
+        .hand-cards .card.mini:nth-child(1) { transform: rotate(-5deg); }
+        .hand-cards .card.mini:nth-child(2) { transform: rotate(-2deg); }
         .hand-cards .card.mini:nth-child(3) { transform: rotate(0deg); }
-        .hand-cards .card.mini:nth-child(4) { transform: rotate(3deg); }
-        .hand-cards .card.mini:nth-child(5) { transform: rotate(6deg); }
+        .hand-cards .card.mini:nth-child(4) { transform: rotate(2deg); }
+        .hand-cards .card.mini:nth-child(5) { transform: rotate(5deg); }
 
         .card {
             width: 100px;
