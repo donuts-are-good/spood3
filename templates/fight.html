@@ -42,6 +42,7 @@
 			<div class="fight-section-card">
 			<div class="tale-of-tape">
 				<div class="tot-col left">
+					<div class="tot-fighter-name">{{.Fight.Fighter1Name}}</div>
 					<div class="tot-row"><span class="label">Strength</span><span class="value {{if gt .Fighter1.Strength .Fighter2.Strength}}win{{end}}">{{.Fighter1.Strength}}</span></div>
 					<div class="tot-row"><span class="label">Speed</span><span class="value {{if gt .Fighter1.Speed .Fighter2.Speed}}win{{end}}">{{.Fighter1.Speed}}</span></div>
 					<div class="tot-row"><span class="label">Endurance</span><span class="value {{if gt .Fighter1.Endurance .Fighter2.Endurance}}win{{end}}">{{.Fighter1.Endurance}}</span></div>
@@ -56,6 +57,7 @@
 					<div class="tot-faceoff">{{.Fight.Fighter1Name}} <span class="vs-dot">VS</span> {{.Fight.Fighter2Name}}</div>
 				</div>
 				<div class="tot-col right">
+					<div class="tot-fighter-name">{{.Fight.Fighter2Name}}</div>
 					<div class="tot-row"><span class="value {{if gt .Fighter2.Strength .Fighter1.Strength}}win{{end}}">{{.Fighter2.Strength}}</span><span class="label">Strength</span></div>
 					<div class="tot-row"><span class="value {{if gt .Fighter2.Speed .Fighter1.Speed}}win{{end}}">{{.Fighter2.Speed}}</span><span class="label">Speed</span></div>
 					<div class="tot-row"><span class="value {{if gt .Fighter2.Endurance .Fighter1.Endurance}}win{{end}}">{{.Fighter2.Endurance}}</span><span class="label">Endurance</span></div>

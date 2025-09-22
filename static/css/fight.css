@@ -873,6 +873,15 @@
     text-align: center;
 }
 
+.tot-fighter-name {
+    color: #ccc;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 .tot-title {
     font-family: var(--font-heading);
     color: #ffffff;
