@@ -255,9 +255,44 @@ function resetGameStates() {
     if (startGroup) startGroup.classList.remove('hidden');
 }
 
+function resetBlackjackUI() {
+    // Clear the dynamic table render and restore placeholders
+    const table = document.getElementById('blackjack-table');
+    if (table) {
+        table.innerHTML = '';
+        const up = document.createElement('div');
+        up.id = 'dealer-upcard';
+        up.className = 'card placeholder';
+        up.innerHTML = '<span>?</span>';
+        table.appendChild(up);
+        const sep = document.createElement('div');
+        sep.className = 'vs-text';
+        sep.textContent = 'DEALER';
+        table.appendChild(sep);
+        const p1 = document.createElement('div');
+        p1.id = 'player-card-1';
+        p1.className = 'card placeholder';
+        p1.innerHTML = '<span>?</span>';
+        table.appendChild(p1);
+        const p2 = document.createElement('div');
+        p2.id = 'player-card-2';
+        p2.className = 'card placeholder';
+        p2.innerHTML = '<span>?</span>';
+        table.appendChild(p2);
+    }
+    const resultDiv = document.getElementById('blackjack-result');
+    if (resultDiv) { resultDiv.innerHTML = ''; resultDiv.className = 'game-result'; }
+    const startGroup = document.getElementById('blackjack-start-group');
+    const playGroup = document.getElementById('blackjack-play-group');
+    if (startGroup) startGroup.classList.remove('hidden');
+    if (playGroup) playGroup.classList.add('hidden');
+    const bjStart = document.getElementById('blackjack-start');
+    if (bjStart) bjStart.disabled = false;
+}
+
 // ---------------- Blackjack (stateless) ----------------
 // Longer post-result reset just for Blackjack so players can review results
-const BLACKJACK_RESET_DELAY_MS = 8000;
+const BLACKJACK_RESET_DELAY_MS = 4000;
 let blackjackState = {
     amount: 0,
     dealerUpcard: '',
@@ -284,18 +319,17 @@ function blackjackStart() {
         if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] blackjack start: TRIGGERED'); showExtortionModal(data); return; }
         if (data.natural_blackjack) {
-            // Immediate payout; show toast and reset UI
             if (window.toast && window.toast.success) window.toast.success(`Blackjack! +${data.payout.toLocaleString()} credits`, 6000);
             if (typeof data.new_balance === 'number') updateCreditsDisplay(data.new_balance);
-            // Reveal cards
             const up = document.getElementById('dealer-upcard');
             up.classList.remove('placeholder'); up.classList.add('revealed'); up.innerHTML = `<span>${data.dealer_upcard}</span>`;
             const p1 = document.getElementById('player-card-1');
             const p2 = document.getElementById('player-card-2');
             p1.classList.remove('placeholder'); p1.classList.add('revealed'); p1.innerHTML = `<span>${data.player_hand[0]}</span>`;
             p2.classList.remove('placeholder'); p2.classList.add('revealed'); p2.innerHTML = `<span>${data.player_hand[1]}</span>`;
-            showResult('blackjack', `BLACKJACK! Payout: +${data.payout.toLocaleString()}`, true);
-            setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
+            p1.classList.add('win-outline');
+            p2.classList.add('win-outline');
+            setTimeout(() => resetBlackjackUI(), BLACKJACK_RESET_DELAY_MS);
             return;
         }
         console.log('[Extortion Debug] blackjack start: clear');
@@ -323,7 +357,7 @@ function blackjackStart() {
         // Show Hit/Stand
         document.getElementById('blackjack-start-group').classList.add('hidden');
         document.getElementById('blackjack-play-group').classList.remove('hidden');
-        showResult('blackjack', 'Cards dealt. Hit or Stand?', null);
+        if (window.toast && window.toast.info) window.toast.info('Cards dealt. Hit or Stand?', 2500);
     })
     .catch(() => {
         showResult('blackjack', 'Network error', false);
@@ -363,12 +397,11 @@ function blackjackHit() {
         table.appendChild(cardDiv);
 
         if (data.bust) {
-            showResult('blackjack', `Bust at ${data.player_total}. You lose. -${blackjackState.amount} credits`, false);
-            // Reset after longer delay for Blackjack only
-            setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
+            if (window.toast && window.toast.error) window.toast.error(`Bust at ${data.player_total}. -${blackjackState.amount.toLocaleString()} credits`, 5000);
+            setTimeout(() => resetBlackjackUI(), BLACKJACK_RESET_DELAY_MS);
             roundEnded = true;
         } else {
-            showResult('blackjack', `Total: ${data.player_total}. Hit or Stand?`, null);
+            if (window.toast && window.toast.info) window.toast.info(`Total: ${data.player_total}. Hit or Stand?`, 2000);
         }
     })
     .catch(() => {
@@ -426,14 +459,33 @@ function blackjackStand() {
         });
 
         const outcome = data.push ? 'PUSH' : (data.won ? 'YOU WIN!' : 'You lose.');
-        const delta = data.push ? 0 : (data.won ? `+${data.payout}` : `-${blackjackState.amount}`);
-        showResult('blackjack', `Dealer: ${data.dealer_total}, You: ${data.player_total}. ${outcome} ${delta} credits`, data.won ? true : (data.push ? null : false));
+        const deltaNum = data.push ? 0 : (data.won ? data.payout : -blackjackState.amount);
+        if (window.toast) {
+            if (data.push && window.toast.info) window.toast.info(`Push. Dealer ${data.dealer_total}, You ${data.player_total}.`, 4500);
+            else if (data.won && window.toast.success) window.toast.success(`You win! ${deltaNum.toLocaleString()} credits`, 5000);
+            else if (!data.won && window.toast.error) window.toast.error(`You lose. ${deltaNum.toLocaleString()} credits`, 5000);
+        }
+
+        // Winner highlight
+        const tableCards = Array.from(table.querySelectorAll('.card.revealed'));
+        const dealerCount = data.dealer_hand.length;
+        const dealerCards = tableCards.slice(0, dealerCount);
+        const playerCards = tableCards.slice(dealerCount + 1);
+        if (!data.push) {
+            if (data.won) {
+                playerCards.forEach(el => el.classList.add('win-outline'));
+                dealerCards.forEach(el => el.classList.add('lose-muted'));
+            } else {
+                dealerCards.forEach(el => el.classList.add('win-outline'));
+                playerCards.forEach(el => el.classList.add('lose-muted'));
+            }
+        }
 
         // Update credits and reset after short delay
         if (typeof data.new_balance === 'number') {
             updateCreditsDisplay(data.new_balance);
         }
-        setTimeout(() => window.location.reload(), BLACKJACK_RESET_DELAY_MS);
+        setTimeout(() => resetBlackjackUI(), BLACKJACK_RESET_DELAY_MS);
         roundEnded = true;
     })
     .catch(() => {
