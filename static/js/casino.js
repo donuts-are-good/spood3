@@ -691,9 +691,11 @@ function animateSlotSequences(sequences, finalGrid, winningLines, won, payout, a
                 highlightWinningLines(winningLines);
                 
                 // Show result
-                const resultText = won ? 
-                    `🎰 JACKPOT! +${payout} credits! ${getWinningLinesText(winningLines)}` : 
-                    `🎰 No winning lines. -${amount} credits.`;
+                const isJackpot = Array.isArray(winningLines) && winningLines.length === 3;
+                const resultText = isJackpot
+                    ? `🎰 JACKPOT! +${payout} credits!`
+                    : (won ? `🎰 You won! +${payout} credits. ${getWinningLinesText(winningLines)}`
+                           : `🎰 No winning lines. -${amount} credits.`);
                 showResult('slots', resultText, won);
                 
                 // Simple timer-based reset - guaranteed to work
