@@ -719,7 +719,7 @@ function spinSlotsSeries(times) {
             netCredits += (data.won ? (data.payout - data.amount) : (-data.amount));
             // Toast per spin outcome (compact)
             if (data.won) {
-                notifySuccess(`Slots win: +${data.payout.toLocaleString()} (${linesLen} line${linesLen===1?'':'s'})`, 2000);
+                notifySuccess(`Slots win: +${data.payout.toLocaleString()} (${linesLen} line${linesLen===1?'':'s'})`, 4000);
             } else {
                 notifyWarning(`No win: -${data.amount.toLocaleString()}`, 1500);
             }
@@ -739,7 +739,7 @@ function spinSlotsSeries(times) {
             // Reveal the final grid, then show summary toast
             animateSlotSequences(lastData.sequences, lastData.final_grid, lastData.winning_lines, lastData.won, lastData.payout, lastData.amount, lastData.new_balance);
             const summary = `${wins}/${times} wins • best lines: ${maxLines} • net: ${(netCredits>=0?'+':'')}${netCredits.toLocaleString()} credits`;
-            showInfo(`Spin 10× summary — ${summary}`, 5000);
+            showInfo(`Spin 10× summary — ${summary}`, 10000);
         }
         stopSpinning();
         if (spinBtn) spinBtn.disabled = false;

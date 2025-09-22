@@ -1929,7 +1929,8 @@ func (s *Server) handleMoonFlip(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1% random extortion event
-	if rand.Intn(100) == 0 {
+	if roll := rand.Intn(100); roll == 0 {
+		log.Printf("[Extortion] Triggered for user %d (moonflip) roll=%d", user.ID, roll)
 		s.respondWithExtortion(w, user)
 		return
 	}
@@ -2044,7 +2045,8 @@ func (s *Server) handleHiLowStep1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rand.Intn(100) == 0 {
+	if roll := rand.Intn(100); roll == 0 {
+		log.Printf("[Extortion] Triggered for user %d (hilow step1) roll=%d", user.ID, roll)
 		s.respondWithExtortion(w, user)
 		return
 	}
@@ -2285,7 +2287,8 @@ func (s *Server) handleSlots(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rand.Intn(100) == 0 {
+	if roll := rand.Intn(100); roll == 0 {
+		log.Printf("[Extortion] Triggered for user %d (slots) roll=%d", user.ID, roll)
 		s.respondWithExtortion(w, user)
 		return
 	}
@@ -2769,7 +2772,8 @@ func (s *Server) handleBlackjackStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rand.Intn(100) == 0 {
+	if roll := rand.Intn(100); roll == 0 {
+		log.Printf("[Extortion] Triggered for user %d (blackjack start) roll=%d", user.ID, roll)
 		s.respondWithExtortion(w, user)
 		return
 	}
@@ -2877,7 +2881,8 @@ func (s *Server) handleBlackjackHit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// extortion can also trigger mid-hand
-	if rand.Intn(100) == 0 {
+	if roll := rand.Intn(100); roll == 0 {
+		log.Printf("[Extortion] Triggered for user %d (blackjack hit) roll=%d", user.ID, roll)
 		s.respondWithExtortion(w, user)
 		return
 	}
@@ -3000,7 +3005,8 @@ func (s *Server) handleBlackjackStand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rand.Intn(100) == 0 {
+	if roll := rand.Intn(100); roll == 0 {
+		log.Printf("[Extortion] Triggered for user %d (blackjack stand) roll=%d", user.ID, roll)
 		s.respondWithExtortion(w, user)
 		return
 	}
