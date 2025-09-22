@@ -283,7 +283,8 @@ function blackjackStart() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(data); return; }
+        if (data.extortion) { console.log('[Extortion Debug] blackjack start: TRIGGERED'); showExtortionModal(data); return; }
+        console.log('[Extortion Debug] blackjack start: clear');
         if (!data.success) {
             showResult('blackjack', 'Error: ' + data.error, false);
             document.getElementById('blackjack-start').disabled = false;
@@ -329,7 +330,8 @@ function blackjackHit() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(data); return; }
+        if (data.extortion) { console.log('[Extortion Debug] blackjack hit: TRIGGERED'); showExtortionModal(data); return; }
+        console.log('[Extortion Debug] blackjack hit: clear');
         if (!data.success) {
             showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
             return;
@@ -378,7 +380,8 @@ function blackjackStand() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(data); return; }
+        if (data.extortion) { console.log('[Extortion Debug] blackjack stand: TRIGGERED'); showExtortionModal(data); return; }
+        console.log('[Extortion Debug] blackjack stand: clear');
         if (!data.success) {
             showResult('blackjack', 'Error: ' + (data.error || 'Unknown'), false);
             return;
@@ -462,7 +465,8 @@ function placeHiLowBetStep1() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(data); return; }
+        if (data.extortion) { console.log('[Extortion Debug] hilow step1: TRIGGERED'); showExtortionModal(data); return; }
+        console.log('[Extortion Debug] hilow step1: clear');
         if (data.success) {
             // Store data for Step 2
             hiLowFirstCard = data.first_card;
@@ -571,6 +575,8 @@ function placeMoonFlipBet(choice) {
     })
     .then(response => response.json())
     .then(data => {
+        if (data.extortion) { console.log('[Extortion Debug] moonflip: TRIGGERED'); showExtortionModal(data); return; }
+        console.log('[Extortion Debug] moonflip: clear');
         if (data.success) {
             // Display server-generated result
             const resultText = `${data.result === 'full' ? '🌕' : '🌑'} Result: ${data.result === 'full' ? 'Full Moon' : 'New Moon'}! ${data.won ? 'YOU WIN!' : 'You lose.'} ${data.won ? `+${data.payout}` : `-${data.amount}`} credits`;
@@ -641,7 +647,8 @@ function spinSlots() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.extortion) { showExtortionModal(data); return; }
+        if (data.extortion) { console.log('[Extortion Debug] slots single: TRIGGERED'); showExtortionModal(data); return; }
+        console.log('[Extortion Debug] slots single: clear');
         clearTimeout(emergencyTimeout); // Cancel emergency timeout
         console.log('Slots response:', data); // Debug logging
         if (data.success) {
@@ -709,7 +716,8 @@ function spinSlotsSeries(times) {
         })
         .then(r => r.json())
         .then(data => {
-            if (data.extortion) { showExtortionModal(data); throw new Error('extortion'); }
+            if (data.extortion) { console.log(`[Extortion Debug] slots series spin ${times-remaining+1}/${times}: TRIGGERED`); showExtortionModal(data); throw new Error('extortion'); }
+            console.log(`[Extortion Debug] slots series spin ${times-remaining+1}/${times}: clear`);
             if (!data.success) throw new Error(data.error || 'Spin failed');
             lastData = data;
             const linesLen = Array.isArray(data.winning_lines) ? data.winning_lines.length : 0;
