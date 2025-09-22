@@ -683,6 +683,19 @@ function spinSlotsSeries(times) {
 
     let remaining = times;
     let lastData = null;
+    let wins = 0;
+    let totalLines = 0;
+    let maxLines = 0;
+    let netCredits = 0;
+
+    // Start continuous spin animation and UI hints
+    startSpinning();
+    const step1 = document.getElementById('slots-step1-text');
+    const step2 = document.getElementById('slots-step2-text');
+    if (step1) step1.classList.remove('active');
+    if (step2) step2.classList.add('active');
+    const updateBtnLabel = () => { if (spinBtn) spinBtn.textContent = `🎰 SPINNING... (${times-remaining+1}/${times})`; };
+    updateBtnLabel();
 
     // Run strictly sequentially using a promise chain to avoid parallel requests
     const runSequentially = () => {
@@ -696,15 +709,21 @@ function spinSlotsSeries(times) {
             if (data.extortion) { showExtortionModal(); throw new Error('extortion'); }
             if (!data.success) throw new Error(data.error || 'Spin failed');
             lastData = data;
+            const linesLen = Array.isArray(data.winning_lines) ? data.winning_lines.length : 0;
+            if (data.won) wins++;
+            totalLines += linesLen;
+            if (linesLen > maxLines) maxLines = linesLen;
+            netCredits += (data.won ? (data.payout - data.amount) : (-data.amount));
             // Toast per spin outcome (compact)
             if (data.won) {
-                showSuccess(`Slots win: +${data.payout.toLocaleString()} credits (${getWinningLinesText(data.winning_lines)})`, 3000);
+                showSuccess(`Slots win: +${data.payout.toLocaleString()} (${linesLen} line${linesLen===1?'':'s'})`, 2000);
             } else {
-                showWarning(`No win: -${data.amount.toLocaleString()} credits`, 2500);
+                showWarning(`No win: -${data.amount.toLocaleString()}`, 1500);
             }
             if (typeof data.new_balance === 'number') updateCreditsDisplay(data.new_balance);
             loadProgressiveJackpot();
             remaining--;
+            if (spinBtn) updateBtnLabel();
             if (remaining > 0) {
                 // slight delay between spins to keep CPU/network tame
                 return new Promise(res => setTimeout(res, 120)).then(runSequentially);
@@ -714,10 +733,15 @@ function spinSlotsSeries(times) {
 
     runSequentially().catch(() => {}).finally(() => {
         if (lastData) {
+            // Reveal the final grid, then show summary toast
             animateSlotSequences(lastData.sequences, lastData.final_grid, lastData.winning_lines, lastData.won, lastData.payout, lastData.amount, lastData.new_balance);
+            const summary = `${wins}/${times} wins • best lines: ${maxLines} • net: ${(netCredits>=0?'+':'')}${netCredits.toLocaleString()} credits`;
+            showInfo(`Spin 10× summary — ${summary}`, 5000);
         }
+        stopSpinning();
         if (spinBtn) spinBtn.disabled = false;
         if (spin10Btn) spin10Btn.disabled = false;
+        if (spinBtn) spinBtn.textContent = '🎰 SPIN THE REELS';
     });
 }
 
