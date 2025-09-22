@@ -781,6 +781,22 @@
     border-radius: 8px;
 }
 
+/* Betting row below Tale of the Tape */
+.betting-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.bet-col {}
+
+@media (max-width: 768px) {
+    .betting-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Tale of the Tape */
 .tale-of-tape {
     margin-top: 20px;

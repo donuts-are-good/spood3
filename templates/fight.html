@@ -65,30 +65,7 @@
                         <div style="color: #888; font-style: italic;">Awaiting Violence</div>
                     {{end}}
                     
-                    {{/* Betting form for Fighter 1 */}}
-                    {{if and .User (eq .Fight.Status "scheduled")}}
-                        {{if not .UserBet}}
-                            <div class="fighter-betting">
-                                <form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter1Name}}')">
-                                    <input type="hidden" name="fighter_id" value="{{.Fight.Fighter1ID}}">
-                                    <div class="bet-controls">
-                                        <input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
-                                        <button type="button" class="bet-max-button" title="Set to max">MAX</button>
-                                        <button type="submit" class="bet-button">BET</button>
-                                    </div>
-                                    {{/* MVP 10x hint if this is user's MVP */}}
-                                    {{if and .CurrentMVP (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter1ID))}}
-                                    <div class="mvp-hint">👑 Betting on your MVP pays 10x if they win</div>
-                                    {{end}}
-                                </form>
-                            </div>
-                        {{else if eq .UserBet.FighterID .Fight.Fighter1ID}}
-                            <div class="fighter-bet-placed">
-                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
-                                <div class="bet-label">YOUR BET</div>
-                            </div>
-                        {{end}}
-                    {{end}}
+
                 </div>
                 
                 <div class="vs-section">
@@ -128,44 +105,102 @@
                         <div style="color: #888; font-style: italic;">Awaiting Violence</div>
                     {{end}}
                     
-                    {{/* Betting form for Fighter 2 */}}
-                    {{if and .User (eq .Fight.Status "scheduled")}}
-                        {{if not .UserBet}}
-                            <div class="fighter-betting">
-                                <form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter2Name}}')">
-                                    <input type="hidden" name="fighter_id" value="{{.Fight.Fighter2ID}}">
-                                    <div class="bet-controls">
-                                        <input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
-                                        <button type="button" class="bet-max-button" title="Set to max">MAX</button>
-                                        <button type="submit" class="bet-button">BET</button>
-                                    </div>
-                                    {{/* MVP 10x hint if this is user's MVP */}}
-                                    {{if and .CurrentMVP (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter2ID))}}
-                                    <div class="mvp-hint">👑 Betting on your MVP pays 10x if they win</div>
-                                    {{end}}
-                                </form>
-                            </div>
-                        {{else if eq .UserBet.FighterID .Fight.Fighter2ID}}
-                            <div class="fighter-bet-placed">
-                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
-                                <div class="bet-label">YOUR BET</div>
-                            </div>
-                        {{end}}
-                    {{end}}
+
                 </div>
-            </div>
-            
-            {{/* Available credits info */}}
-            {{if and .User (eq .Fight.Status "scheduled") (not .UserBet)}}
-                <div class="betting-info-bar">
-                    Available credits: {{commas .User.Credits}} | 1:1 odds (bet 100, win 200 total)
-                    {{/* If either fighter is MVP for this user, show a global hint too */}}
-                    {{if and .CurrentMVP (or (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter1ID)) (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter2ID)))}}
-                        <span class="mvp-hint-inline">| 👑 MVP bonus: 10x payout if your MVP wins</span>
-                    {{end}}
-                </div>
-            {{end}}
-        </div>
+		</div>
+
+			{{/* Tale of the Tape */}}
+			{{if and .Fighter1 .Fighter2}}
+			<div class="tale-of-tape">
+				<div class="tot-col left">
+					<div class="tot-row"><span class="label">Strength</span><span class="value">{{.Fighter1.Strength}}</span></div>
+					<div class="tot-row"><span class="label">Speed</span><span class="value">{{.Fighter1.Speed}}</span></div>
+					<div class="tot-row"><span class="label">Endurance</span><span class="value">{{.Fighter1.Endurance}}</span></div>
+					<div class="tot-row"><span class="label">Technique</span><span class="value">{{.Fighter1.Technique}}</span></div>
+					<div class="tot-row subtle"><span class="label">Molecular Density</span><span class="value">{{printf "%.1f" .Fighter1.MolecularDensity}}</span></div>
+					<div class="tot-row subtle"><span class="label">Existential Dread</span><span class="value">{{.Fighter1.ExistentialDread}}</span></div>
+					<div class="tot-row subtle"><span class="label">Fingers</span><span class="value">{{.Fighter1.Fingers}}</span></div>
+					<div class="tot-row subtle"><span class="label">Toes</span><span class="value">{{.Fighter1.Toes}}</span></div>
+				</div>
+				<div class="tot-center">
+					<div class="tot-title">TALE OF THE TAPE</div>
+					<div class="tot-faceoff">{{.Fight.Fighter1Name}} <span class="vs-dot">VS</span> {{.Fight.Fighter2Name}}</div>
+				</div>
+				<div class="tot-col right">
+					<div class="tot-row"><span class="value">{{.Fighter2.Strength}}</span><span class="label">Strength</span></div>
+					<div class="tot-row"><span class="value">{{.Fighter2.Speed}}</span><span class="label">Speed</span></div>
+					<div class="tot-row"><span class="value">{{.Fighter2.Endurance}}</span><span class="label">Endurance</span></div>
+					<div class="tot-row"><span class="value">{{.Fighter2.Technique}}</span><span class="label">Technique</span></div>
+					<div class="tot-row subtle"><span class="value">{{printf "%.1f" .Fighter2.MolecularDensity}}</span><span class="label">Molecular Density</span></div>
+					<div class="tot-row subtle"><span class="value">{{.Fighter2.ExistentialDread}}</span><span class="label">Existential Dread</span></div>
+					<div class="tot-row subtle"><span class="value">{{.Fighter2.Fingers}}</span><span class="label">Fingers</span></div>
+					<div class="tot-row subtle"><span class="value">{{.Fighter2.Toes}}</span><span class="label">Toes</span></div>
+				</div>
+			</div>
+			{{end}}
+
+			{{/* Betting forms row below Tale of the Tape */}}
+			<div class="betting-row">
+				<div class="bet-col left">
+					{{if and .User (eq .Fight.Status "scheduled")}}
+						{{if not .UserBet}}
+							<div class="fighter-betting">
+								<form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter1Name}}')">
+									<input type="hidden" name="fighter_id" value="{{.Fight.Fighter1ID}}">
+									<div class="bet-controls">
+										<input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
+										<button type="button" class="bet-max-button" title="Set to max">MAX</button>
+										<button type="submit" class="bet-button">BET</button>
+									</div>
+									{{if and .CurrentMVP (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter1ID))}}
+									<div class="mvp-hint">👑 Betting on your MVP pays 10x if they win</div>
+									{{end}}
+								</form>
+							</div>
+						{{else if eq .UserBet.FighterID .Fight.Fighter1ID}}
+							<div class="fighter-bet-placed">
+								<div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
+								<div class="bet-label">YOUR BET</div>
+							</div>
+						{{end}}
+					{{end}}
+				</div>
+				<div class="bet-col right">
+					{{if and .User (eq .Fight.Status "scheduled")}}
+						{{if not .UserBet}}
+							<div class="fighter-betting">
+								<form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter2Name}}')">
+									<input type="hidden" name="fighter_id" value="{{.Fight.Fighter2ID}}">
+									<div class="bet-controls">
+										<input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
+										<button type="button" class="bet-max-button" title="Set to max">MAX</button>
+										<button type="submit" class="bet-button">BET</button>
+									</div>
+									{{if and .CurrentMVP (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter2ID))}}
+									<div class="mvp-hint">👑 Betting on your MVP pays 10x if they win</div>
+									{{end}}
+								</form>
+							</div>
+						{{else if eq .UserBet.FighterID .Fight.Fighter2ID}}
+							<div class="fighter-bet-placed">
+								<div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
+								<div class="bet-label">YOUR BET</div>
+							</div>
+						{{end}}
+					{{end}}
+				</div>
+			</div>
+
+			{{/* Available credits info */}}
+			{{if and .User (eq .Fight.Status "scheduled") (not .UserBet)}}
+				<div class="betting-info-bar">
+					Available credits: {{commas .User.Credits}} | 1:1 odds (bet 100, win 200 total)
+					{{if and .CurrentMVP (or (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter1ID)) (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter2ID)))}}
+						<span class="mvp-hint-inline">| 👑 MVP bonus: 10x payout if your MVP wins</span>
+					{{end}}
+				</div>
+			{{end}}
+		</div>
 
         {{/* Bless/Curse Section */}}
         {{if and .User (eq .Fight.Status "scheduled") .UserInventory}}
@@ -315,37 +350,8 @@
                     </div>
                 </div>
 
-            {{/* Tale of the Tape */}}
-            {{if and .Fighter1 .Fighter2}}
-            <div class="tale-of-tape">
-                <div class="tot-col left">
-                    <div class="tot-row"><span class="label">Strength</span><span class="value">{{.Fighter1.Strength}}</span></div>
-                    <div class="tot-row"><span class="label">Speed</span><span class="value">{{.Fighter1.Speed}}</span></div>
-                    <div class="tot-row"><span class="label">Endurance</span><span class="value">{{.Fighter1.Endurance}}</span></div>
-                    <div class="tot-row"><span class="label">Technique</span><span class="value">{{.Fighter1.Technique}}</span></div>
-                    <div class="tot-row subtle"><span class="label">Molecular Density</span><span class="value">{{printf "%.1f" .Fighter1.MolecularDensity}}</span></div>
-                    <div class="tot-row subtle"><span class="label">Existential Dread</span><span class="value">{{.Fighter1.ExistentialDread}}</span></div>
-                    <div class="tot-row subtle"><span class="label">Fingers</span><span class="value">{{.Fighter1.Fingers}}</span></div>
-                    <div class="tot-row subtle"><span class="label">Toes</span><span class="value">{{.Fighter1.Toes}}</span></div>
-                </div>
-                <div class="tot-center">
-                    <div class="tot-title">TALE OF THE TAPE</div>
-                    <div class="tot-faceoff">{{.Fight.Fighter1Name}} <span class="vs-dot">VS</span> {{.Fight.Fighter2Name}}</div>
-                </div>
-                <div class="tot-col right">
-                    <div class="tot-row"><span class="value">{{.Fighter2.Strength}}</span><span class="label">Strength</span></div>
-                    <div class="tot-row"><span class="value">{{.Fighter2.Speed}}</span><span class="label">Speed</span></div>
-                    <div class="tot-row"><span class="value">{{.Fighter2.Endurance}}</span><span class="label">Endurance</span></div>
-                    <div class="tot-row"><span class="value">{{.Fighter2.Technique}}</span><span class="label">Technique</span></div>
-                    <div class="tot-row subtle"><span class="value">{{printf "%.1f" .Fighter2.MolecularDensity}}</span><span class="label">Molecular Density</span></div>
-                    <div class="tot-row subtle"><span class="value">{{.Fighter2.ExistentialDread}}</span><span class="label">Existential Dread</span></div>
-                    <div class="tot-row subtle"><span class="value">{{.Fighter2.Fingers}}</span><span class="label">Fingers</span></div>
-                    <div class="tot-row subtle"><span class="value">{{.Fighter2.Toes}}</span><span class="label">Toes</span></div>
-                </div>
-            </div>
-            {{end}}
-            </div>
-            {{end}}
+			</div>
+			{{end}}
         {{else}}
             <div class="auth-prompt">
                 <h4>🔐 AUTHENTICATION REQUIRED</h4>
