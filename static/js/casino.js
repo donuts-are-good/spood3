@@ -537,6 +537,7 @@ function blackjackStand() {
         if (typeof data.new_balance === 'number') {
             updateCreditsDisplay(data.new_balance);
         }
+        // Show player (You) first, then Dealer to match wording
         const totalsLine = `${data.player_total ?? '??'} vs ${data.dealer_total ?? '??'}`;
         if (data.push) pushRecentOutcome(`${totalsLine} Push`, 'push');
         else if (data.won) pushRecentOutcome(`${totalsLine} You win! +${deltaNum.toLocaleString()}`, 'win');
