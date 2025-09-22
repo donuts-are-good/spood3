@@ -283,6 +283,7 @@ function blackjackStart() {
     })
     .then(r => r.json())
     .then(data => {
+        if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] blackjack start: TRIGGERED'); showExtortionModal(data); return; }
         console.log('[Extortion Debug] blackjack start: clear');
         if (!data.success) {
@@ -330,6 +331,7 @@ function blackjackHit() {
     })
     .then(r => r.json())
     .then(data => {
+        if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] blackjack hit: TRIGGERED'); showExtortionModal(data); return; }
         console.log('[Extortion Debug] blackjack hit: clear');
         if (!data.success) {
@@ -380,6 +382,7 @@ function blackjackStand() {
     })
     .then(r => r.json())
     .then(data => {
+        if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] blackjack stand: TRIGGERED'); showExtortionModal(data); return; }
         console.log('[Extortion Debug] blackjack stand: clear');
         if (!data.success) {
@@ -465,6 +468,7 @@ function placeHiLowBetStep1() {
     })
     .then(response => response.json())
     .then(data => {
+        if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] hilow step1: TRIGGERED'); showExtortionModal(data); return; }
         console.log('[Extortion Debug] hilow step1: clear');
         if (data.success) {
@@ -575,6 +579,7 @@ function placeMoonFlipBet(choice) {
     })
     .then(response => response.json())
     .then(data => {
+        if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] moonflip: TRIGGERED'); showExtortionModal(data); return; }
         console.log('[Extortion Debug] moonflip: clear');
         if (data.success) {
@@ -647,6 +652,7 @@ function spinSlots() {
     })
     .then(response => response.json())
     .then(data => {
+        if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); return; }
         if (data.extortion) { console.log('[Extortion Debug] slots single: TRIGGERED'); showExtortionModal(data); return; }
         console.log('[Extortion Debug] slots single: clear');
         clearTimeout(emergencyTimeout); // Cancel emergency timeout
@@ -716,6 +722,7 @@ function spinSlotsSeries(times) {
         })
         .then(r => r.json())
         .then(data => {
+            if (data.extortion_blessed) { if (window.toast && window.toast.info) window.toast.info(data.message || 'A calm wind redirects your steps.', 5000); throw new Error('extortion'); }
             if (data.extortion) { console.log(`[Extortion Debug] slots series spin ${times-remaining+1}/${times}: TRIGGERED`); showExtortionModal(data); throw new Error('extortion'); }
             console.log(`[Extortion Debug] slots series spin ${times-remaining+1}/${times}: clear`);
             if (!data.success) throw new Error(data.error || 'Spin failed');

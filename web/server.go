@@ -2686,6 +2686,17 @@ func (s *Server) handleGetJackpot(w http.ResponseWriter, r *http.Request) {
 // a payload instructing the client to show an extortion modal. The client must
 // call /user/casino/extortion with the user's choice to settle.
 func (s *Server) respondWithExtortion(w http.ResponseWriter, user *database.User) {
+	// If the user is sacrifice-exempt, show a blessing message instead of charging
+	if s.userHasSacrificeExemption(user.ID) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":           false,
+			"extortion_blessed": true,
+			"message":           "The gods were on your side. A quiet hand steers you past two waiting hooligans.",
+		})
+		return
+	}
+
 	// Deduct 70% as a hold
 	original := user.Credits
 	hold := (original * 70) / 100

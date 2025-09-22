@@ -113,6 +113,8 @@ func main() {
 
 				// Weekly high-roller tithe on Mondays (idempotent)
 				_ = repo.TaxHighRollersIfNeeded(now)
+				// Weekly sacrifice decay (idempotent)
+				_ = repo.DecaySacrificesIfNeeded(now)
 
 				// Ensure today's schedule exists (will create if missing)
 				err := sched.EnsureTodaysSchedule(now)

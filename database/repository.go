@@ -908,3 +908,108 @@ func (r *Repository) alreadyTaxedThisWeek(userID int, weekKey string) (bool, err
 	}
 	return setting.SettingValue == weekKey, nil
 }
+
+// DecaySacrificesIfNeeded reduces each user's total 'sacrifice' item quantity weekly by 10% (floor),
+// with a minimum decay of 1 if they have at least 1. Idempotent per week using user_settings
+// with setting_type='sacrifice_decay_week'. Runs only on Mondays to limit load.
+func (r *Repository) DecaySacrificesIfNeeded(now time.Time) error {
+	// Only run on Mondays
+	if now.Weekday() != time.Monday {
+		return nil
+	}
+
+	// ISO week for stability
+	year, week := now.ISOWeek()
+	weekKey := fmt.Sprintf("%04d-%02d", year, week)
+
+	// Find a canonical shop_item_id for 'sacrifice'
+	var sacrificeItemID int
+	err := r.db.Get(&sacrificeItemID, `SELECT id FROM shop_items WHERE item_type = 'sacrifice' ORDER BY id LIMIT 1`)
+	if err != nil {
+		return err
+	}
+
+	// Get all users who currently hold sacrifices (sum > 0)
+	type row struct {
+		UserID int
+		Total  int
+	}
+	var rows []row
+	err = r.db.Select(&rows, `
+        SELECT ui.user_id AS user_id, COALESCE(SUM(ui.quantity),0) AS total
+        FROM user_inventory ui
+        JOIN shop_items si ON ui.shop_item_id = si.id
+        WHERE si.item_type = 'sacrifice' AND ui.quantity > 0
+        GROUP BY ui.user_id`)
+	if err != nil {
+		return err
+	}
+
+	for _, rec := range rows {
+		if rec.Total <= 0 {
+			// nothing to decay
+			_ = r.SetUserSetting(rec.UserID, "sacrifice_decay_week", weekKey, nil)
+			continue
+		}
+
+		// idempotence check
+		var setting UserSetting
+		getErr := r.db.Get(&setting, `SELECT * FROM user_settings WHERE user_id = ? AND setting_type = 'sacrifice_decay_week'`, rec.UserID)
+		if getErr == nil && setting.SettingValue == weekKey {
+			continue
+		}
+
+		// Compute decay: 10% floor, minimum 1
+		dec := rec.Total / 10 // floor 10%
+		if dec < 1 {
+			dec = 1
+		}
+		newTotal := rec.Total - dec
+		if newTotal < 0 {
+			newTotal = 0
+		}
+
+		tx, err := r.db.Begin()
+		if err != nil {
+			return err
+		}
+		// Remove all existing sacrifice rows for user
+		if _, err = tx.Exec(`
+            DELETE FROM user_inventory 
+            WHERE user_id = ? AND shop_item_id IN (
+                SELECT id FROM shop_items WHERE item_type = 'sacrifice'
+            )`, rec.UserID); err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		// Reinsert with decayed quantity if any left
+		if newTotal > 0 {
+			if _, err = tx.Exec(`
+                INSERT INTO user_inventory (user_id, shop_item_id, quantity, created_at)
+                VALUES (?, ?, ?, datetime('now'))`, rec.UserID, sacrificeItemID, newTotal); err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+
+		// Mark as decayed this week
+		if _, err = tx.Exec(`
+            INSERT INTO user_settings (user_id, setting_type, setting_value, updated_at)
+            VALUES (?, 'sacrifice_decay_week', ?, datetime('now'))
+            ON CONFLICT(user_id, setting_type) DO UPDATE SET
+                setting_value = excluded.setting_value,
+                updated_at = datetime('now')
+        `, rec.UserID, weekKey); err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		if err = tx.Commit(); err != nil {
+			return err
+		}
+		log.Printf("Applied weekly sacrifice decay to user %d: -%d (from %d to %d)", rec.UserID, dec, rec.Total, newTotal)
+	}
+
+	return nil
+}
