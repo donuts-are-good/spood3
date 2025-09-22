@@ -836,7 +836,7 @@ func (r *Repository) GetHighRollerUserIDs() ([]int, error) {
 	return userIDs, err
 }
 
-// TaxHighRollersIfNeeded applies a weekly 20% tax on Mondays to users with High Roller Card.
+// TaxHighRollersIfNeeded applies a weekly 7.5% tithe on Mondays to users with High Roller Card.
 // Idempotent per week per user using user_settings (setting_type='high_roller_tax_week').
 func (r *Repository) TaxHighRollersIfNeeded(now time.Time) error {
 	// Only run on Mondays to limit load (but still idempotent)
@@ -876,8 +876,8 @@ func (r *Repository) TaxHighRollersIfNeeded(now time.Time) error {
 			continue
 		}
 
-		// Deduct 20%
-		tax := (user.Credits * 20) / 100
+		// Deduct 7.5%
+		tax := (user.Credits * 75) / 1000
 		newCredits := user.Credits - tax
 		if newCredits < 0 {
 			newCredits = 0

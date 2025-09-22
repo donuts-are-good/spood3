@@ -47,9 +47,9 @@
         <div class="shop-item {{if or (lt $.User.Credits $shopItem.Price) $userOwnsItem}}disabled{{end}}" data-item-id="{{$shopItem.ID}}" data-price="{{$shopItem.Price}}">
             <div class="item-emoji">{{$shopItem.Emoji}}</div>
             <div class="item-name">{{$shopItem.Name}}</div>
-            <div class="item-description" title="{{if eq $shopItem.ItemType "high_roller"}}A portion of proceeds support the Little Spoodys Endowment for the Arts & Youth Enrichment (and other discretionary initiatives). Weekly patron tithe applies.{{else}}{{$shopItem.Description}}{{end}}">
+            <div class="item-description" title="{{if eq $shopItem.ItemType "high_roller"}}A portion of proceeds support the Little Spoodys Endowment for the Arts & Youth Enrichment (and other discretionary initiatives). Weekly patron tithe applies (7.5%).{{else}}{{$shopItem.Description}}{{end}}">
                 {{if eq $shopItem.ItemType "high_roller"}}
-                    Increase max bet to 100M. Patron status included.
+                    Increase max bet to 100M. Patron status included. Weekly tithe: 7.5%.
                 {{else}}
                     {{$shopItem.Description}}
                 {{end}}
@@ -110,13 +110,13 @@
             <h3>Patron Disclosure — Itemized Receipt</h3>
         </div>
         <div class="modal-body">
-            <p class="modal-sub">Weekly Patron Tithe: 20% of account balance (applied Mondays)</p>
+            <p class="modal-sub">Weekly Patron Tithe: 7.5% of account balance (applied Mondays)</p>
             <div class="receipt">
-                <div class="row"><span class="item">Little Spoodys Endowment for the Arts</span><span class="pct">11%</span></div>
-                <div class="row"><span class="item">Youth Enrichment & After‑Naps</span><span class="pct">3%</span></div>
-                <div class="row"><span class="item">Administrative Handling Fee</span><span class="pct">3%</span></div>
-                <div class="row"><span class="item">Community Outreach ░░░░░░</span><span class="pct">1%</span></div>
-                <div class="row"><span class="item">Executive Wellness & Recovery</span><span class="pct">2%</span></div>
+                <div class="row"><span class="item">Little Spoodys Endowment for the Arts</span><span class="pct">3.5%</span></div>
+                <div class="row"><span class="item">Youth Enrichment & After‑Naps</span><span class="pct">1.5%</span></div>
+                <div class="row"><span class="item">Administrative Handling Fee</span><span class="pct">1.0%</span></div>
+                <div class="row"><span class="item">Community Outreach ░░░░░░</span><span class="pct">0.5%</span></div>
+                <div class="row"><span class="item">Executive Wellness & Recovery</span><span class="pct">1.0%</span></div>
             </div>
             <div class="terms">Terms: Non‑refundable patronage; allocations may drift; filings may be decorative; access may be revoked for cause or vibes.</div>
         </div>
