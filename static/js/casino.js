@@ -698,6 +698,9 @@ function spinSlotsSeries(times) {
     updateBtnLabel();
 
     // Run strictly sequentially using a promise chain to avoid parallel requests
+    const notifySuccess = (msg, dur) => { try { if (window.toast && window.toast.success) window.toast.success(msg, dur); } catch (e) {} };
+    const notifyWarning = (msg, dur) => { try { if (window.toast && window.toast.warning) window.toast.warning(msg, dur); } catch (e) {} };
+
     const runSequentially = () => {
         return fetch('/user/casino/slots', {
             method: 'POST',
@@ -716,9 +719,9 @@ function spinSlotsSeries(times) {
             netCredits += (data.won ? (data.payout - data.amount) : (-data.amount));
             // Toast per spin outcome (compact)
             if (data.won) {
-                showSuccess(`Slots win: +${data.payout.toLocaleString()} (${linesLen} line${linesLen===1?'':'s'})`, 2000);
+                notifySuccess(`Slots win: +${data.payout.toLocaleString()} (${linesLen} line${linesLen===1?'':'s'})`, 2000);
             } else {
-                showWarning(`No win: -${data.amount.toLocaleString()}`, 1500);
+                notifyWarning(`No win: -${data.amount.toLocaleString()}`, 1500);
             }
             if (typeof data.new_balance === 'number') updateCreditsDisplay(data.new_balance);
             loadProgressiveJackpot();
@@ -934,6 +937,12 @@ function formatCasinoHeaderCredits() {
 function stopSpinning() {
     document.querySelectorAll('.slot-reel').forEach(reel => {
         reel.classList.remove('spinning');
+    });
+}
+
+function startSpinning() {
+    document.querySelectorAll('.slot-reel').forEach(reel => {
+        reel.classList.add('spinning');
     });
 }
 
