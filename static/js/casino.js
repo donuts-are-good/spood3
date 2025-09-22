@@ -684,18 +684,9 @@ function spinSlotsSeries(times) {
     let remaining = times;
     let lastData = null;
 
-    const doOne = () => {
-        if (remaining <= 0) {
-            if (lastData) {
-                // Render final result only
-                animateSlotSequences(lastData.sequences, lastData.final_grid, lastData.winning_lines, lastData.won, lastData.payout, lastData.amount, lastData.new_balance);
-            }
-            if (spinBtn) spinBtn.disabled = false;
-            if (spin10Btn) spin10Btn.disabled = false;
-            return;
-        }
-        // Use backend API per spin (no client RNG)
-        fetch('/user/casino/slots', {
+    // Run strictly sequentially using a promise chain to avoid parallel requests
+    const runSequentially = () => {
+        return fetch('/user/casino/slots', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ amount: perSpin })
@@ -705,21 +696,29 @@ function spinSlotsSeries(times) {
             if (data.extortion) { showExtortionModal(); throw new Error('extortion'); }
             if (!data.success) throw new Error(data.error || 'Spin failed');
             lastData = data;
-            // Update header credits/jackpot immediately to keep balances accurate
+            // Toast per spin outcome (compact)
+            if (data.won) {
+                showSuccess(`Slots win: +${data.payout.toLocaleString()} credits (${getWinningLinesText(data.winning_lines)})`, 3000);
+            } else {
+                showWarning(`No win: -${data.amount.toLocaleString()} credits`, 2500);
+            }
             if (typeof data.new_balance === 'number') updateCreditsDisplay(data.new_balance);
             loadProgressiveJackpot();
             remaining--;
-            // Small delay between spins to avoid hammering
-            setTimeout(doOne, 150);
-        })
-        .catch(() => {
-            // Stop the series on error
-            if (spinBtn) spinBtn.disabled = false;
-            if (spin10Btn) spin10Btn.disabled = false;
+            if (remaining > 0) {
+                // slight delay between spins to keep CPU/network tame
+                return new Promise(res => setTimeout(res, 120)).then(runSequentially);
+            }
         });
     };
 
-    doOne();
+    runSequentially().catch(() => {}).finally(() => {
+        if (lastData) {
+            animateSlotSequences(lastData.sequences, lastData.final_grid, lastData.winning_lines, lastData.won, lastData.payout, lastData.amount, lastData.new_balance);
+        }
+        if (spinBtn) spinBtn.disabled = false;
+        if (spin10Btn) spin10Btn.disabled = false;
+    });
 }
 
 function animateSlotSequences(sequences, finalGrid, winningLines, won, payout, amount, newBalance) {
