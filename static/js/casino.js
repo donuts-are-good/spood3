@@ -879,13 +879,13 @@ function resolveExtortion(choice) {
             let msg = '';
             let kind = 'info';
             if (data.outcome === 'paid') {
-                msg = `You pay the fee and keep walking. Net -20%. Refund: ${data.refund?.toLocaleString?.() || data.refund} credits.`;
+                msg = `You pay the fee and keep walking. Net -20%. You kept: ${data.refund?.toLocaleString?.() || data.refund} credits.`;
                 kind = 'warning';
             } else if (data.outcome === 'run_success') {
-                msg = `You run like the wind. You slip away with everything. Refund: ${data.refund?.toLocaleString?.()} credits.`;
+                msg = `You run like the wind. You slip away with everything. You kept: ${data.refund?.toLocaleString?.()} credits.`;
                 kind = 'success';
             } else if (data.outcome === 'run_fail') {
-                msg = `You tried to run. They clipped your wings. Net -50%. Refund: ${data.refund?.toLocaleString?.()} credits.`;
+                msg = `You tried to run. They clipped your wings. Net -50%. You kept: ${data.refund?.toLocaleString?.()} credits.`;
                 kind = 'error';
             }
             try {
