@@ -807,13 +807,7 @@ function animateSlotSequences(sequences, finalGrid, winningLines, won, payout, a
             setTimeout(() => {
                 highlightWinningLines(winningLines);
                 
-                // Show result
-                const isJackpot = Array.isArray(winningLines) && winningLines.length === 3;
-                const resultText = isJackpot
-                    ? `🎰 JACKPOT! +${payout} credits!`
-                    : (won ? `🎰 You won! +${payout} credits. ${getWinningLinesText(winningLines)}`
-                           : `🎰 No winning lines. -${amount} credits.`);
-                showResult('slots', resultText, won);
+                // Legacy under-button result banner removed in favor of toasts/summary
                 
                 // Simple timer-based reset - guaranteed to work
                 setTimeout(() => {
