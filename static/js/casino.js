@@ -98,6 +98,10 @@ function initializeCasino() {
     document.getElementById('slots-spin-btn').addEventListener('click', function() {
         spinSlots();
     });
+    const spin10 = document.getElementById('slots-spin10-btn');
+    if (spin10) {
+        spin10.addEventListener('click', function() { spinSlotsSeries(10); });
+    }
 
     // Blackjack controls
     const bjStart = document.getElementById('blackjack-start');
@@ -657,6 +661,65 @@ function spinSlots() {
         showResult('slots', 'Network error', false);
         resetSpinButton();
     });
+}
+
+// Secure multi-spin: performs N sequential spins via backend API.
+// Shows only the final result (and updates jackpot/credits incrementally).
+function spinSlotsSeries(times) {
+    const spinBtn = document.getElementById('slots-spin-btn');
+    const spin10Btn = document.getElementById('slots-spin10-btn');
+    if (spinBtn) spinBtn.disabled = true;
+    if (spin10Btn) spin10Btn.disabled = true;
+
+    const amountInput = document.getElementById('slots-amount');
+    const cap = parseInt(amountInput.max);
+    const perSpin = parseInt(amountInput.value);
+    if (!perSpin || perSpin <= 0 || (cap && perSpin > cap)) {
+        showResult('slots', 'Invalid bet amount', false);
+        if (spinBtn) spinBtn.disabled = false;
+        if (spin10Btn) spin10Btn.disabled = false;
+        return;
+    }
+
+    let remaining = times;
+    let lastData = null;
+
+    const doOne = () => {
+        if (remaining <= 0) {
+            if (lastData) {
+                // Render final result only
+                animateSlotSequences(lastData.sequences, lastData.final_grid, lastData.winning_lines, lastData.won, lastData.payout, lastData.amount, lastData.new_balance);
+            }
+            if (spinBtn) spinBtn.disabled = false;
+            if (spin10Btn) spin10Btn.disabled = false;
+            return;
+        }
+        // Use backend API per spin (no client RNG)
+        fetch('/user/casino/slots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: perSpin })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.extortion) { showExtortionModal(); throw new Error('extortion'); }
+            if (!data.success) throw new Error(data.error || 'Spin failed');
+            lastData = data;
+            // Update header credits/jackpot immediately to keep balances accurate
+            if (typeof data.new_balance === 'number') updateCreditsDisplay(data.new_balance);
+            loadProgressiveJackpot();
+            remaining--;
+            // Small delay between spins to avoid hammering
+            setTimeout(doOne, 150);
+        })
+        .catch(() => {
+            // Stop the series on error
+            if (spinBtn) spinBtn.disabled = false;
+            if (spin10Btn) spin10Btn.disabled = false;
+        });
+    };
+
+    doOne();
 }
 
 function animateSlotSequences(sequences, finalGrid, winningLines, won, payout, amount, newBalance) {
