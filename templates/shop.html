@@ -112,15 +112,13 @@
         <div class="modal-body">
             <p class="modal-sub">Weekly Patron Tithe: 20% of account balance (applied Mondays)</p>
             <div class="receipt">
-                <div class="row"><span>Little Spoodys Endowment for the Arts</span><span>11%</span></div>
-                <div class="row"><span>Youth Enrichment & After‑Naps</span><span>3%</span></div>
-                <div class="row"><span>Administrative Handling Fee</span><span>3%</span></div>
-                <div class="row"><span>Community Outreach ░░░░░░</span><span>1%</span></div>
-                <div class="row"><span>Executive Wellness & Recovery</span><span>2%</span></div>
+                <div class="row"><span class="item">Little Spoodys Endowment for the Arts</span><span class="pct">11%</span></div>
+                <div class="row"><span class="item">Youth Enrichment & After‑Naps</span><span class="pct">3%</span></div>
+                <div class="row"><span class="item">Administrative Handling Fee</span><span class="pct">3%</span></div>
+                <div class="row"><span class="item">Community Outreach ░░░░░░</span><span class="pct">1%</span></div>
+                <div class="row"><span class="item">Executive Wellness & Recovery</span><span class="pct">2%</span></div>
             </div>
-            <div class="terms">
-                <p>Terms: Non‑refundable patronage; allocations may drift; filings may be decorative; access may be revoked for cause or vibes.</p>
-            </div>
+            <div class="terms">Terms: Non‑refundable patronage; allocations may drift; filings may be decorative; access may be revoked for cause or vibes.</div>
         </div>
         <div class="modal-actions">
             <button id="hr-cancel" class="modal-btn secondary">Cancel</button>
@@ -130,4 +128,41 @@
     </div>
 
 <script src="/static/js/shop.js"></script>
+
+<style>
+/* Modal base */
+.hidden { display: none; }
+.modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; }
+.modal-overlay { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(2px); }
+.modal-content {
+    position: relative;
+    max-width: 680px;
+    margin: 8vh auto;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    padding: 24px 28px;
+    color: #fff;
+}
+.modal-header h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.modal-sub { color: rgba(255,255,255,0.8); margin: 0 0 16px 0; }
+.receipt { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 14px; background: rgba(0,0,0,0.25); }
+.receipt .row { display: flex; align-items: baseline; gap: 12px; padding: 6px 0; }
+.receipt .row .item { position: relative; flex: 1; }
+.receipt .row .item:after { content: "................................................................"; position: absolute; left: 0; right: 0; color: rgba(255,255,255,0.25); pointer-events: none; overflow: hidden; white-space: nowrap; }
+.receipt .row .pct { min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
+.terms { margin-top: 14px; font-size: 0.9rem; color: rgba(255,255,255,0.75); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.modal-btn { border: 0; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; letter-spacing: 0.5px; }
+.modal-btn.primary { background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: #000; }
+.modal-btn.secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+.modal-btn.primary:hover { filter: brightness(1.05); }
+.modal-btn.secondary:hover { background: #333; }
+</style>
 {{end}} 
