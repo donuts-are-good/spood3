@@ -1342,13 +1342,35 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 		newBalance = updatedUser.Credits
 	}
 
+	// Fetch updated inventory entry for this item to enable live DOM update on the client
+	var updatedInventoryItem *database.UserInventoryItem
+	if inv, invErr := s.repo.GetUserInventory(user.ID); invErr == nil {
+		for _, it := range inv {
+			if it.ShopItemID == req.ItemID {
+				copy := it
+				updatedInventoryItem = &copy
+				break
+			}
+		}
+	}
+
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	resp := map[string]interface{}{
 		"success":     true,
 		"message":     fmt.Sprintf("Successfully purchased %s!", item.Name),
 		"new_balance": newBalance,
-	})
+	}
+	if updatedInventoryItem != nil {
+		resp["updated_inventory_item"] = map[string]interface{}{
+			"shop_item_id": updatedInventoryItem.ShopItemID,
+			"name":         updatedInventoryItem.Name,
+			"emoji":        updatedInventoryItem.Emoji,
+			"item_type":    updatedInventoryItem.ItemType,
+			"quantity":     updatedInventoryItem.Quantity,
+		}
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // handleApplyEffect handles applying bless/curse effects to fighters

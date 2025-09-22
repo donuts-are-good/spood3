@@ -84,6 +84,10 @@ function doPurchase(itemId, itemName, quantity) {
                 updateGlobalCreditsDisplay(data.new_balance);
                 updateShopHeaderCredits(data.new_balance);
             }
+            // Live update inventory grid if server returned updated item
+            if (data.updated_inventory_item) {
+                updateShopInventoryItem(data.updated_inventory_item);
+            }
             // Optionally disable unique item button immediately
             disableUniqueIfNeeded(itemId);
         } else {
@@ -118,6 +122,35 @@ function openHighRollerModal(onConfirm) {
     overlay.addEventListener('click', onOverlay);
     cancel.addEventListener('click', onCancel);
     confirmBtn.addEventListener('click', onOk);
+}
+
+function updateShopInventoryItem(inv) {
+    try {
+        const grid = document.querySelector('.inventory-grid');
+        if (!grid) return;
+        const sel = `.inventory-item[data-shop-item-id="${inv.shop_item_id}"]`;
+        let itemEl = grid.querySelector(sel);
+        if (!itemEl) {
+            // Create a new inventory card if not present
+            itemEl = document.createElement('div');
+            itemEl.className = 'inventory-item';
+            itemEl.setAttribute('data-shop-item-id', String(inv.shop_item_id));
+            itemEl.innerHTML = `
+                <div class="inventory-emoji"></div>
+                <div class="inventory-name"></div>
+                <div class="inventory-quantity"></div>
+            `;
+            grid.prepend(itemEl);
+        }
+        const emojiEl = itemEl.querySelector('.inventory-emoji');
+        const nameEl = itemEl.querySelector('.inventory-name');
+        const qtyEl = itemEl.querySelector('.inventory-quantity');
+        if (emojiEl) emojiEl.textContent = inv.emoji || '';
+        if (nameEl) nameEl.textContent = inv.name || '';
+        if (qtyEl) qtyEl.textContent = `×${inv.quantity || 0}`;
+    } catch (e) {
+        console.warn('Failed to live-update inventory item', e);
+    }
 }
 
 // Update base layout header credits link
