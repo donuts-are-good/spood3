@@ -1531,7 +1531,7 @@ func (s *Server) handleApplyEffect(w http.ResponseWriter, r *http.Request) {
 	fight, _ := s.repo.GetFight(req.FightID)
 	var effectDate time.Time
 	if fight != nil {
-		if fight.Status == "active" {
+		if fight.Status == "active" || fight.Status == "scheduled" {
 			centralTime, _ := time.LoadLocation("America/Chicago")
 			effectDate = time.Now().In(centralTime)
 		} else {

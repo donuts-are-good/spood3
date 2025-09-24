@@ -632,13 +632,12 @@ func (r *Repository) GetAppliedEffects(targetType string, targetID int) ([]Appli
 func (r *Repository) GetAppliedEffectsForDate(targetType string, targetID int, startDate, endDate time.Time) ([]AppliedEffect, error) {
 	var effects []AppliedEffect
 
-	// Convert to Central Time and format as strings to match SQLite's storage format
-	centralTime, _ := time.LoadLocation("America/Chicago")
-	startCentral := startDate.In(centralTime)
-	endCentral := endDate.In(centralTime)
+	// Store is in UTC; convert the provided window to UTC before comparing
+	startUTC := startDate.In(time.UTC)
+	endUTC := endDate.In(time.UTC)
 
-	startStr := startCentral.Format("2006-01-02 15:04:05")
-	endStr := endCentral.Format("2006-01-02 15:04:05")
+	startStr := startUTC.Format("2006-01-02 15:04:05")
+	endStr := endUTC.Format("2006-01-02 15:04:05")
 
 	err := r.db.Select(&effects, `
 		SELECT * FROM applied_effects 
@@ -668,13 +667,12 @@ func (r *Repository) GetAppliedEffectsByUserForFight(fightID int) ([]AppliedEffe
 // CountUserEffectsForFightOnDate returns how many effects a specific user has applied
 // to either fighter participating in the given fight within the provided date window.
 func (r *Repository) CountUserEffectsForFightOnDate(userID int, fightID int, startDate, endDate time.Time) (int, error) {
-	// Convert to Central Time and format to match SQLite storage conventions
-	centralTime, _ := time.LoadLocation("America/Chicago")
-	startCentral := startDate.In(centralTime)
-	endCentral := endDate.In(centralTime)
+	// Store is in UTC; convert the provided window to UTC before comparing
+	startUTC := startDate.In(time.UTC)
+	endUTC := endDate.In(time.UTC)
 
-	startStr := startCentral.Format("2006-01-02 15:04:05")
-	endStr := endCentral.Format("2006-01-02 15:04:05")
+	startStr := startUTC.Format("2006-01-02 15:04:05")
+	endStr := endUTC.Format("2006-01-02 15:04:05")
 
 	var count int
 	// Count across both fighters in the fight
