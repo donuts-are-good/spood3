@@ -593,9 +593,9 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 			data.Fighter1Effects = fighter1Effects
 			// Count effects
 			for _, effect := range fighter1Effects {
-				if effect.EffectType == "fighter_curse" {
+				if strings.Contains(effect.EffectType, "_curse") {
 					data.Fighter1Curses++
-				} else if effect.EffectType == "fighter_blessing" {
+				} else if strings.Contains(effect.EffectType, "_blessing") {
 					data.Fighter1Blessings++
 				}
 			}
@@ -606,12 +606,87 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 			data.Fighter2Effects = fighter2Effects
 			// Count effects
 			for _, effect := range fighter2Effects {
-				if effect.EffectType == "fighter_curse" {
+				if strings.Contains(effect.EffectType, "_curse") {
 					data.Fighter2Curses++
-				} else if effect.EffectType == "fighter_blessing" {
+				} else if strings.Contains(effect.EffectType, "_blessing") {
 					data.Fighter2Blessings++
 				}
 			}
+		}
+
+		// Apply stat effects for display: reflect blessings/curses in Tale of the Tape
+		if data.Fighter1 != nil {
+			f1 := *data.Fighter1
+			for _, effect := range fighter1Effects {
+				switch effect.EffectType {
+				case "strength_blessing":
+					f1.Strength += effect.EffectValue
+				case "strength_curse":
+					f1.Strength -= effect.EffectValue
+				case "speed_blessing":
+					f1.Speed += effect.EffectValue
+				case "speed_curse":
+					f1.Speed -= effect.EffectValue
+				case "endurance_blessing":
+					f1.Endurance += effect.EffectValue
+				case "endurance_curse":
+					f1.Endurance -= effect.EffectValue
+				case "technique_blessing":
+					f1.Technique += effect.EffectValue
+				case "technique_curse":
+					f1.Technique -= effect.EffectValue
+				}
+			}
+			if f1.Strength < 1 {
+				f1.Strength = 1
+			}
+			if f1.Speed < 1 {
+				f1.Speed = 1
+			}
+			if f1.Endurance < 1 {
+				f1.Endurance = 1
+			}
+			if f1.Technique < 1 {
+				f1.Technique = 1
+			}
+			data.Fighter1 = &f1
+		}
+
+		if data.Fighter2 != nil {
+			f2 := *data.Fighter2
+			for _, effect := range fighter2Effects {
+				switch effect.EffectType {
+				case "strength_blessing":
+					f2.Strength += effect.EffectValue
+				case "strength_curse":
+					f2.Strength -= effect.EffectValue
+				case "speed_blessing":
+					f2.Speed += effect.EffectValue
+				case "speed_curse":
+					f2.Speed -= effect.EffectValue
+				case "endurance_blessing":
+					f2.Endurance += effect.EffectValue
+				case "endurance_curse":
+					f2.Endurance -= effect.EffectValue
+				case "technique_blessing":
+					f2.Technique += effect.EffectValue
+				case "technique_curse":
+					f2.Technique -= effect.EffectValue
+				}
+			}
+			if f2.Strength < 1 {
+				f2.Strength = 1
+			}
+			if f2.Speed < 1 {
+				f2.Speed = 1
+			}
+			if f2.Endurance < 1 {
+				f2.Endurance = 1
+			}
+			if f2.Technique < 1 {
+				f2.Technique = 1
+			}
+			data.Fighter2 = &f2
 		}
 
 		// Get user effects applied to this fight
