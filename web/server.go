@@ -1559,6 +1559,19 @@ func (s *Server) handleApplyEffect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Determine the final, stat-specific effect type so we can return it to the client
+	finalEffectType := inventoryItem.ItemType
+	if inventoryItem.ItemType == "fighter_blessing" || inventoryItem.ItemType == "fighter_curse" {
+		stats := []string{"strength", "speed", "endurance", "technique"}
+		idx := time.Now().UnixNano() % 4
+		chosen := stats[idx]
+		if inventoryItem.ItemType == "fighter_blessing" {
+			finalEffectType = chosen + "_blessing"
+		} else {
+			finalEffectType = chosen + "_curse"
+		}
+	}
+
 	// Use the inventory item
 	err = s.repo.UseInventoryItem(user.ID, req.ItemID, 1)
 	if err != nil {
@@ -1572,8 +1585,8 @@ func (s *Server) handleApplyEffect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Apply the effect
-	err = s.repo.ApplyEffect(user.ID, req.TargetType, req.FighterID, inventoryItem.ItemType, inventoryItem.EffectValue)
+	// Apply the effect using the stat-specific type so storage matches what we return
+	err = s.repo.ApplyEffect(user.ID, req.TargetType, req.FighterID, finalEffectType, inventoryItem.EffectValue)
 	if err != nil {
 		log.Printf("Failed to apply effect: %v", err)
 		w.Header().Set("Content-Type", "application/json")
@@ -1585,11 +1598,104 @@ func (s *Server) handleApplyEffect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return success response
+	// Recompute effect counts for both fighters for this date window
+	f1Effects, _ := s.repo.GetAppliedEffectsForDate("fighter", fight.Fighter1ID, startDate, endDate)
+	f2Effects, _ := s.repo.GetAppliedEffectsForDate("fighter", fight.Fighter2ID, startDate, endDate)
+
+	var f1Curses, f1Bless, f2Curses, f2Bless int
+	for _, ef := range f1Effects {
+		if strings.Contains(ef.EffectType, "_curse") {
+			f1Curses++
+		} else if strings.Contains(ef.EffectType, "_blessing") {
+			f1Bless++
+		}
+	}
+	for _, ef := range f2Effects {
+		if strings.Contains(ef.EffectType, "_curse") {
+			f2Curses++
+		} else if strings.Contains(ef.EffectType, "_blessing") {
+			f2Bless++
+		}
+	}
+
+	// Compute updated stats for the target fighter for Tale of the Tape
+	updatedStats := map[string]int{"strength": 0, "speed": 0, "endurance": 0, "technique": 0}
+	baseFighter, _ := s.repo.GetFighter(req.FighterID)
+	if baseFighter != nil {
+		updatedStats["strength"] = baseFighter.Strength
+		updatedStats["speed"] = baseFighter.Speed
+		updatedStats["endurance"] = baseFighter.Endurance
+		updatedStats["technique"] = baseFighter.Technique
+
+		effs, _ := s.repo.GetAppliedEffectsForDate("fighter", req.FighterID, startDate, endDate)
+		for _, ef := range effs {
+			switch ef.EffectType {
+			case "strength_blessing":
+				updatedStats["strength"] += ef.EffectValue
+			case "strength_curse":
+				updatedStats["strength"] -= ef.EffectValue
+			case "speed_blessing":
+				updatedStats["speed"] += ef.EffectValue
+			case "speed_curse":
+				updatedStats["speed"] -= ef.EffectValue
+			case "endurance_blessing":
+				updatedStats["endurance"] += ef.EffectValue
+			case "endurance_curse":
+				updatedStats["endurance"] -= ef.EffectValue
+			case "technique_blessing":
+				updatedStats["technique"] += ef.EffectValue
+			case "technique_curse":
+				updatedStats["technique"] -= ef.EffectValue
+			}
+		}
+		if updatedStats["strength"] < 1 {
+			updatedStats["strength"] = 1
+		}
+		if updatedStats["speed"] < 1 {
+			updatedStats["speed"] = 1
+		}
+		if updatedStats["endurance"] < 1 {
+			updatedStats["endurance"] = 1
+		}
+		if updatedStats["technique"] < 1 {
+			updatedStats["technique"] = 1
+		}
+	}
+
+	// Determine which side (f1/f2) the target is for DOM updates
+	targetSide := "f2"
+	if req.FighterID == fight.Fighter1ID {
+		targetSide = "f1"
+	}
+
+	// Get updated inventory quantity for this item
+	updatedInv, _ := s.repo.GetUserInventory(user.ID)
+	remainingQty := -1
+	for _, it := range updatedInv {
+		if it.ShopItemID == req.ItemID {
+			remainingQty = it.Quantity
+			break
+		}
+	}
+
+	// Return success response with details for live DOM update
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": fmt.Sprintf("Successfully applied %s!", inventoryItem.Name),
+		"success":            true,
+		"message":            fmt.Sprintf("Successfully applied %s!", inventoryItem.Name),
+		"final_effect_type":  finalEffectType,
+		"effect_value":       inventoryItem.EffectValue,
+		"target_fighter_id":  req.FighterID,
+		"target_side":        targetSide,
+		"fighter1_curses":    f1Curses,
+		"fighter1_blessings": f1Bless,
+		"fighter2_curses":    f2Curses,
+		"fighter2_blessings": f2Bless,
+		"updated_stats":      updatedStats,
+		"updated_inventory": map[string]interface{}{
+			"shop_item_id": req.ItemID,
+			"quantity":     remainingQty,
+		},
 	})
 }
 
