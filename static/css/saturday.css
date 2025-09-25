@@ -15,9 +15,30 @@
              var(--sat-bg);
   color:var(--sat-text);
   padding:32px 48px 72px;
+  font-family:'Inter','Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  min-height:calc(100vh - 120px);
 }
 
-.saturday-shell a {color:inherit; text-decoration:none;}
+.saturday-shell h1,
+.saturday-shell h2,
+.saturday-shell h3,
+.saturday-shell h4,
+.saturday-shell h5,
+.saturday-shell h6 {
+  font-family:'Inter','Space Grotesk',sans-serif;
+  text-transform:uppercase;
+  letter-spacing:6px;
+}
+
+.saturday-shell p,
+.saturday-shell span,
+.saturday-shell div,
+.saturday-shell a,
+.saturday-shell small {
+  font-family:'Inter','Space Grotesk',sans-serif;
+}
+
+.saturday-shell a {color:inherit; text-decoration:none; border-bottom:none !important;}
 
 .saturday-hero {
   display:flex;
@@ -71,7 +92,10 @@
   border:1px solid rgba(255,255,255,0.05);
   position:relative;
   overflow:hidden;
+  transition:transform 0.25s ease;
 }
+
+.overview-card:hover {transform:translateY(-4px);}
 
 .overview-card.primary {border-color:rgba(255,204,102,0.32); box-shadow:0 22px 40px rgba(255,204,102,0.18);}
 .overview-card.live {border-color:rgba(255,68,68,0.32); box-shadow:0 22px 40px rgba(255,68,68,0.22);}
