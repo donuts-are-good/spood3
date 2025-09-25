@@ -10,7 +10,7 @@
 }
 
 .saturday-shell {
-  background:radial-gradient(circle at center -200px, #101010 0%, var(--sat-bg) 60%);
+  background:var(--sat-bg);
   color:var(--sat-text);
   padding:32px 48px 72px;
   font-family:'Inter','Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
