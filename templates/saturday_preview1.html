@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Saturday Main Event — Preview A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#050505;
+      --card:#111;
+      --panel:#181818;
+      --accent:#ffcc66;
+      --accent-2:#ff4444;
+      --text:#f5f5f5;
+      --muted:#888;
+      --success:#37d97c;
+      --loss:#f0625d;
+      --grid-gap:18px;
+      font-family:"Inter",system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body {
+      margin:0;
+      background:radial-gradient(circle at top,#101010 0%,var(--bg) 55%);
+      color:var(--text);
+      padding:32px 48px 64px;
+    }
+    h1 {
+      text-transform:uppercase;
+      letter-spacing:6px;
+      margin:0 0 12px;
+      text-align:center;
+    }
+    .subtitle {
+      text-align:center;
+      text-transform:uppercase;
+      letter-spacing:3px;
+      font-size:0.85rem;
+      color:var(--muted);
+      margin-bottom:36px;
+    }
+    .overview {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:var(--grid-gap);
+      margin-bottom:var(--grid-gap);
+    }
+    .overview-card {
+      background:var(--card);
+      border:1px solid rgba(255,255,255,0.04);
+      border-radius:20px;
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:160px;
+      position:relative;
+      overflow:hidden;
+    }
+    .overview-card.primary {border-color:rgba(255,204,102,0.35); box-shadow:0 18px 35px rgba(255,204,102,0.15);}
+    .overview-card.live {border-color:rgba(255,68,68,0.35); box-shadow:0 18px 35px rgba(255,68,68,0.22);}
+    .overview-card::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg, rgba(255,204,102,0.18), rgba(255,68,68,0.08));
+      opacity:0;
+      transition:opacity 0.3s;
+      pointer-events:none;
+    }
+    .overview-card:hover::after {opacity:1;}
+    .card-title {
+      font-size:0.75rem;
+      text-transform:uppercase;
+      letter-spacing:3px;
+      color:var(--muted);
+    }
+    .card-value {
+      font-size:1.9rem;
+      font-weight:700;
+    }
+    .card-sub {
+      font-size:0.85rem;
+      color:rgba(245,245,245,0.75);
+    }
+    .countdown {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:auto;
+      padding-top:10px;
+      font-size:0.8rem;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .countdown strong {color:#ffe09a; font-size:1rem; letter-spacing:3px;}
+    .bet-tag {
+      margin-top:auto;
+      align-self:flex-start;
+      padding:6px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.14);
+      background:rgba(255,255,255,0.04);
+      font-size:0.7rem;
+      letter-spacing:2px;
+      text-transform:uppercase;
+    }
+    .commissioner-seal {
+      margin:26px auto 12px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      justify-content:center;
+      font-size:0.8rem;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      color:rgba(255,255,255,0.7);
+    }
+    .seal-emblem {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:50%;
+      width:46px;
+      height:46px;
+      background:radial-gradient(circle, rgba(255,204,102,0.85), rgba(255,142,68,0.9));
+      color:#2d1500;
+      font-weight:700;
+      font-size:1.1rem;
+      box-shadow:0 12px 24px rgba(255,204,102,0.35);
+    }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-auto-rows:1fr;
+      gap:var(--grid-gap);
+    }
+    .group-card {
+      background:var(--panel);
+      border-radius:24px;
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      overflow:hidden;
+      min-height:420px;
+      box-shadow:0 30px 60px rgba(0,0,0,0.35);
+    }
+    .group-card::before {
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(160deg, rgba(255, 68, 68, 0.15), transparent 60%);
+      mix-blend-mode:screen;
+      pointer-events:none;
+    }
+    .group-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:20px;
+      position:relative;
+      z-index:1;
+    }
+    .group-title {
+      font-size:1.5rem;
+      letter-spacing:4px;
+      text-transform:uppercase;
+    }
+    .record-pill {
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.12);
+      font-size:0.75rem;
+      letter-spacing:1px;
+      color:var(--muted);
+    }
+    .standings {
+      margin-bottom:24px;
+      border-radius:16px;
+      background:rgba(10,10,10,0.7);
+      border:1px solid rgba(255,255,255,0.04);
+      padding:16px 18px;
+      position:relative;
+      z-index:1;
+    }
+    .standings h3 {
+      text-transform:uppercase;
+      font-size:0.75rem;
+      letter-spacing:3px;
+      color:var(--muted);
+      margin:0 0 12px;
+    }
+    .standing-row {
+      display:grid;
+      grid-template-columns:28px 1fr 60px 70px;
+      align-items:center;
+      gap:12px;
+      padding:6px 0;
+      font-size:0.9rem;
+      color:rgba(245,245,245,0.92);
+    }
+    .standing-row + .standing-row {border-top:1px solid rgba(255,255,255,0.05);}
+    .standing-row .rank {font-weight:600; color:var(--accent);}
+    .standing-row .name.bet {color:#4bb4ff;}
+    .standing-row .win {color:var(--success); font-weight:600;}
+    .standing-row .loss {color:var(--loss);}
+    .matches {
+      flex:1;
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:12px;
+      position:relative;
+      z-index:1;
+    }
+    .match-card {
+      background:rgba(0,0,0,0.4);
+      border-radius:16px;
+      padding:12px 14px;
+      border:1px solid rgba(255,255,255,0.04);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      transition:transform 0.25s, border-color 0.25s;
+    }
+    .match-card:hover {
+      transform:translateY(-4px);
+      border-color:rgba(255,204,102,0.4);
+    }
+    .match-top {
+      display:flex;
+      justify-content:space-between;
+      font-size:0.75rem;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color:var(--muted);
+    }
+    .fighter-pair {
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      font-size:0.95rem;
+    }
+    .fighter-name {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .fighter-name .tag {font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;}
+    .fighter-name.win {color:var(--success); font-weight:600;}
+    .fighter-name.loss {color:rgba(255,255,255,0.65);}
+    .footer {
+      text-align:center;
+      margin-top:36px;
+      color:var(--muted);
+      font-size:0.75rem;
+      letter-spacing:2px;
+      text-transform:uppercase;
+    }
+    .showdown {
+      margin:42px 0;
+      background:linear-gradient(120deg, rgba(255,68,68,0.08), rgba(255,204,102,0.1));
+      border-radius:28px;
+      border:1px solid rgba(255,255,255,0.12);
+      padding:30px 36px;
+      position:relative;
+      overflow:hidden;
+    }
+    .showdown::after {
+      content:"";
+      position:absolute;
+      inset:-40% 40% auto -20%;
+      height:220px;
+      width:220px;
+      background:radial-gradient(circle, rgba(255,204,102,0.3), transparent 60%);
+      filter:blur(12px);
+      opacity:0.7;
+      pointer-events:none;
+    }
+    .showdown-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      gap:16px;
+      margin-bottom:24px;
+    }
+    .showdown-title {
+      font-size:1.4rem;
+      letter-spacing:4px;
+      text-transform:uppercase;
+    }
+    .showdown-sub {
+      font-size:0.8rem;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      color:rgba(255,255,255,0.72);
+    }
+    .showdown-grid {
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:18px;
+    }
+    .showdown-card {
+      background:rgba(10,4,16,0.78);
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,0.14);
+      padding:20px 22px;
+      position:relative;
+      transition:transform 0.3s, box-shadow 0.3s;
+    }
+    .showdown-card:hover {
+      transform:translateY(-6px);
+      box-shadow:0 25px 55px rgba(255,204,102,0.25);
+    }
+    .showdown-card::before {
+      content:"";
+      position:absolute;
+      inset:12px;
+      border-radius:18px;
+      border:1px dashed rgba(255,255,255,0.08);
+      opacity:0.35;
+      pointer-events:none;
+    }
+    .showdown-time {
+      font-size:0.8rem;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:12px;
+    }
+    .showdown-match {
+      font-size:1rem;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      min-height:64px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
+    .showdown-match.pending {
+      color:rgba(255,255,255,0.6);
+      background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border-radius:14px;
+      padding:12px;
+    }
+    .showdown-match.revealed {color:#ffeacf; font-weight:600;}
+    .showdown-footer {
+      margin-top:18px;
+      font-size:0.75rem;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color:rgba(255,255,255,0.6);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .champion-note {
+      color:#ffd36b;
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .regalia {
+      margin:48px 0 20px;
+      background:radial-gradient(circle at 20% 20%, rgba(255,204,102,0.25), transparent 55%), rgba(10,6,16,0.92);
+      border:1px solid rgba(255,204,102,0.4);
+      border-radius:30px;
+      padding:32px 40px;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 45px 80px rgba(0,0,0,0.55);
+    }
+    .regalia::after {
+      content:"";
+      position:absolute;
+      inset:-30% -10% auto 60%;
+      width:300px;
+      height:300px;
+      background:radial-gradient(circle, rgba(255,142,68,0.35), transparent 60%);
+      filter:blur(10px);
+      opacity:0.7;
+      pointer-events:none;
+    }
+    .regalia-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      gap:18px;
+    }
+    .regalia-title {
+      text-transform:uppercase;
+      letter-spacing:6px;
+      font-size:1.1rem;
+      font-family:'Cinzel', serif;
+    }
+    .regalia-body {
+      margin-top:18px;
+      display:flex;
+      gap:32px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .regalia-emblem {
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      border:3px double rgba(255,204,102,0.7);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:'Cinzel', serif;
+      font-weight:600;
+      font-size:1.2rem;
+      color:#2b1605;
+      background:radial-gradient(circle, rgba(255,204,102,0.92), rgba(255,142,68,0.85));
+      box-shadow:0 18px 45px rgba(255,142,68,0.45);
+      position:relative;
+    }
+    .regalia-emblem::after {
+      content:"APPROVED";
+      position:absolute;
+      bottom:-16px;
+      background:#22120b;
+      border:1px solid rgba(255,204,102,0.6);
+      border-radius:100px;
+      padding:3px 12px;
+      font-size:0.65rem;
+      letter-spacing:2px;
+      color:rgba(255,204,102,0.9);
+      text-transform:uppercase;
+    }
+    .regalia-text {
+      flex:1;
+      min-width:320px;
+      font-size:0.9rem;
+      line-height:1.6;
+      color:rgba(255,255,255,0.82);
+    }
+    .regalia-signature {
+      margin-top:22px;
+      display:flex;
+      align-items:center;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+    .regalia-signature .script {
+      font-family:'Great Vibes', cursive;
+      font-size:2.6rem;
+      color:#ffd36b;
+      text-shadow:3px 3px 6px rgba(0,0,0,0.7);
+      transform:rotate(-1deg);
+    }
+    .regalia-signature .titles {
+      font-family:'Cinzel', serif;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      font-size:0.8rem;
+      color:rgba(255,255,255,0.72);
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .regalia-stamp {
+      margin-left:auto;
+      border-radius:50%;
+      border:2px solid rgba(255,68,68,0.5);
+      color:rgba(255,68,68,0.8);
+      padding:10px 16px;
+      font-size:0.7rem;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      transform:rotate(-12deg);
+      background:rgba(255,68,68,0.1);
+      box-shadow:0 8px 20px rgba(255,68,68,0.25);
+    }
+    .regalia-footer {
+      margin-top:18px;
+      font-size:0.75rem;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color:rgba(255,255,255,0.6);
+    }
+    @media (max-width:1280px){
+      body{padding:24px;}
+      .grid{grid-template-columns:1fr;}
+      .overview{grid-template-columns:repeat(2,1fr);}
+    }
+  </style>
+</head>
+<body>
+  <h1>Saturday Main Event</h1>
+  <div class="subtitle">Top 16 weekday winners • round robin groups • semifinals &amp; final</div>
+
+  <section class="overview" id="overview"></section>
+  <section class="grid" id="groups"></section>
+  <section class="showdown" id="showdown"></section>
+  <section class="regalia">
+    <div class="regalia-header">
+      <div class="regalia-title">By Authority of the Department of Recreational Violence</div>
+      <div class="regalia-stamp">SEAL VERIFIED</div>
+    </div>
+    <div class="regalia-body">
+      <div class="regalia-emblem">DRV</div>
+      <div class="regalia-text">
+        These round-robin matchups, semifinals, and the grand final have been formally reviewed and sanctioned by the Commissioner. All wagers are conducted under Protocol 7-Alpha. Championship winner receives legacy upgrade (+1 random stat) at 23:45 Central.
+      </div>
+    </div>
+    <div class="regalia-signature">
+      <div class="script">The Commissioner</div>
+      <div class="titles">
+        <span>Supreme Arbiter of Violence</span>
+        <span>Keeper of the Sacred Statistics</span>
+        <span>Dated: Saturday, Prime Broadcast Loop</span>
+      </div>
+    </div>
+    <div class="regalia-footer">Blessings finalized · No appeals permitted · Chaos embraced</div>
+  </section>
+  <div class="commissioner-seal">
+    <span class="seal-emblem">DR</span>
+    Officially blessed by The Commissioner · Supreme Arbiter of Violence
+  </div>
+  <div class="footer">Preview A • Dual-Lane Group Grid + Showdown Strip</div>
+
+  <script>
+    const sample = {
+      meta: {
+        day: "Saturday",
+        liveFight: "War Machine vs Frozen Screen Frank",
+        nextFight: "13:30 Loading Screen Eternity vs Reply Guy Rick",
+        livePercent: 48
+      },
+      groups: [
+        {
+          name: "Group A",
+          standings: [
+            { rank: 1, name: "Nick Carter", wins: 3, losses: 0, diff: 22343, bet: true },
+            { rank: 2, name: "Participation Trophy Tom", wins: 2, losses: 1, diff: 15959 },
+            { rank: 3, name: "Snotty Scotty", wins: 1, losses: 2, diff: 8334 },
+            { rank: 4, name: "Ringo Starr", wins: 0, losses: 3, diff: -14118 }
+          ],
+          matches: [
+            { time: "10:30", status: "completed", f1: "Nick Carter", f2: "Participation Trophy Tom", winner: "Nick Carter", detail: "+512" },
+            { time: "11:00", status: "completed", f1: "Snotty Scotty", f2: "Ringo Starr", winner: "Snotty Scotty" },
+            { time: "11:30", status: "completed", f1: "Nick Carter", f2: "Snotty Scotty", winner: "Nick Carter" },
+            { time: "12:00", status: "completed", f1: "Ringo Starr", f2: "Participation Trophy Tom", winner: "Participation Trophy Tom" },
+            { time: "12:30", status: "active", f1: "Nick Carter", f2: "Ringo Starr" },
+            { time: "13:00", status: "scheduled", f1: "Participation Trophy Tom", f2: "Snotty Scotty" }
+          ]
+        },
+        {
+          name: "Group B",
+          standings: [
+            { rank: 1, name: "Loading Screen Eternity", wins: 2, losses: 1, diff: 35279 },
+            { rank: 2, name: "Average Joe", wins: 2, losses: 1, diff: 24856 },
+            { rank: 3, name: "War Machine", wins: 2, losses: 1, diff: 11136 },
+            { rank: 4, name: "Punchin Bag", wins: 0, losses: 3, diff: -35279 }
+          ],
+          matches: [
+            { time: "10:30", status: "completed", f1: "Loading Screen Eternity", f2: "Average Joe", winner: "Loading Screen Eternity" },
+            { time: "11:00", status: "completed", f1: "War Machine", f2: "Punchin Bag", winner: "War Machine" },
+            { time: "11:30", status: "completed", f1: "Loading Screen Eternity", f2: "War Machine", winner: "War Machine" },
+            { time: "12:00", status: "completed", f1: "Average Joe", f2: "Punchin Bag", winner: "Average Joe" },
+            { time: "12:30", status: "active", f1: "War Machine", f2: "Average Joe" },
+            { time: "13:00", status: "scheduled", f1: "Loading Screen Eternity", f2: "Punchin Bag" }
+          ]
+        },
+        {
+          name: "Group C",
+          standings: [
+            { rank: 1, name: "Pork Chop Paradise", wins: 3, losses: 0, diff: 32145 },
+            { rank: 2, name: "The Finger Counter", wins: 2, losses: 1, diff: 21210 },
+            { rank: 3, name: "Brisket Friendo", wins: 1, losses: 2, diff: 1204 },
+            { rank: 4, name: "Millipede Aqualuft", wins: 0, losses: 3, diff: -28501 }
+          ],
+          matches: [
+            { time: "14:30", status: "scheduled", f1: "Pork Chop Paradise", f2: "Millipede Aqualuft" },
+            { time: "15:00", status: "scheduled", f1: "Brisket Friendo", f2: "The Finger Counter" },
+            { time: "15:30", status: "scheduled", f1: "Pork Chop Paradise", f2: "Brisket Friendo" },
+            { time: "16:00", status: "scheduled", f1: "The Finger Counter", f2: "Millipede Aqualuft" },
+            { time: "16:30", status: "scheduled", f1: "Pork Chop Paradise", f2: "The Finger Counter" },
+            { time: "17:00", status: "scheduled", f1: "Brisket Friendo", f2: "Millipede Aqualuft" }
+          ]
+        },
+        {
+          name: "Group D",
+          standings: [
+            { rank: 1, name: "Disorder McFrenzy", wins: 2, losses: 1, diff: 23150 },
+            { rank: 2, name: "Glizzy Goblin", wins: 2, losses: 1, diff: 12560 },
+            { rank: 3, name: "Moon Landing Mike", wins: 1, losses: 2, diff: 5400 },
+            { rank: 4, name: "Lasagna Layer Lord", wins: 0, losses: 3, diff: -38978 }
+          ],
+          matches: [
+            { time: "18:30", status: "scheduled", f1: "Disorder McFrenzy", f2: "Lasagna Layer Lord" },
+            { time: "19:00", status: "scheduled", f1: "Glizzy Goblin", f2: "Moon Landing Mike" },
+            { time: "19:30", status: "scheduled", f1: "Disorder McFrenzy", f2: "Moon Landing Mike" },
+            { time: "20:00", status: "scheduled", f1: "Glizzy Goblin", f2: "Lasagna Layer Lord" },
+            { time: "20:30", status: "scheduled", f1: "Disorder McFrenzy", f2: "Glizzy Goblin" },
+            { time: "21:00", status: "scheduled", f1: "Moon Landing Mike", f2: "Lasagna Layer Lord" }
+          ]
+        }
+      ],
+      playoffs: [
+        { time: "22:30", status: "upcoming" },
+        { time: "23:00", status: "upcoming" },
+        { time: "23:30", status: "upcoming" }
+      ]
+    };
+
+    const overview = document.getElementById('overview');
+    const now = new Date();
+    const nextFightObj = sample.groups.flatMap(g => g.matches).find(m => m.status === 'active' || m.status === 'scheduled');
+    const countdownLabel = (() => {
+      if (!nextFightObj) return 'Awaiting schedule';
+      const [hours, minutes] = nextFightObj.time.split(':').map(Number);
+      const nextFight = new Date(now);
+      nextFight.setHours(hours, minutes, 0, 0);
+      const diffMs = nextFight - now;
+      if (diffMs <= 0) return 'Betting closed';
+      const minutesLeft = Math.max(0, Math.floor(diffMs / 60000));
+      return `${minutesLeft}m until bell`;
+    })();
+    overview.innerHTML = [
+      { label:'Week', value:'Week 10 · 27 fights · 4 groups', sub:'Department of Recreational Violence' },
+      { label:'Live Now', value:sample.meta.liveFight || '—', sub:sample.meta.liveFight ? 'Broadcasting live across the AR grid' : 'No active bout' },
+      { label:'Next Fight', value:nextFightObj ? `${nextFightObj.time} ${nextFightObj.f1} vs ${nextFightObj.f2}` : 'TBD', sub:countdownLabel },
+      { label:'Progress', value:`${sample.meta.livePercent}% complete`, sub:'Completed bouts out of 27' }
+    ].map((item, index) => `
+      <div class="overview-card ${index === 0 ? 'primary' : index === 1 ? 'live' : ''}">
+        <div class="card-title">${item.label}</div>
+        <div class="card-value">${item.value}</div>
+        <div class="card-sub">${item.sub}</div>
+        ${index === 2 ? `<div class="bet-tag">Place bets before bell</div>` : ''}
+      </div>
+    `).join('');
+
+    const groupsRoot = document.getElementById('groups');
+    const matchBadge = (status) => {
+      if (status === 'completed') return '<span class="tag" style="color:var(--success)">Final</span>';
+      if (status === 'active') return '<span class="tag" style="color:var(--accent-2)">Live</span>';
+      return '<span class="tag" style="color:var(--muted)">Upcoming</span>';
+    };
+
+    groupsRoot.innerHTML = sample.groups.map(group => `
+      <article class="group-card">
+        <header class="group-header">
+          <div class="group-title">${group.name}</div>
+          <div class="record-pill">Top seed: ${group.standings[0].name}</div>
+        </header>
+        <section class="standings">
+          <h3>Standings</h3>
+          ${group.standings.map(row => `
+            <div class="standing-row">
+              <div class="rank">${row.rank}</div>
+              <div class="name ${row.bet ? 'bet' : ''}">${row.name}</div>
+              <div>${row.wins}-${row.losses}</div>
+              <div>${row.diff > 0 ? '+' : ''}${row.diff}</div>
+            </div>
+          `).join('')}
+        </section>
+        <section class="matches">
+          ${group.matches.map(match => `
+            <div class="match-card">
+              <div class="match-top">
+                <span>${match.time}</span>
+                ${matchBadge(match.status)}
+              </div>
+              <div class="fighter-pair">
+                <div class="fighter-name ${match.winner === match.f1 ? 'win' : ''}">
+                  <span>${match.f1}</span>
+                  ${match.winner === match.f1 && match.detail ? `<span>${match.detail}</span>` : ''}
+                </div>
+                <div class="fighter-name ${match.winner === match.f2 ? 'win' : ''}">
+                  <span>${match.f2}</span>
+                  ${match.winner === match.f2 && match.detail ? `<span>${match.detail}</span>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </section>
+      </article>
+    `).join('');
+
+    const showdown = document.getElementById('showdown');
+    const showdownDescriptions = [
+      'Semifinal · Group A Winner vs Group B Winner',
+      'Semifinal · Group C Winner vs Group D Winner',
+      'Grand Final · Semifinal Winners'
+    ];
+    showdown.innerHTML = `
+      <div class="showdown-header">
+        <div>
+          <div class="showdown-title">Road to the Legacy Upgrade</div>
+          <div class="showdown-sub">Semifinals &amp; Final · Champion gains +1 random stat post-fight · Commissioner approved</div>
+        </div>
+        <div class="showdown-sub">Matchups reveal automatically when group standings lock</div>
+      </div>
+      <div class="showdown-grid">
+        ${sample.playoffs.map((slot, idx) => `
+          <div class="showdown-card">
+            <div class="showdown-time">${slot.time}</div>
+            <div class="showdown-match ${slot.status === 'upcoming' ? 'pending' : 'revealed'}">
+              ${slot.status === 'upcoming' ? '▓▓▓▓▓▓▓▓▓ vs ▓▓▓▓▓▓▓▓▓' : slot.label}
+            </div>
+            <div class="showdown-sub" style="margin-top:14px; text-align:center;">
+              ${showdownDescriptions[idx]}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="showdown-footer">
+        <div class="champion-note">⚡ Legacy Infusion: Champion receives +1 random stat at 23:45</div>
+        <div>Watch along · Holo-view pods · Streamer co-cast</div>
+      </div>
+    `;
+  </script>
+</body>
+</html>
+
