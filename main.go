@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"spoodblort/database"
@@ -143,6 +144,9 @@ func main() {
 				if err != nil {
 					log.Printf("Background scheduler: Error processing active fights: %v", err)
 				}
+
+				// Saturday playoff creation (idempotent)
+				_ = sched.MaybeCreateSaturdayPlayoffs(now)
 			}
 		}
 	}()
@@ -193,8 +197,7 @@ func main() {
 	log.Printf("🥊 Ready for violence!")
 
 	// Start server (this blocks)
-	err = server.Start(port)
-	if err != nil {
+	if err := http.ListenAndServe(":"+port, server.Router()); err != nil {
 		log.Fatal("Failed to start web server:", err)
 	}
 }

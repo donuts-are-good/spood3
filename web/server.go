@@ -33,6 +33,34 @@ type Server struct {
 	broadcaster *FightBroadcaster
 }
 
+type scheduleFightDTO struct {
+	ID            int     `json:"id"`
+	TournamentID  int     `json:"tournament_id"`
+	Fighter1ID    int     `json:"fighter1_id"`
+	Fighter2ID    int     `json:"fighter2_id"`
+	Fighter1Name  string  `json:"fighter1_name"`
+	Fighter2Name  string  `json:"fighter2_name"`
+	ScheduledTime string  `json:"scheduled_time"`
+	Status        string  `json:"status"`
+	WinnerID      *int    `json:"winner_id,omitempty"`
+	FinalScore1   *int    `json:"final_score1,omitempty"`
+	FinalScore2   *int    `json:"final_score2,omitempty"`
+	CompletedAt   *string `json:"completed_at,omitempty"`
+}
+
+type scheduleAPIMeta struct {
+	Now        string `json:"now"`
+	Day        string `json:"day"`
+	Timezone   string `json:"timezone"`
+	Tournament int    `json:"tournament_id,omitempty"`
+}
+
+type scheduleAPIResponse struct {
+	Meta   scheduleAPIMeta    `json:"meta"`
+	Fights []scheduleFightDTO `json:"fights"`
+	Error  string             `json:"error,omitempty"`
+}
+
 // --- Signed state helpers ---
 type signedState struct {
 	Data string `json:"data"` // base64 JSON payload
@@ -61,6 +89,7 @@ type PageData struct {
 	Title           string
 	Tournament      *database.Tournament
 	Fights          []database.Fight
+	SaturdayFights  []scheduleFightDTO
 	Fighter         *database.Fighter
 	Fight           *database.Fight
 	Users           []database.User
@@ -129,6 +158,10 @@ func (s *Server) GetBroadcaster() *FightBroadcaster {
 	return s.broadcaster
 }
 
+func (s *Server) Router() http.Handler {
+	return s.router
+}
+
 func (s *Server) setupRoutes() {
 	// Static files
 	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
@@ -151,6 +184,9 @@ func (s *Server) setupRoutes() {
 	public.HandleFunc("/favicon.ico", s.handleFavicon).Methods("GET")
 	public.HandleFunc("/user/@{username}", s.handleUserProfile).Methods("GET")
 
+	// Saturday special schedule view
+	public.HandleFunc("/schedule/saturday", s.handleSaturday).Methods("GET")
+
 	// Shop routes (public so anyone can view, but purchase requires auth)
 	public.HandleFunc("/shop", s.handleShop).Methods("GET")
 
@@ -159,6 +195,9 @@ func (s *Server) setupRoutes() {
 
 	// WebSocket route (public, no auth required for watching)
 	public.HandleFunc("/ws/fight/{id:[0-9]+}", s.broadcaster.HandleWebSocket)
+
+	// Internal JSON endpoints
+	public.HandleFunc("/api/schedule/today", s.handleScheduleTodayAPI).Methods("GET")
 
 	// Protected routes (require authentication)
 	protected := s.router.PathPrefix("/user").Subrouter()
@@ -200,6 +239,53 @@ func (s *Server) setupRoutes() {
 
 	// Extortion event resolver
 	protected.HandleFunc("/casino/extortion", s.handleExtortionResolve).Methods("POST")
+}
+
+// handleSaturday renders the Saturday special schedule view
+func (s *Server) handleSaturday(w http.ResponseWriter, r *http.Request) {
+	centralTime, _ := time.LoadLocation("America/Chicago")
+	now := time.Now().In(centralTime)
+
+	user := GetUserFromContext(r.Context())
+	data := PageData{
+		User:           user,
+		Title:          "Saturday Main Event",
+		RequiredCSS:    []string{"saturday.css"},
+		Now:            now,
+		SaturdayFights: []scheduleFightDTO{},
+	}
+
+	if user != nil {
+		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
+		data.PrimaryColor = primaryColor
+		data.SecondaryColor = secondaryColor
+
+		bets, err := s.repo.GetUserBets(user.ID)
+		if err == nil {
+			betFightIDs := make(map[int]bool)
+			for _, b := range bets {
+				if b.FightStatus == "scheduled" && b.Status == "pending" {
+					betFightIDs[b.FightID] = true
+				}
+			}
+			if len(betFightIDs) > 0 {
+				data.UserBetFightIDs = betFightIDs
+			}
+		}
+	}
+
+	tournament, err := s.scheduler.GetCurrentTournament(now)
+	if err == nil && tournament != nil {
+		today, tomorrow := utils.GetDayBounds(now)
+		fights, ferr := s.repo.GetTodaysFights(tournament.ID, today, tomorrow)
+		if ferr == nil {
+			data.Tournament = tournament
+			data.Fights = fights
+			data.SaturdayFights = toScheduleDTOs(fights)
+		}
+	}
+
+	s.renderTemplate(w, "saturday.html", data)
 }
 
 // userHasSacrificeExemption returns true if the user has at least 1000 sacrifices
@@ -259,6 +345,12 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.renderTemplate(w, "closed.html", data)
+		return
+	}
+
+	// Saturday special redirect (code flag in scheduler)
+	if now.Weekday() == time.Saturday && scheduler.SaturdayRoundRobinEnabled {
+		http.Redirect(w, r, "/schedule/saturday", http.StatusSeeOther)
 		return
 	}
 
@@ -2928,6 +3020,14 @@ func (s *Server) renderTemplate(w http.ResponseWriter, templateName string, data
 			}
 			return s
 		},
+		"json": func(v interface{}) template.JS {
+			bytes, err := json.Marshal(v)
+			if err != nil {
+				log.Printf("Template JSON marshal error: %v", err)
+				return template.JS("null")
+			}
+			return template.JS(bytes)
+		},
 	}
 
 	// Parse base template and the specific template with functions
@@ -3598,4 +3698,88 @@ func (s *Server) handleBlackjackStand(w http.ResponseWriter, r *http.Request) {
 		"new_balance":  newBalance,
 		"amount":       st.Amount,
 	})
+}
+
+func (s *Server) handleScheduleTodayAPI(w http.ResponseWriter, r *http.Request) {
+	centralTime, _ := time.LoadLocation("America/Chicago")
+	now := time.Now().In(centralTime)
+
+	resp := scheduleAPIResponse{
+		Meta: scheduleAPIMeta{
+			Now:      now.Format(time.RFC3339),
+			Day:      now.Format("2006-01-02"),
+			Timezone: "America/Chicago",
+		},
+		Fights: []scheduleFightDTO{},
+	}
+
+	tournament, err := s.scheduler.GetCurrentTournament(now)
+	if err == nil && tournament != nil {
+		today, tomorrow := utils.GetDayBounds(now)
+		fights, ferr := s.repo.GetTodaysFights(tournament.ID, today, tomorrow)
+		if ferr == nil {
+			resp.Meta.Tournament = tournament.ID
+			resp.Fights = toScheduleDTOs(fights)
+		} else {
+			resp.Error = ferr.Error()
+		}
+	} else if err != nil {
+		resp.Error = err.Error()
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		log.Printf("schedule API encode error: %v", err)
+	}
+}
+
+func toScheduleDTOs(fights []database.Fight) []scheduleFightDTO {
+	out := make([]scheduleFightDTO, 0, len(fights))
+	for _, fight := range fights {
+		out = append(out, toScheduleDTO(fight))
+	}
+	return out
+}
+
+func toScheduleDTO(fight database.Fight) scheduleFightDTO {
+	var winner *int
+	if fight.WinnerID.Valid {
+		id := int(fight.WinnerID.Int64)
+		winner = &id
+	}
+
+	var score1 *int
+	if fight.FinalScore1.Valid {
+		s := int(fight.FinalScore1.Int64)
+		score1 = &s
+	}
+
+	var score2 *int
+	if fight.FinalScore2.Valid {
+		s := int(fight.FinalScore2.Int64)
+		score2 = &s
+	}
+
+	var completed *string
+	if fight.CompletedAt.Valid {
+		central, _ := time.LoadLocation("America/Chicago")
+		stamp := fight.CompletedAt.Time.In(central).Format(time.RFC3339)
+		completed = &stamp
+	}
+
+	central, _ := time.LoadLocation("America/Chicago")
+	return scheduleFightDTO{
+		ID:            fight.ID,
+		TournamentID:  fight.TournamentID,
+		Fighter1ID:    fight.Fighter1ID,
+		Fighter2ID:    fight.Fighter2ID,
+		Fighter1Name:  fight.Fighter1Name,
+		Fighter2Name:  fight.Fighter2Name,
+		ScheduledTime: fight.ScheduledTime.In(central).Format(time.RFC3339),
+		Status:        fight.Status,
+		WinnerID:      winner,
+		FinalScore1:   score1,
+		FinalScore2:   score2,
+		CompletedAt:   completed,
+	}
 }

@@ -24,3 +24,22 @@ func GetDayBounds(now time.Time) (time.Time, time.Time) {
 	tomorrow := today.Add(24 * time.Hour)
 	return today, tomorrow
 }
+
+// GetMonToFriBounds returns [Monday 00:00, Saturday 00:00) for the current week in the
+// provided time's location (callers should pass Central time for consistency).
+func GetMonToFriBounds(now time.Time) (time.Time, time.Time) {
+	// Normalize to start of day
+	base := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	// Go's Weekday: Sunday==0 ... Saturday==6
+	wd := int(base.Weekday())
+	// Compute offset to Monday (1). If Sunday (0), go back 6 days.
+	var toMonday int
+	if wd == 0 {
+		toMonday = -6
+	} else {
+		toMonday = 1 - wd
+	}
+	monday := base.AddDate(0, 0, toMonday)
+	saturday := monday.AddDate(0, 0, 5) // Monday + 5 days = Saturday 00:00
+	return monday, saturday
+}

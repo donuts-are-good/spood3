@@ -1,0 +1,57 @@
+{{define "content"}}
+<div class="saturday-container">
+    <h1>Saturday Main Event</h1>
+    <div class="banner">
+        <div>
+            <div class="subtitle">Week {{if .Tournament}}{{.Tournament.WeekNumber}}{{else}}N{{end}} • 10:30 — 23:30 • 27 fights</div>
+            <div>Top 16 unique Mon–Fri winners, grouped A–D, full round‑robins.</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <div class="bonus-badge" title="Saturday bonus — 4x payout on winning bets">4× winnings today</div>
+            <div class="flag" id="mode-flag">Special Mode: Round Robin</div>
+        </div>
+    </div>
+
+    <section class="status-cards">
+        <div class="card" id="live-card">
+            <div>
+                <div class="card-title">Live Now</div>
+                <div class="meta" id="live-label">—</div>
+                <div class="progress"><span id="day-progress" style="width:50%"></span></div>
+            </div>
+            <div>
+                <a class="btn btn-live" id="watch-now" href="#">Watch Now</a>
+            </div>
+        </div>
+        <div class="card" id="next-card">
+            <div>
+                <div class="card-title">Next Fight In</div>
+                <div class="countdown" id="next-countdown">--:--</div>
+                <div class="meta" id="next-label">—</div>
+            </div>
+            <div>
+                <span class="badge badge-upcoming">upcoming</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid" id="groups" data-groups></section>
+
+    <section class="timeline" aria-label="Playoffs">
+        <h3>Playoffs (Group Winners)</h3>
+        <div id="playoffs-card" class="group-card playoffs-card"
+             data-sf1-time="22:30" data-sf2-time="23:00" data-final-time="23:30"></div>
+    </section>
+
+    <section class="timeline" aria-label="Live timeline">
+        <h3>Live Timeline</h3>
+        <div class="slots" id="timeline-slots"></div>
+        <div class="legend">Click a slot to view the fight.</div>
+    </section>
+</div>
+
+<script id="saturday-fights" type="application/json">{{json .SaturdayFights}}</script>
+<script id="saturday-bets" type="application/json">{{json .UserBetFightIDs}}</script>
+<script id="saturday-now" type="application/json">{"now":"{{.Now.Format "2006-01-02T15:04:05Z07:00"}}"}</script>
+<script src="/static/js/saturday.js"></script>
+{{end}}

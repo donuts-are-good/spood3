@@ -44,6 +44,30 @@ func (r *Repository) GetTodaysFights(tournamentID int, today, tomorrow time.Time
 	return fights, err
 }
 
+// GetCompletedFightsInRange returns all completed fights with winners in the given window
+func (r *Repository) GetCompletedFightsInRange(tournamentID int, start, end time.Time) ([]Fight, error) {
+	var fights []Fight
+	err := r.db.Select(&fights,
+		`SELECT * FROM fights 
+         WHERE tournament_id = ? 
+           AND status = 'completed' 
+           AND winner_id IS NOT NULL 
+           AND completed_at >= ? AND completed_at < ?
+         ORDER BY completed_at ASC`,
+		tournamentID, start, end)
+	return fights, err
+}
+
+// FightExistsAt returns true if a fight exists at the exact scheduled time for this tournament
+func (r *Repository) FightExistsAt(tournamentID int, at time.Time) (bool, error) {
+	var cnt int
+	err := r.db.Get(&cnt, `SELECT COUNT(*) FROM fights WHERE tournament_id = ? AND scheduled_time = ?`, tournamentID, at)
+	if err != nil {
+		return false, err
+	}
+	return cnt > 0, nil
+}
+
 func (r *Repository) InsertFight(fight Fight) error {
 	_, err := r.db.NamedExec(`
 		INSERT INTO fights (tournament_id, fighter1_id, fighter2_id, fighter1_name, fighter2_name, scheduled_time, status, created_at)

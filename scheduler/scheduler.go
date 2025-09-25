@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math"
 	"os"
+	"sort"
 	"spoodblort/database"
 	"spoodblort/fight"
 	"spoodblort/utils"
@@ -17,6 +19,12 @@ type Scheduler struct {
 	recovery  *Recovery
 	engine    *fight.Engine
 }
+
+// Saturday feature flag and timing (code-level kill switch)
+var SaturdayRoundRobinEnabled = true
+
+const SaturdayStartHour = 10
+const SaturdayStartMinute = 30
 
 func NewScheduler(repo *database.Repository) *Scheduler {
 	return &Scheduler{
@@ -117,6 +125,26 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 		return nil
 	}
 
+	// Saturday branch
+	if now.Weekday() == time.Saturday && SaturdayRoundRobinEnabled {
+		log.Printf("No fights found — generating Saturday round-robin schedule...")
+		if err := s.ensureSaturdayRoundRobin(tournament, now); err != nil {
+			return err
+		}
+
+		// After generation, run normal activation and processing
+		if err := s.recovery.ActivateCurrentFights(tournament.ID, now); err != nil {
+			return fmt.Errorf("failed to activate current fights: %w", err)
+		}
+		if err := s.recovery.VoidPastFights(tournament.ID, now); err != nil {
+			return fmt.Errorf("failed to void past fights: %w", err)
+		}
+		if err := s.engine.ProcessActiveFights(now); err != nil {
+			return fmt.Errorf("failed to process active fights: %w", err)
+		}
+		return nil
+	}
+
 	log.Printf("No fights found for today, generating new schedule...")
 
 	allFighters, err := s.repo.GetAliveFighters()
@@ -161,6 +189,228 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 
 	// Discord events are synced once daily by a dedicated scheduler
 
+	return nil
+}
+
+// ensureSaturdayRoundRobin creates the 24 group fights starting at 10:30 (no playoffs here)
+func (s *Scheduler) ensureSaturdayRoundRobin(t *database.Tournament, now time.Time) error {
+	// Determine Mon–Fri winners
+	centralTime, _ := time.LoadLocation("America/Chicago")
+	nowC := now.In(centralTime)
+	mon, sat := utils.GetMonToFriBounds(nowC)
+
+	wins, err := s.repo.GetCompletedFightsInRange(t.ID, mon, sat)
+	if err != nil {
+		return fmt.Errorf("failed to load Mon–Fri completed fights: %w", err)
+	}
+
+	// Count wins per fighter
+	winCount := map[int]int{}
+	fighterSeen := map[int]bool{}
+	for _, f := range wins {
+		if f.WinnerID.Valid {
+			wid := int(f.WinnerID.Int64)
+			winCount[wid]++
+			fighterSeen[wid] = true
+		}
+	}
+
+	// Load fighter details
+	var entrants []database.Fighter
+	for fid := range fighterSeen {
+		ft, err := s.repo.GetFighter(fid)
+		if err == nil {
+			entrants = append(entrants, *ft)
+		}
+	}
+
+	// Sort entrants by weekly wins desc, stable by ID
+	sort.Slice(entrants, func(i, j int) bool {
+		wi := winCount[entrants[i].ID]
+		wj := winCount[entrants[j].ID]
+		if wi == wj {
+			return entrants[i].ID < entrants[j].ID
+		}
+		return wi > wj
+	})
+
+	// Generate 24 group fights
+	fights, err := s.generator.GenerateRoundRobinGroups(t, entrants, time.Date(nowC.Year(), nowC.Month(), nowC.Day(), SaturdayStartHour, SaturdayStartMinute, 0, 0, nowC.Location()))
+	if err != nil {
+		return err
+	}
+	if err := s.generator.CreateFights(fights); err != nil {
+		return err
+	}
+	log.Printf("Saturday: generated %d group fights", len(fights))
+	return nil
+}
+
+// MaybeCreateSaturdayPlayoffs inserts semifinals/final when inputs are known. Idempotent.
+func (s *Scheduler) MaybeCreateSaturdayPlayoffs(now time.Time) error {
+	if now.Weekday() != time.Saturday || !SaturdayRoundRobinEnabled {
+		return nil
+	}
+
+	t, err := s.GetCurrentTournament(now)
+	if err != nil {
+		return nil
+	}
+	today, tomorrow := utils.GetDayBounds(now)
+	fights, err := s.repo.GetTodaysFights(t.ID, today, tomorrow)
+	if err != nil {
+		return nil
+	}
+
+	// Helper: slice fights in a window
+	byWindow := func(startHour, startMin, endHour, endMin int) []database.Fight {
+		start := time.Date(now.Year(), now.Month(), now.Day(), startHour, startMin, 0, 0, now.Location())
+		end := time.Date(now.Year(), now.Month(), now.Day(), endHour, endMin, 0, 0, now.Location())
+		var out []database.Fight
+		for _, f := range fights {
+			if !f.ScheduledTime.Before(start) && f.ScheduledTime.Before(end) {
+				out = append(out, f)
+			}
+		}
+		return out
+	}
+
+	// Group windows (6 fights x 30m)
+	a := byWindow(10, 30, 13, 30)
+	b := byWindow(13, 30, 16, 30)
+	c := byWindow(16, 30, 19, 30)
+	d := byWindow(19, 30, 22, 30)
+
+	// Winner of a set
+	winnerOf := func(fs []database.Fight) (int, bool) {
+		if len(fs) < 6 {
+			return 0, false
+		}
+		wins := map[int]int{}
+		diff := map[int]int{}
+		firstWin := map[int]time.Time{}
+		completed := 0
+		for _, f := range fs {
+			if f.Status != "completed" || !f.WinnerID.Valid {
+				continue
+			}
+			completed++
+			winnerID := int(f.WinnerID.Int64)
+			wins[winnerID]++
+			if _, ok := firstWin[winnerID]; !ok {
+				when := f.CompletedAt.Time
+				if !f.CompletedAt.Valid {
+					when = f.ScheduledTime
+				}
+				firstWin[winnerID] = when
+			}
+			s1, s2 := 0, 0
+			if f.FinalScore1.Valid {
+				s1 = int(f.FinalScore1.Int64)
+			}
+			if f.FinalScore2.Valid {
+				s2 = int(f.FinalScore2.Int64)
+			}
+			diff[f.Fighter1ID] += s1 - s2
+			diff[f.Fighter2ID] += s2 - s1
+		}
+		if completed < 6 {
+			return 0, false
+		}
+
+		bestID := 0
+		bestWins := -1
+		bestDiff := math.MinInt32
+		var bestTime time.Time
+		for id := range wins {
+			w := wins[id]
+			d := diff[id]
+			t := firstWin[id]
+			if w > bestWins ||
+				(w == bestWins && (d > bestDiff ||
+					(d == bestDiff && (bestTime.IsZero() || t.Before(bestTime))))) {
+				bestWins = w
+				bestDiff = d
+				bestTime = t
+				bestID = id
+			}
+		}
+		if bestID == 0 {
+			return 0, false
+		}
+		return bestID, true
+	}
+
+	sf1Time := time.Date(now.Year(), now.Month(), now.Day(), 22, 30, 0, 0, now.Location())
+	sf2Time := time.Date(now.Year(), now.Month(), now.Day(), 23, 0, 0, 0, now.Location())
+	fTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 30, 0, 0, now.Location())
+
+	// SF1 A vs B
+	if ok, _ := s.repo.FightExistsAt(t.ID, sf1Time); !ok {
+		aw, okA := winnerOf(a)
+		bw, okB := winnerOf(b)
+		if okA && okB {
+			af, _ := s.repo.GetFighter(aw)
+			bf, _ := s.repo.GetFighter(bw)
+			_ = s.generator.CreateFights([]database.Fight{{
+				TournamentID:  t.ID,
+				Fighter1ID:    af.ID,
+				Fighter2ID:    bf.ID,
+				Fighter1Name:  af.Name,
+				Fighter2Name:  bf.Name,
+				ScheduledTime: sf1Time,
+				Status:        "scheduled",
+			}})
+		}
+	}
+
+	// SF2 C vs D
+	if ok, _ := s.repo.FightExistsAt(t.ID, sf2Time); !ok {
+		cw, okC := winnerOf(c)
+		dw, okD := winnerOf(d)
+		if okC && okD {
+			cf, _ := s.repo.GetFighter(cw)
+			df, _ := s.repo.GetFighter(dw)
+			_ = s.generator.CreateFights([]database.Fight{{
+				TournamentID:  t.ID,
+				Fighter1ID:    cf.ID,
+				Fighter2ID:    df.ID,
+				Fighter1Name:  cf.Name,
+				Fighter2Name:  df.Name,
+				ScheduledTime: sf2Time,
+				Status:        "scheduled",
+			}})
+		}
+	}
+
+	// Final — if both semis completed and no final exists, schedule winners
+	if ok, _ := s.repo.FightExistsAt(t.ID, fTime); !ok {
+		// Find the two semi fights
+		var sf1, sf2 *database.Fight
+		for i := range fights {
+			if fights[i].ScheduledTime.Equal(sf1Time) {
+				sf1 = &fights[i]
+			}
+			if fights[i].ScheduledTime.Equal(sf2Time) {
+				sf2 = &fights[i]
+			}
+		}
+		if sf1 != nil && sf2 != nil && sf1.Status == "completed" && sf2.Status == "completed" && sf1.WinnerID.Valid && sf2.WinnerID.Valid {
+			w1 := int(sf1.WinnerID.Int64)
+			w2 := int(sf2.WinnerID.Int64)
+			f1, _ := s.repo.GetFighter(w1)
+			f2, _ := s.repo.GetFighter(w2)
+			_ = s.generator.CreateFights([]database.Fight{{
+				TournamentID:  t.ID,
+				Fighter1ID:    f1.ID,
+				Fighter2ID:    f2.ID,
+				Fighter1Name:  f1.Name,
+				Fighter2Name:  f2.Name,
+				ScheduledTime: fTime,
+				Status:        "scheduled",
+			}})
+		}
+	}
 	return nil
 }
 
