@@ -1,8 +1,9 @@
-// Saturday schedule client logic: renders group standings, timeline,
-// playoff cards, and polls for semifinal/final updates.
+// Saturday schedule client logic matching preview layout.
 (function () {
-  const groupsRoot = document.querySelector('[data-groups]');
-  if (!groupsRoot) return;
+  const overviewRoot = document.getElementById('overview');
+  const groupsRoot = document.getElementById('groups');
+  const showdownRoot = document.getElementById('showdown');
+  if (!overviewRoot || !groupsRoot || !showdownRoot) return;
 
   const fightsPayload = loadJSON('#saturday-fights') || [];
   const betMap = loadJSON('#saturday-bets') || {};
@@ -10,12 +11,11 @@
   const now = nowPayload && nowPayload.now ? new Date(nowPayload.now) : new Date();
 
   const fights = fightsPayload.map(enrichFight).sort((a, b) => a.scheduledTime - b.scheduledTime);
-
   const partitions = partitionGroups(fights);
+
+  renderOverview(fights, now);
   renderGroups(partitions.groups, betMap);
-  renderTimeline(fights, betMap);
-  renderPlayoffs(partitions.playoffs, betMap);
-  renderStatusCards(fights, now);
+  renderShowdown(partitions.playoffs);
 
   pollForUpdates();
 
@@ -66,6 +66,59 @@
     return { groups, playoffs };
   }
 
+  function renderOverview(fights, now) {
+    const fightsScript = document.getElementById('saturday-fights');
+    const weekAttr = fightsScript ? fightsScript.dataset.week : '';
+    const weekLabel = weekAttr ? `Week ${weekAttr}` : 'Week';
+    const liveFight = fights.find((f) => f.status === 'active');
+    const nextFight = fights.find((f) => f.status === 'scheduled' && f.scheduledTime >= now);
+    const completedCount = fights.filter((f) => f.status === 'completed' || f.status === 'voided').length;
+    const progressPct = Math.round((completedCount / 27) * 100);
+
+    const cards = [
+      {
+        label: 'Week',
+        value: `${weekLabel} · 27 fights · 4 groups`,
+        sub: 'Department of Recreational Violence',
+        className: 'primary'
+      },
+      {
+        label: 'Live Now',
+        value: liveFight ? `${liveFight.fighter1_name} vs ${liveFight.fighter2_name}` : '—',
+        sub: liveFight ? 'Broadcasting live across the AR grid' : 'No active bout',
+        className: 'live'
+      },
+      {
+        label: 'Next Fight',
+        value: nextFight ? `${nextFight.timeLabel} ${nextFight.fighter1_name} vs ${nextFight.fighter2_name}` : 'TBD',
+        sub: buildCountdown(nextFight, now),
+        cta: true
+      },
+      {
+        label: 'Progress',
+        value: `${progressPct}% complete`,
+        sub: 'Completed bouts out of 27'
+      }
+    ];
+
+    overviewRoot.innerHTML = cards.map((card) => `
+      <div class="overview-card ${card.className || ''}">
+        <div class="card-title">${card.label}</div>
+        <div class="card-value">${card.value}</div>
+        <div class="card-sub">${card.sub}</div>
+        ${card.cta ? '<div class="bet-tag">Place bets before bell</div>' : ''}
+      </div>
+    `).join('');
+  }
+
+  function buildCountdown(nextFight, now) {
+    if (!nextFight) return 'Awaiting schedule';
+    const diffMs = nextFight.scheduledTime - now;
+    if (diffMs <= 0) return 'Betting closed';
+    const minutesLeft = Math.floor(diffMs / 60000);
+    return `${minutesLeft}m until bell`;
+  }
+
   function renderGroups(groupMap, betMap) {
     const labels = ['A', 'B', 'C', 'D'];
     groupsRoot.innerHTML = '';
@@ -74,43 +127,39 @@
       const fights = groupMap[label];
       if (!fights || !fights.length) return;
 
-      const card = document.createElement('div');
+      const card = document.createElement('article');
       card.className = 'group-card';
 
-      const title = document.createElement('h3');
-      title.textContent = `Group ${label}`;
-      card.appendChild(title);
+      const header = document.createElement('div');
+      header.className = 'group-header';
+      header.innerHTML = `
+        <div class="group-title">Group ${label}</div>
+        <div class="record-pill">Top seed: ${computeStandings(fights)[0].name}</div>
+      `;
+      card.appendChild(header);
 
+      const standingsEl = document.createElement('section');
+      standingsEl.className = 'standings';
       const standings = computeStandings(fights);
-      standings.forEach((row, index) => {
-        const standing = document.createElement('div');
-        standing.className = 'group-standings';
+      standingsEl.innerHTML = `
+        <h3>Standings</h3>
+        ${standings.map(row => `
+          <div class="standing-row">
+            <div class="rank">${row.rank}</div>
+            <div class="name ${betMap[row.id] ? 'bet' : ''}">${row.name}</div>
+            <div>${row.wins}-${row.losses}</div>
+            <div>${row.diff > 0 ? `+${row.diff}` : row.diff}</div>
+          </div>
+        `).join('')}
+      `;
+      card.appendChild(standingsEl);
 
-        const rank = document.createElement('div');
-        rank.className = 'rank';
-        rank.textContent = index + 1;
-        standing.appendChild(rank);
-
-        const fighter = document.createElement('div');
-        fighter.className = 'fighter';
-        fighter.textContent = row.name;
-        if (betMap[row.id]) fighter.classList.add('bet');
-        standing.appendChild(fighter);
-
-        const record = document.createElement('div');
-        record.className = 'record';
-        record.textContent = `${row.wins}-${row.losses}`;
-        standing.appendChild(record);
-
-        const diff = document.createElement('div');
-        diff.className = 'score';
-        diff.textContent = row.diff >= 0 ? `+${row.diff}` : row.diff;
-        standing.appendChild(diff);
-
-        card.appendChild(standing);
+      const matchesEl = document.createElement('section');
+      matchesEl.className = 'matches';
+      fights.forEach((fight) => {
+        matchesEl.appendChild(renderMatchCard(fight, betMap));
       });
-
-      fights.forEach((fight) => card.appendChild(renderFightSlot(fight, betMap)));
+      card.appendChild(matchesEl);
 
       groupsRoot.appendChild(card);
     });
@@ -163,7 +212,8 @@
       }
       return a.id - b.id;
     });
-    return rows;
+
+    return rows.map((row, idx) => ({ ...row, rank: idx + 1 }));
 
     function ensure(map, id, name) {
       if (!map.has(id)) {
@@ -173,197 +223,96 @@
     }
   }
 
-  function renderFightSlot(fight, betMap) {
-    const slot = document.createElement('div');
-    slot.className = 'fight-slot';
-    slot.classList.add(classForStatus(fight.status));
-    if (betMap[fight.id]) slot.classList.add('bet');
+  function renderMatchCard(fight, betMap) {
+    const el = document.createElement('div');
+    el.className = 'match-card';
 
-    const time = document.createElement('div');
-    time.className = 'time';
-    time.textContent = fight.scheduledTime.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-    slot.appendChild(time);
+    el.innerHTML = `
+      <div class="match-top">
+        <span>${fight.timeLabel}</span>
+        ${matchBadge(fight.status)}
+      </div>
+      <div class="fighter-pair">
+        <div class="fighter-name ${winnerClass(fight, fight.fighter1_id)}">
+          <span>${fight.fighter1_name}</span>
+          ${winnerDetail(fight, fight.fighter1_id)}
+        </div>
+        <div class="fighter-name ${winnerClass(fight, fight.fighter2_id)}">
+          <span>${fight.fighter2_name}</span>
+          ${winnerDetail(fight, fight.fighter2_id)}
+        </div>
+      </div>
+    `;
 
-    const names = document.createElement('div');
-    names.className = 'names';
-
-    const one = document.createElement('span');
-    one.textContent = fight.fighter1_name;
-    const two = document.createElement('span');
-    two.textContent = fight.fighter2_name;
-
-    if (fight.status === 'completed' && fight.winner_id) {
-      const winner = Number(fight.winner_id);
-      if (winner === fight.fighter1_id) {
-        one.classList.add('winner');
-        two.classList.add('loser');
-      } else if (winner === fight.fighter2_id) {
-        two.classList.add('winner');
-        one.classList.add('loser');
-      }
+    if (betMap[fight.id]) {
+      el.classList.add('bet');
     }
 
-    names.appendChild(one);
-    names.appendChild(two);
-    slot.appendChild(names);
-
-    const cta = document.createElement('div');
-    cta.className = 'cta';
-    const link = document.createElement('a');
-    link.href = fight.status === 'active' ? `/watch/${fight.id}` : `/fight/${fight.id}`;
-    link.textContent = fight.status === 'active' ? 'Watch' : 'Details';
-    cta.appendChild(link);
-    slot.appendChild(cta);
-
-    return slot;
+    return el;
   }
 
-  function classForStatus(status) {
-    if (status === 'active') return 'live';
-    if (status === 'completed') return 'completed';
-    if (status === 'voided') return 'voided';
-    return 'upcoming';
+  function matchBadge(status) {
+    if (status === 'completed') return '<span class="tag" style="color:#8bffc7">Final</span>';
+    if (status === 'active') return '<span class="tag" style="color:#ff8888">Live</span>';
+    return '<span class="tag" style="color:#8f819c">Upcoming</span>';
   }
 
-  function renderTimeline(fights, betMap) {
-    const container = document.getElementById('timeline-slots');
-    if (!container) return;
-    container.innerHTML = '';
-
-    fights.forEach((fight) => {
-      const slot = document.createElement('div');
-      slot.className = 'slot';
-      slot.classList.add(classForStatus(fight.status));
-      if (betMap[fight.id]) slot.classList.add('bet');
-
-      const time = document.createElement('div');
-      time.className = 'slot-time';
-      time.textContent = fight.scheduledTime.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-      });
-      slot.appendChild(time);
-
-      const names = document.createElement('div');
-      names.className = 'slot-names';
-      names.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
-      slot.appendChild(names);
-
-      slot.addEventListener('click', () => {
-        window.location.href = fight.status === 'active' ? `/watch/${fight.id}` : `/fight/${fight.id}`;
-      });
-
-      container.appendChild(slot);
-    });
+  function winnerClass(fight, fighterID) {
+    if (fight.status === 'completed' && fight.winner_id) {
+      return Number(fight.winner_id) === fighterID ? 'win' : 'loss';
+    }
+    return '';
   }
 
-  function renderPlayoffs(playoffs, betMap) {
-    const container = document.getElementById('playoffs-card');
-    if (!container) return;
-    container.innerHTML = '';
+  function winnerDetail(fight, fighterID) {
+    if (!fight.winner_id || fight.status !== 'completed') return '';
+    if (Number(fight.winner_id) !== fighterID) return '';
+    if (fight.final_score1 && Number(fight.winner_id) === fight.fighter1_id) {
+      return `<span>${fight.final_score1}</span>`;
+    }
+    if (fight.final_score2 && Number(fight.winner_id) === fight.fighter2_id) {
+      return `<span>${fight.final_score2}</span>`;
+    }
+    return '';
+  }
 
-    const frames = [
-      { time: '22:30', label: 'Semifinal: Group A vs Group B' },
-      { time: '23:00', label: 'Semifinal: Group C vs Group D' },
-      { time: '23:30', label: 'Final: Winners face off' },
+  function renderShowdown(playoffs) {
+    const descriptions = [
+      'Semifinal · Group A Winner vs Group B Winner',
+      'Semifinal · Group C Winner vs Group D Winner',
+      'Grand Final · Semifinal Winners'
     ];
 
-    frames.forEach((frame) => {
-      const fight = playoffs.find((pf) => pf.timeLabel === frame.time);
-
-      const row = document.createElement('div');
-      row.className = 'match';
-
-      const time = document.createElement('span');
-      time.className = 'time';
-      time.textContent = frame.time;
-      row.appendChild(time);
-
-      const vs = document.createElement('span');
-      vs.className = 'vs';
-      const badge = document.createElement('span');
-      badge.className = 'badge';
-
-      if (fight) {
-        vs.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
-        badge.textContent = fight.status;
-        if (fight.status === 'active') badge.classList.add('badge-live');
-        else badge.classList.add('badge-upcoming');
-        if (betMap[fight.id]) row.classList.add('bet');
-      } else {
-        vs.textContent = '▓▓▓▓▓▓▓▓▓ vs ▓▓▓▓▓▓▓▓▓';
-        badge.textContent = 'upcoming';
-        badge.classList.add('badge-upcoming');
-      }
-
-      row.appendChild(vs);
-      row.appendChild(badge);
-      container.appendChild(row);
-    });
-  }
-
-  function renderStatusCards(fights, now) {
-    const liveCard = document.getElementById('live-card');
-    const nextCard = document.getElementById('next-card');
-    if (!liveCard || !nextCard) return;
-
-    const live = fights.find((f) => f.status === 'active');
-    const upcoming = fights.filter((f) => f.status === 'scheduled' && f.scheduledTime >= now);
-    const next = upcoming.length ? upcoming[0] : null;
-
-    const liveLabel = liveCard.querySelector('#live-label');
-    const watchLink = liveCard.querySelector('#watch-now');
-    const progress = liveCard.querySelector('#day-progress');
-
-    if (live) {
-      liveLabel.textContent = `${live.fighter1_name} vs ${live.fighter2_name}`;
-      watchLink.href = `/watch/${live.id}`;
-      watchLink.classList.add('btn-live');
-    } else {
-      liveLabel.textContent = '—';
-      watchLink.href = '#';
-      watchLink.classList.remove('btn-live');
-    }
-
-    const total = 27;
-    const completed = fights.filter((f) => f.status === 'completed' || f.status === 'voided').length;
-    progress.style.width = `${Math.min(100, Math.round((completed / total) * 100))}%`;
-
-    const countdown = nextCard.querySelector('#next-countdown');
-    const nextLabel = nextCard.querySelector('#next-label');
-
-    if (next) {
-      nextLabel.textContent = `${next.fighter1_name} vs ${next.fighter2_name}`;
-      startCountdown(countdown, next.scheduledTime);
-    } else {
-      nextLabel.textContent = '—';
-      countdown.textContent = '--:--';
-    }
-  }
-
-  function startCountdown(el, target) {
-    if (!el) return;
-
-    const update = () => {
-      const diff = target - new Date();
-      if (diff <= 0) {
-        el.textContent = '00:00';
-        return;
-      }
-      const minutes = Math.floor(diff / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
-      el.textContent = `${pad(minutes)}:${pad(seconds)}`;
-      requestAnimationFrame(update);
-    };
-
-    update();
-  }
-
-  function pad(n) {
-    return n < 10 ? `0${n}` : `${n}`;
+    showdownRoot.innerHTML = `
+      <div class="showdown-header">
+        <div>
+          <div class="showdown-title">Road to the Legacy Upgrade</div>
+          <div class="showdown-sub">Semifinals &amp; Final · Champion gains +1 random stat post-fight · Commissioner approved</div>
+        </div>
+        <div class="showdown-sub">Matchups reveal automatically when group standings lock</div>
+      </div>
+      <div class="showdown-grid">
+        ${['22:30', '23:00', '23:30'].map((time, idx) => {
+          const fight = playoffs.find(p => p.timeLabel === time);
+          const revealed = fight && fight.fighter1_name && fight.fighter2_name;
+          return `
+            <div class="showdown-card">
+              <div class="showdown-time">${time}</div>
+              <div class="showdown-match ${revealed ? 'revealed' : 'pending'}">
+                ${revealed ? `${fight.fighter1_name} vs ${fight.fighter2_name}` : '▓▓▓▓▓▓▓▓▓ vs ▓▓▓▓▓▓▓▓▓'}
+              </div>
+              <div class="showdown-sub" style="margin-top:14px; text-align:center;">
+                ${descriptions[idx]}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="showdown-footer">
+        <div class="champion-note">⚡ Legacy Infusion: Champion receives +1 random stat at 23:45</div>
+        <div>Watch along · Holo-view pods · Streamer co-cast</div>
+      </div>
+    `;
   }
 
   function pollForUpdates() {
@@ -378,10 +327,9 @@
 
         const refreshed = payload.fights.map(enrichFight).sort((a, b) => a.scheduledTime - b.scheduledTime);
         const partitions = partitionGroups(refreshed);
+        renderOverview(refreshed, new Date(payload.meta.now));
         renderGroups(partitions.groups, betMap);
-        renderTimeline(refreshed, betMap);
-        renderPlayoffs(partitions.playoffs, betMap);
-        renderStatusCards(refreshed, new Date(payload.meta.now));
+        renderShowdown(partitions.playoffs);
       } catch (err) {
         console.error('Saturday poll failed', err);
       } finally {
