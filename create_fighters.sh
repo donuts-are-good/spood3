@@ -21,7 +21,7 @@ trap cleanup EXIT
 # Options (hard-coded)
 ONLY_ALIVE=0    # 1 to skip dead fighters
 DRY_RUN=0       # 1 to preview titles only
-RATE_MS=300     # throttle between edits (ms)
+RATE_MS=1500     # throttle between edits (ms)
 
 echo "[1/4] Get login token"
 LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
@@ -79,7 +79,7 @@ add_to_fighters_index() {
 
   # Fetch current page content (follow redirects; raw endpoint)
   local content
-  content=$(curl -sL -H "User-Agent: SpoodblortBot/1.0" "$WIKI_BASE/wiki/Fighters?action=raw&ctype=text/plain")
+  content=$(curl -sL -H "User-Agent: SpoodblortBot/1.0" -b "$COOKIE" "$WIKI_BASE/wiki/Fighters?action=raw&ctype=text/plain")
   if [[ -z "$content" || "$content" == "null" ]]; then
     # Fallback to MediaWiki API
     content=$(curl -s "$API?action=query&prop=revisions&titles=Fighters&rvslots=main&rvprop=content&formatversion=2&format=json" -b "$COOKIE" | jq -r '.query.pages[0].revisions[0].slots.main.content // ""')
@@ -142,7 +142,13 @@ add_to_fighters_index() {
 }
 
 # Build SQL
-SQL='SELECT id, name, team, fighter_class AS class, strength, speed, endurance, technique, COALESCE(NULLIF(TRIM(lore),""),"") AS lore FROM fighters'
+SQL='SELECT id, name, team, fighter_class AS class,
+             strength, speed, endurance, technique,
+             blood_type, horoscope, molecular_density, existential_dread,
+             fingers, toes, ancestors,
+             wins, losses, draws,
+             COALESCE(NULLIF(TRIM(lore),""),"") AS lore
+      FROM fighters'
 if [[ "$ONLY_ALIVE" == "1" ]]; then
   SQL+=" WHERE is_dead = 0"
 fi
@@ -158,6 +164,16 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
   speed=$(jq -r '.speed // 0' <<<"$row")
   endurance=$(jq -r '.endurance // 0' <<<"$row")
   technique=$(jq -r '.technique // 0' <<<"$row")
+  blood_type=$(jq -r '.blood_type // ""' <<<"$row")
+  horoscope=$(jq -r '.horoscope // ""' <<<"$row")
+  molecular_density=$(jq -r 'if (.molecular_density == null) then "" else (.molecular_density|tostring) end' <<<"$row")
+  existential_dread=$(jq -r '.existential_dread // ""' <<<"$row")
+  fingers=$(jq -r '.fingers // ""' <<<"$row")
+  toes=$(jq -r '.toes // ""' <<<"$row")
+  ancestors=$(jq -r '.ancestors // ""' <<<"$row")
+  wins=$(jq -r '.wins // 0' <<<"$row")
+  losses=$(jq -r '.losses // 0' <<<"$row")
+  draws=$(jq -r '.draws // 0' <<<"$row")
   lore=$(jq -r '.lore // ""' <<<"$row")
 
   DISPLAY_TITLE=$(printf "Roster #%03d %s" "$id" "$name")
@@ -170,7 +186,34 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
     continue
   fi
 
-  # Build page wikitext
+  [[ -z "$team" || "$team" == "null" ]] && team="Unaffiliated"
+  [[ -z "$class" || "$class" == "null" ]] && class="Unclassified"
+  [[ -z "$blood_type" || "$blood_type" == "null" ]] && blood_type="Unknown"
+  [[ -z "$horoscope" || "$horoscope" == "null" ]] && horoscope="Classified"
+  [[ -z "$molecular_density" || "$molecular_density" == "null" ]] && molecular_density="??"
+  [[ -z "$existential_dread" || "$existential_dread" == "null" ]] && existential_dread="??"
+  [[ -z "$fingers" || "$fingers" == "null" ]] && fingers="??"
+  [[ -z "$toes" || "$toes" == "null" ]] && toes="??"
+  [[ -z "$ancestors" || "$ancestors" == "null" ]] && ancestors="??"
+
+  lore_safe=$(printf '%s' "$lore" | sed 's/|/{{!}}/g')
+  lore_markdown=$(printf '%s' "$lore_safe" | python3 - "$DISPLAY_TITLE" <<'PY'
+import sys,re
+lore=sys.stdin.read()
+title=sys.argv[1]
+if not lore.strip():
+    print("This fighter's lore file is missing. Please consult the Department of Narrative Risk.")
+    sys.exit()
+
+paragraphs=[p.strip() for p in re.split(r'\n\s*\n', lore) if p.strip()]
+for p in paragraphs:
+    if not p.endswith('.') and not p.endswith('!') and not p.endswith('?'):
+        p += '.'
+    print(p)
+    print()
+PY
+  )
+
   TEXT=$(cat <<EOF
 {{DISPLAYTITLE:$DISPLAY_TITLE}}
 {{Fighter
@@ -182,10 +225,56 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
 |technique=$technique
 |lore=$lore
 }}
+
+'''$name''' is a registered combatant in the '''Spoodblort''' violence league. As '''$DISPLAY_TITLE''', this fighter represents '''$team''' and competes as a '''$class''' archetype.
+
+== Lore ==
+$lore_safe
+
+== Combat Profile ==
+{| class="wikitable"
+! Attribute !! Value
+|-
+| Strength || $strength
+|-
+| Speed || $speed
+|-
+| Endurance || $endurance
+|-
+| Technique || $technique
+|}
+
+== Chaos Metrics ==
+{| class="wikitable"
+! Metric !! Reading
+|-
+| Blood Type || $blood_type
+|-
+| Horoscope || $horoscope
+|-
+| Molecular Density || $molecular_density
+|-
+| Existential Dread || $existential_dread
+|-
+| Fingers || $fingers
+|-
+| Toes || $toes
+|-
+| Recorded Ancestors || $ancestors
+|}
+
+== Fight Record ==
+* Wins: $wins
+* Losses: $losses
+* Draws: $draws
+
+== Data Provenance ==
+* Imported from Spoodblort game database on {{CURRENTDAY}} {{CURRENTMONTHNAME}} {{CURRENTYEAR}}.
+* Lore managed by the Department of Narrative Risk.
+
 [[Category:Fighters]]
 EOF
 )
-
   # Create or update the page every run (no skipping)
   resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
     --data-urlencode "title=$TITLE" \
