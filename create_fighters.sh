@@ -13,6 +13,8 @@ BOT_PASS="q15iu06t2dk5adia5r9b37r4ibt5rvm1"
 command -v jq >/dev/null || { echo "Install jq"; exit 1; }
 command -v sqlite3 >/dev/null || { echo "Install sqlite3"; exit 1; }
 command -v curl >/dev/null || { echo "Install curl"; exit 1; }
+# Lore formatting relies on Python; optional. Set to empty to fall back to shell.
+PYTHON_BIN="$(command -v python3 || command -v python || true)"
 PYTHON_BIN="$(command -v python3 || command -v python || true)"
 if [[ -z "$PYTHON_BIN" ]]; then
   echo "Install python3" >&2
@@ -80,27 +82,24 @@ ensure_template
 
 # Update Fighters index page: insert a bullet for the new fighter in numeric order
 add_to_fighters_index() {
-  local title="$1"  # e.g., Roster #062 Stone Cold Steve Austin
+  local title="$1"
+  local display="$2"
 
-  # Fetch current page content (follow redirects; raw endpoint)
   local content
   content=$(curl -sL -H "User-Agent: SpoodblortBot/1.0" -b "$COOKIE" "$WIKI_BASE/wiki/Fighters?action=raw&ctype=text/plain")
   if [[ -z "$content" || "$content" == "null" ]]; then
-    # Fallback to MediaWiki API
-    content=$(curl -s "$API?action=query&prop=revisions&titles=Fighters&rvslots=main&rvprop=content&formatversion=2&format=json" -b "$COOKIE" | jq -r '.query.pages[0].revisions[0].slots.main.content // ""')
+    content=$(curl -s "$API?action=query&redirects=1&prop=revisions&titles=Fighters&rvslots=main&rvprop=content&formatversion=2&format=json" -b "$COOKIE" | jq -r '.query.pages[0].revisions[0].slots.main.content // ""')
     if [[ -z "$content" ]]; then
       echo "[Index] Could not load Fighters page; skipping index update"
-      return
+      return 1
     fi
   fi
 
-  # If already present, skip
-  if grep -Fq "[[$title]]" <(printf '%s' "$content"); then
-    echo "[Index] Already listed: $title"
-    return
+  if grep -Fq "[[${display}]]" <(printf '%s' "$content") || grep -Fq "[[${title}]]" <(printf '%s' "$content"); then
+    echo "[Index] Already listed: $display"
+    return 0
   fi
 
-  # Work with awk to locate the Notable Fighters list and keep bullets sorted
   local tmp
   tmp=$(mktemp)
   printf '%s' "$content" > "$tmp"
@@ -110,10 +109,9 @@ add_to_fighters_index() {
   if [[ -z "$start" ]]; then
     echo "[Index] Could not find 'Notable Fighters:' heading; skipping index update"
     rm -f "$tmp"
-    return
+    return 0
   fi
 
-  # Find the end of the bullet block (blank line or non-bullet)
   end=$(awk -v s="$start" 'NR>s { if ($0=="" || $1!="*") { print NR; exit } } END{if(!NR)print 0}' "$tmp") || true
   if [[ -z "$end" || "$end" == 0 ]]; then
     end=$(wc -l < "$tmp")
@@ -127,7 +125,7 @@ add_to_fighters_index() {
   bullets=$(printf '%s\n' "$block" | awk '/^\*\s*Roster\s*#/{print}')
   others=$(printf '%s\n' "$block" | awk '!/^\*\s*Roster\s*#/{print}')
 
-  bullets=$(printf '%s\n* [[%s]]\n' "$bullets" "$title" | awk 'NF')
+  bullets=$(printf '%s\n* [[%s|%s]]\n' "$bullets" "$title" "$display" | awk 'NF')
   bullets=$(printf '%s\n' "$bullets" | sort -t# -k2,2n)
 
   newcontent=$(printf '%s\n%s\n%s' "$pre" "$bullets" "$others$post")
@@ -135,15 +133,25 @@ add_to_fighters_index() {
   resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
     --data-urlencode "title=Fighters" \
     --data-urlencode "text=$newcontent" \
-    --data-urlencode "summary=Add $title to Fighters index" \
+    --data-urlencode "summary=Add $display to Fighters index" \
     --data-urlencode "token=$CSRF")
   if [[ $(echo "$resp" | jq -r '.edit.result // empty') == "Success" ]]; then
-    echo "[Index] Inserted into Fighters: $title"
-  else
-    echo "[Index] Edit failed for Fighters: $resp"
+    echo "[Index] Inserted into Fighters: $display"
+    rm -f "$tmp"
+    return 0
   fi
 
+  local err
+  err=$(echo "$resp" | jq -r '.error.code // empty')
+  if [[ "$err" == "ratelimited" ]]; then
+    echo "[Index] Rate limited while updating Fighters. Backing off..."
+    rm -f "$tmp"
+    return 2
+  fi
+
+  echo "[Index] Edit failed for Fighters: $resp"
   rm -f "$tmp"
+  return 0
 }
 
 # Build SQL
@@ -202,7 +210,8 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
   [[ -z "$ancestors" || "$ancestors" == "null" ]] && ancestors="??"
 
   lore_safe=$(printf '%s' "$lore" | sed 's/|/{{!}}/g')
-  lore_markdown=$(printf '%s' "$lore_safe" | "$PYTHON_BIN" - "$DISPLAY_TITLE" <<'PY'
+  if [[ -n "$PYTHON_BIN" ]]; then
+    lore_markdown=$(printf '%s' "$lore_safe" | "$PYTHON_BIN" - "$DISPLAY_TITLE" <<'PY'
 import sys,re
 lore=sys.stdin.read()
 title=sys.argv[1]
@@ -217,7 +226,21 @@ for p in paragraphs:
     print(p)
     print()
 PY
-  )
+    )
+  else
+    # simple shell fallback: split on blank lines
+    lore_markdown=""
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      if [[ -z "$line" ]]; then
+        lore_markdown+=$'\n'
+      else
+        lore_markdown+="$line"
+        [[ "$line" =~ [.!?]$ ]] || lore_markdown+="."
+        lore_markdown+=$'\n'
+      fi
+    done < <(printf '%s' "$lore_safe")
+    lore_markdown+=$'\n'
+  fi
 
   TEXT=$(cat <<EOF
 {{DISPLAYTITLE:$DISPLAY_TITLE}}
@@ -234,7 +257,7 @@ PY
 '''$name''' is a registered combatant in the '''Spoodblort''' violence league. As '''$DISPLAY_TITLE''', this fighter represents '''$team''' and competes as a '''$class''' archetype.
 
 == Lore ==
-$lore_safe
+$lore_markdown
 
 == Combat Profile ==
 {| class="wikitable"
@@ -288,15 +311,39 @@ EOF
     --data-urlencode "token=$CSRF")
 
   result=$(jq -r '.edit.result // empty' <<<"$resp")
-  if [[ "$result" == "Success" ]]; then
-    echo "✅ Synced: $TITLE"
-    # Ensure it's on the Fighters index
-    add_to_fighters_index "$TITLE"
-  else
-    echo "⚠️  Error for $TITLE: $resp"
-  fi
+  local retries=0
+  while true; do
+    resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
+      --data-urlencode "title=$TITLE" \
+      --data-urlencode "text=$TEXT" \
+      --data-urlencode "summary=Sync fighter page from game DB" \
+      --data-urlencode "token=$CSRF")
 
-  # throttle
+    result=$(jq -r '.edit.result // empty' <<<"$resp")
+    if [[ "$result" == "Success" ]]; then
+      echo "✅ Synced: $TITLE"
+      idx_status=$(add_to_fighters_index "$TITLE" "$DISPLAY_TITLE") || idx_status=0
+      if [[ "$idx_status" == "2" ]]; then
+        echo "[Index] Backing off due to rate limit"
+        sleep 5
+        RATE_MS=$((RATE_MS + 1000))
+      fi
+      break
+    fi
+
+    errcode=$(jq -r '.error.code // empty' <<<"$resp")
+    if [[ "$errcode" == "ratelimited" ]]; then
+      retries=$((retries + 1))
+      echo "⚠️  Rate limited while syncing $TITLE. Retry #$retries"
+      sleep 5
+      RATE_MS=$((RATE_MS + 1000))
+      continue
+    fi
+
+    echo "⚠️  Error for $TITLE: $resp"
+    break
+  done
+
   if [[ "$RATE_MS" -gt 0 ]]; then
     sleep "$(awk -v ms="$RATE_MS" 'BEGIN{printf "%.3f", ms/1000}')"
   fi
