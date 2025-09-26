@@ -304,14 +304,7 @@ $lore_markdown
 EOF
 )
   # Create or update the page every run (no skipping)
-  resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
-    --data-urlencode "title=$TITLE" \
-    --data-urlencode "text=$TEXT" \
-    --data-urlencode "summary=Sync fighter page from game DB" \
-    --data-urlencode "token=$CSRF")
-
-  result=$(jq -r '.edit.result // empty' <<<"$resp")
-  local retries=0
+  retries=0
   while true; do
     resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
       --data-urlencode "title=$TITLE" \
