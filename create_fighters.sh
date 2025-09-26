@@ -86,10 +86,10 @@ add_to_fighters_index() {
   local content
   content=$(curl -sL -H "User-Agent: SpoodblortBot/1.0" -b "$COOKIE" "$WIKI_BASE/wiki/Fighters?action=raw&ctype=text/plain")
   if [[ -z "$content" || "$content" == "null" ]]; then
-    content=$(curl -s "$API?action=query&redirects=1&prop=revisions&titles=Fighters&rvslots=main&rvprop=content&formatversion=2&format=json" -b "$COOKIE" | jq -r '.query.pages[0].revisions[0].slots.main.content // ""')
+    content=$(curl -s "$API?action=parse&page=Fighters&prop=wikitext&formatversion=2&format=json" -b "$COOKIE" | jq -r '.parse.wikitext // ""')
     if [[ -z "$content" ]]; then
-      echo "[Index] Could not load Fighters page; skipping index update"
-      return 1
+      echo "[Index] Fighters page unavailable, backing off..."
+      return 3
     fi
   fi
 
@@ -321,6 +321,11 @@ EOF
         echo "[Index] Backing off due to rate limit"
         sleep 5
         RATE_MS=$((RATE_MS + 1000))
+      elif [[ "$idx_status" == "3" ]]; then
+        echo "[Index] Fighters page unavailable; retrying after delay"
+        sleep 5
+        RATE_MS=$((RATE_MS + 1000))
+        continue
       fi
       break
     fi
