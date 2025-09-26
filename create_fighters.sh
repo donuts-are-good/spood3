@@ -86,66 +86,76 @@ add_to_fighters_index() {
     return
   fi
 
-  # If already present, skip
-  if grep -Fq "[[$title]]" <(printf '%s' "$content"); then
-    echo "[Index] Already listed: $title"
-    return
-  fi
-
-  # Work in a temp file
-  local tmp
-  tmp=$(mktemp)
-  printf '%s' "$content" > "$tmp"
-
-  # Build new sorted block for the bullets under "Notable Fighters:".
-  # Strategy: capture the list items that start with "* Roster #" until a blank line or end of section, add the new item, sort numerically by the roster number, and replace the block.
-  local start end
-  start=$(awk '/^Notable Fighters:/{print NR; exit}' "$tmp") || true
-  if [[ -z "$start" ]]; then
-    echo "[Index] Could not find 'Notable Fighters:' heading; skipping index update"
-    rm -f "$tmp"
-    return
-  fi
-
-  # bullets start after the heading line and a possible quote line
-  # We'll scan from (start) to the next blank line following bullets
-  end=$(awk -v s="$start" 'NR>s && $0=="" {print NR; exit}' "$tmp") || true
-  if [[ -z "$end" ]]; then end=$(wc -l < "$tmp"); fi
-
-  # Extract pre, block, post
-  local pre block post
-  pre=$(awk -v e="$start" 'NR<=e{print}' "$tmp")
-  block=$(awk -v s="$start" -v e="$end" 'NR>s && NR<e{print}' "$tmp")
-  post=$(awk -v e="$end" 'NR>=e{print}' "$tmp")
-
-  # Collect existing roster bullets and everything else separate
-  local bullets others
-  bullets=$(printf '%s\n' "$block" | awk '/^\*\s*Roster\s*#/{print}')
-  others=$(printf '%s\n' "$block" | awk '!/^\*\s*Roster\s*#/{print}')
-
-  # Add the new bullet
-  bullets=$(printf '%s\n* [[%s]]\n' "$bullets" "$title")
-
-  # Sort bullets by roster number
-  bullets=$(printf '%s\n' "$bullets" | awk 'NF' | sort -t# -k2,2n)
-
-  # Reassemble
+  # Use Python to robustly locate the Notable Fighters block and sort bullets
   local newcontent
-  newcontent=$(printf '%s\n%s\n%s\n' "$pre" "$bullets" "$others$post")
+  newcontent=$(python - "$title" <<'PY'
+import sys,re
+title=sys.argv[1]
+content=sys.stdin.read()
 
-  # Submit edit
-  resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
-    --data-urlencode "title=Fighters" \
-    --data-urlencode "text=$newcontent" \
-    --data-urlencode "summary=Add $title to Fighters index" \
-    --data-urlencode "token=$CSRF")
-  if [[ $(echo "$resp" | jq -r '.edit.result // empty') == "Success" ]]; then
-    echo "[Index] Inserted into Fighters: $title"
+# If already present in any form, keep content
+if ('[['+title+']]') in content or (' '+title+'\n') in content:
+    print(content)
+    sys.exit(0)
+
+lines=content.splitlines()
+
+# Find anchor line containing 'Notable Fighters' (case-insensitive)
+anchor=None
+for i,l in enumerate(lines):
+    if re.search(r'notable\s*fighters', l, re.I):
+        anchor=i
+        break
+
+# If missing, create an anchor at top block
+if anchor is None:
+    lines.insert(0,'Notable Fighters:')
+    lines.insert(1,'')
+    anchor=0
+
+# Determine block range: contiguous list lines after anchor that start with '*' (allow spaces)
+start=anchor+1
+while start < len(lines) and not lines[start].lstrip().startswith('*') and lines[start].strip()!='':
+    start+=1
+end=start
+while end < len(lines) and lines[end].lstrip().startswith('*'):
+    end+=1
+
+bullets=[l for l in lines[start:end] if l.lstrip().startswith('*')]
+
+# Normalize and add new bullet
+new_bullet=f"* [[{title}]]"
+if new_bullet not in bullets:
+    bullets.append(new_bullet)
+
+# Helper to extract roster number for sort
+def keyfn(s):
+    m=re.search(r'#\s*(\d+)', s)
+    return int(m.group(1)) if m else 10**9
+
+bullets=sorted(set(bullets), key=keyfn)
+
+# Reassemble
+new_lines=lines[:start]+bullets+lines[end:]
+print('\n'.join(new_lines))
+PY
+  <<< "$content")
+
+  # Submit edit if content changed
+  if [[ "$newcontent" != "$content" ]]; then
+    resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
+      --data-urlencode "title=Fighters" \
+      --data-urlencode "text=$newcontent" \
+      --data-urlencode "summary=Add $title to Fighters index" \
+      --data-urlencode "token=$CSRF")
+    if [[ $(echo "$resp" | jq -r '.edit.result // empty') == "Success" ]]; then
+      echo "[Index] Inserted into Fighters: $title"
+    else
+      echo "[Index] Edit failed for Fighters: $resp"
+    fi
   else
-    echo "[Index] Edit failed for Fighters: $resp"
+    echo "[Index] Already listed: $title"
   fi
-
-  rm -f "$tmp"
 }
 
 # Build SQL
