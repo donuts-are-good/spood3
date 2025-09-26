@@ -18,7 +18,7 @@ import (
 const (
 	TICK_DURATION_SECONDS = 5
 	DEATH_CHANCE          = 10000  // 1 in 10,000 chance per damage tick
-	CRIT_CHANCE           = 10     // 1 in 5,000 chance per tick for the losing fighter to attempt a crit
+	CRIT_CHANCE           = 2      // 1 in 2 chance per tick for the losing fighter to attempt a crit
 	STARTING_HEALTH       = 100000 // Increased from 100k for longer fights
 	MIN_DAMAGE            = 5
 	MAX_DAMAGE            = 1000 // Reduced from 5000 to balance simultaneous combat
