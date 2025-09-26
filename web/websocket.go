@@ -36,6 +36,11 @@ type FightBroadcaster struct {
 	// Clap totals per round
 	roundClapTotals map[string]map[int]int // "fightID_round" -> userID -> count
 	roundTotalsMux  sync.RWMutex
+
+	// Aggregated clap healing per fight and fighter
+	// fightID -> fighterID -> total pending heal
+	clapHeal    map[int]map[int]int
+	clapHealMux sync.Mutex
 }
 
 // FightEngine interface for logging actions
@@ -58,6 +63,7 @@ func NewFightBroadcaster(repo *database.Repository) *FightBroadcaster {
 		broadcast:       make(map[int]chan fight.LiveAction),
 		userClaps:       make(map[string][]time.Time),
 		roundClapTotals: make(map[string]map[int]int),
+		clapHeal:        make(map[int]map[int]int),
 	}
 }
 
@@ -112,7 +118,7 @@ func (fb *FightBroadcaster) ProcessClapMessage(userID, fightID int, clap ClapMes
 	// Record the clap
 	fb.RecordClap(userID, fightID)
 
-	// Track clap totals for this round
+	// Track clap totals for this round (for summary only)
 	fb.roundTotalsMux.Lock()
 	roundKey := fmt.Sprintf("%d_%d", fightID, clap.Round)
 	if fb.roundClapTotals[roundKey] == nil {
@@ -121,31 +127,43 @@ func (fb *FightBroadcaster) ProcessClapMessage(userID, fightID int, clap ClapMes
 	fb.roundClapTotals[roundKey][userID]++
 	fb.roundTotalsMux.Unlock()
 
-	// Get user info for display
-	user, err := fb.repo.GetUser(userID)
-	if err != nil {
-		return fmt.Errorf("failed to get user: %w", err)
+	// Aggregate healing for the target fighter (20 per clap)
+	const healPerClap = 20
+	fb.clapHealMux.Lock()
+	if fb.clapHeal[fightID] == nil {
+		fb.clapHeal[fightID] = make(map[int]int)
 	}
+	fb.clapHeal[fightID][clap.FighterID] += healPerClap
+	fb.clapHealMux.Unlock()
 
-	// Create clap action for broadcasting
-	displayName := user.Username
-	if user.CustomUsername != "" {
-		displayName = user.CustomUsername
-	}
-
-	clapAction := fight.LiveAction{
-		Type:       "clap",
-		Action:     fmt.Sprintf("%s cheered for %s! 👏👏 +20 health", displayName, clap.FighterName),
-		Announcer:  "",
-		Commentary: "",
-		Round:      clap.Round,
-	}
-
-	// Broadcast to all viewers
-	fb.BroadcastAction(fightID, clapAction)
-
-	log.Printf("User %s clapped for fighter %s in fight %d, round %d", displayName, clap.FighterName, fightID, clap.Round)
+	log.Printf("Clap recorded: user %d -> fighter %d in fight %d, round %d", userID, clap.FighterID, fightID, clap.Round)
 	return nil
+}
+
+// ConsumeClapHealth returns the pending clap-based healing for the two fighters
+// and resets the counters for those fighters for this fight.
+func (fb *FightBroadcaster) ConsumeClapHealth(fightID int, fighter1ID int, fighter2ID int) (int, int) {
+	fb.clapHealMux.Lock()
+	defer fb.clapHealMux.Unlock()
+
+	totals := fb.clapHeal[fightID]
+	if totals == nil {
+		return 0, 0
+	}
+	delta1 := totals[fighter1ID]
+	delta2 := totals[fighter2ID]
+	if delta1 != 0 {
+		delete(totals, fighter1ID)
+	}
+	if delta2 != 0 {
+		delete(totals, fighter2ID)
+	}
+	if len(totals) == 0 {
+		delete(fb.clapHeal, fightID)
+	} else {
+		fb.clapHeal[fightID] = totals
+	}
+	return delta1, delta2
 }
 
 // BroadcastRoundClapSummary sends a summary of claps when a clapping round ends

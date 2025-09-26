@@ -29,6 +29,9 @@ type Broadcaster interface {
 	BroadcastAction(fightID int, action LiveAction)
 	BroadcastViewerCount(fightID int)
 	BroadcastRoundClapSummary(fightID, round int)
+	// ConsumeClapHealth returns the health deltas from aggregated claps for the two fighters
+	// and resets the internal counters for this fight and these fighters.
+	ConsumeClapHealth(fightID int, fighter1ID int, fighter2ID int) (int, int)
 }
 
 type FightState struct {
@@ -419,6 +422,25 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 	state.LastDamage1 = damage1
 	state.LastDamage2 = damage2
 	state.TickNumber = tickNumber
+
+	// Apply aggregated clap healing after damage is applied for this tick
+	if e.broadcaster != nil {
+		delta1, delta2 := e.broadcaster.ConsumeClapHealth(fightID, fighter1.ID, fighter2.ID)
+		if delta1 > 0 {
+			healed := state.Fighter1Health + delta1
+			if healed > STARTING_HEALTH {
+				healed = STARTING_HEALTH
+			}
+			state.Fighter1Health = healed
+		}
+		if delta2 > 0 {
+			healed := state.Fighter2Health + delta2
+			if healed > STARTING_HEALTH {
+				healed = STARTING_HEALTH
+			}
+			state.Fighter2Health = healed
+		}
+	}
 
 	// Generate and broadcast live action if broadcaster is available
 	if e.broadcaster != nil {
