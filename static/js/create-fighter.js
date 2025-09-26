@@ -162,7 +162,11 @@ function applyPreset(presetName) {
         glass_cannon: { strength: 120, speed: 100, endurance: 20, technique: 60 },
         tank: { strength: 60, speed: 20, endurance: 120, technique: 100 },
         speedster: { strength: 40, speed: 120, endurance: 60, technique: 80 },
-        technical: { strength: 50, speed: 70, endurance: 60, technique: 120 }
+        technical: { strength: 50, speed: 70, endurance: 60, technique: 120 },
+        bruiser: { strength: 110, speed: 60, endurance: 90, technique: 40 },
+        agile: { strength: 60, speed: 110, endurance: 50, technique: 80 },
+        sentinel: { strength: 80, speed: 40, endurance: 120, technique: 60 },
+        scholar: { strength: 40, speed: 70, endurance: 70, technique: 120 }
     };
     
     if (presets[presetName]) {
@@ -170,6 +174,35 @@ function applyPreset(presetName) {
         updateStatDisplay();
         updateStatsNextButton();
     }
+}
+
+// Randomize a valid 300-point distribution within [20,120] for each stat
+function randomizeStats() {
+    const statNames = ["strength", "speed", "endurance", "technique"];
+    const minPerStat = 20;
+    const maxPerStat = 120;
+    const total = 300;
+
+    // Start each stat at minimum
+    const base = { strength: minPerStat, speed: minPerStat, endurance: minPerStat, technique: minPerStat };
+    let remaining = total - (minPerStat * statNames.length); // 220
+
+    // Capacities left per stat
+    const capacity = { strength: maxPerStat - minPerStat, speed: maxPerStat - minPerStat, endurance: maxPerStat - minPerStat, technique: maxPerStat - minPerStat };
+
+    // Distribute remaining points randomly while respecting per-stat caps
+    while (remaining > 0) {
+        const name = statNames[Math.floor(Math.random() * statNames.length)];
+        if (capacity[name] === 0) continue;
+        const give = Math.min(1 + Math.floor(Math.random() * 5), capacity[name], remaining); // 1..5 at a time
+        base[name] += give;
+        capacity[name] -= give;
+        remaining -= give;
+    }
+
+    fighterData.stats = base;
+    updateStatDisplay();
+    updateStatsNextButton();
 }
 
 // Chaos stats generation
