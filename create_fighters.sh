@@ -13,6 +13,11 @@ BOT_PASS="q15iu06t2dk5adia5r9b37r4ibt5rvm1"
 command -v jq >/dev/null || { echo "Install jq"; exit 1; }
 command -v sqlite3 >/dev/null || { echo "Install sqlite3"; exit 1; }
 command -v curl >/dev/null || { echo "Install curl"; exit 1; }
+PYTHON_BIN="$(command -v python3 || command -v python || true)"
+if [[ -z "$PYTHON_BIN" ]]; then
+  echo "Install python3" >&2
+  exit 1
+fi
 
 COOKIE="$(mktemp)"
 cleanup() { rm -f "$COOKIE"; }
@@ -21,7 +26,7 @@ trap cleanup EXIT
 # Options (hard-coded)
 ONLY_ALIVE=0    # 1 to skip dead fighters
 DRY_RUN=0       # 1 to preview titles only
-RATE_MS=1500     # throttle between edits (ms)
+RATE_MS=2000     # throttle between edits (ms)
 
 echo "[1/4] Get login token"
 LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
@@ -197,7 +202,7 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
   [[ -z "$ancestors" || "$ancestors" == "null" ]] && ancestors="??"
 
   lore_safe=$(printf '%s' "$lore" | sed 's/|/{{!}}/g')
-  lore_markdown=$(printf '%s' "$lore_safe" | python3 - "$DISPLAY_TITLE" <<'PY'
+  lore_markdown=$(printf '%s' "$lore_safe" | "$PYTHON_BIN" - "$DISPLAY_TITLE" <<'PY'
 import sys,re
 lore=sys.stdin.read()
 title=sys.argv[1]
