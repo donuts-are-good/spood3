@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# CONFIG
+WIKI_BASE="https://spoodblort.fandom.com"
+API="$WIKI_BASE/api.php"
+DB="spoodblort.db"   # absolute path for reliability
+BOT_USER="SpoodblortCommissioner@Spoodbot"     # BotPassword login name (YourUser@Label)
+# Hard-code your Bot Password (keep this script private)
+BOT_PASS="q15iu06t2dk5adia5r9b37r4ibt5rvm1"
+
+# deps: jq, sqlite3, curl
+command -v jq >/dev/null || { echo "Install jq"; exit 1; }
+command -v sqlite3 >/dev/null || { echo "Install sqlite3"; exit 1; }
+command -v curl >/dev/null || { echo "Install curl"; exit 1; }
+
+COOKIE="$(mktemp)"
+cleanup() { rm -f "$COOKIE"; }
+trap cleanup EXIT
+
+# Options (hard-coded)
+ONLY_ALIVE=0    # 1 to skip dead fighters
+DRY_RUN=0       # 1 to preview titles only
+RATE_MS=300     # throttle between edits (ms)
+
+echo "[1/4] Get login token"
+LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
+
+echo "[2/4] Login"
+LOGIN_RESULT=$(curl -s "$API?action=login&format=json" -b "$COOKIE" -c "$COOKIE" \
+  --data-urlencode "lgname=$BOT_USER" \
+  --data-urlencode "lgpassword=$BOT_PASS" \
+  --data-urlencode "lgtoken=$LOGIN_TOKEN" | jq -r '.login.result')
+if [[ "$LOGIN_RESULT" != "Success" ]]; then
+  echo "Login failed: $LOGIN_RESULT" >&2
+  exit 1
+fi
+
+echo "[3/4] Get CSRF token"
+CSRF=$(curl -s "$API?action=query&meta=tokens&type=csrf&format=json" -b "$COOKIE" | jq -r '.query.tokens.csrftoken')
+
+# Optional: ensure Template:Fighter exists (create only if missing)
+ensure_template() {
+  local exists
+  exists=$(curl -s "$API?action=query&format=json&titles=Template:Fighter" -b "$COOKIE" | jq -r '.query.pages|to_entries[0].value.missing // "0"')
+  if [[ "$exists" == "0" ]]; then
+    echo "[Template] Template:Fighter exists"
+    return
+  fi
+  echo "[Template] Creating Template:Fighter"
+  TEMPLATE_TEXT='{| class="infobox"
+! colspan="2" style="text-align:center;" | {{PAGENAME}}
+|-
+! Team
+| {{{team|}}}
+|-
+! Class
+| {{{class|}}}
+|-
+! Stats
+| Str: {{{strength|}}} • Spd: {{{speed|}}} • End: {{{endurance|}}} • Tec: {{{technique|}}}
+|-
+! Lore
+| {{{lore|}}}
+|}
+[[Category:Fighters]]'
+  curl -s "$API?action=edit&format=json" -b "$COOKIE" \
+    --data-urlencode "title=Template:Fighter" \
+    --data-urlencode "text=$TEMPLATE_TEXT" \
+    --data-urlencode "summary=Add Fighter template" \
+    --data-urlencode "token=$CSRF" \
+    --data-urlencode "createonly=1" | jq -r '.edit.result'
+}
+ensure_template
+
+# Update Fighters index page: insert a bullet for the new fighter in numeric order
+add_to_fighters_index() {
+  local title="$1"  # e.g., Roster #062 Stone Cold Steve Austin
+
+  # Fetch current page content (main slot)
+  local pageJson content
+  pageJson=$(curl -s "$API?action=query&prop=revisions&titles=Fighters&rvslots=main&rvprop=content|timestamp&formatversion=2&format=json" -b "$COOKIE")
+  content=$(echo "$pageJson" | jq -r '.query.pages[0].revisions[0].slots.main.content // ""')
+  if [[ -z "$content" || "$content" == "null" ]]; then
+    echo "[Index] Could not load Fighters page; skipping index update"
+    return
+  fi
+
+  # If already present, skip
+  if grep -Fq "[[$title]]" <(printf '%s' "$content"); then
+    echo "[Index] Already listed: $title"
+    return
+  fi
+
+  # Work in a temp file
+  local tmp
+  tmp=$(mktemp)
+  printf '%s' "$content" > "$tmp"
+
+  # Build new sorted block for the bullets under "Notable Fighters:".
+  # Strategy: capture the list items that start with "* Roster #" until a blank line or end of section, add the new item, sort numerically by the roster number, and replace the block.
+  local start end
+  start=$(awk '/^Notable Fighters:/{print NR; exit}' "$tmp") || true
+  if [[ -z "$start" ]]; then
+    echo "[Index] Could not find 'Notable Fighters:' heading; skipping index update"
+    rm -f "$tmp"
+    return
+  fi
+
+  # bullets start after the heading line and a possible quote line
+  # We'll scan from (start) to the next blank line following bullets
+  end=$(awk -v s="$start" 'NR>s && $0=="" {print NR; exit}' "$tmp") || true
+  if [[ -z "$end" ]]; then end=$(wc -l < "$tmp"); fi
+
+  # Extract pre, block, post
+  local pre block post
+  pre=$(awk -v e="$start" 'NR<=e{print}' "$tmp")
+  block=$(awk -v s="$start" -v e="$end" 'NR>s && NR<e{print}' "$tmp")
+  post=$(awk -v e="$end" 'NR>=e{print}' "$tmp")
+
+  # Collect existing roster bullets and everything else separate
+  local bullets others
+  bullets=$(printf '%s\n' "$block" | awk '/^\*\s*Roster\s*#/{print}')
+  others=$(printf '%s\n' "$block" | awk '!/^\*\s*Roster\s*#/{print}')
+
+  # Add the new bullet
+  bullets=$(printf '%s\n* [[%s]]\n' "$bullets" "$title")
+
+  # Sort bullets by roster number
+  bullets=$(printf '%s\n' "$bullets" | awk 'NF' | sort -t# -k2,2n)
+
+  # Reassemble
+  local newcontent
+  newcontent=$(printf '%s\n%s\n%s\n' "$pre" "$bullets" "$others$post")
+
+  # Submit edit
+  resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
+    --data-urlencode "title=Fighters" \
+    --data-urlencode "text=$newcontent" \
+    --data-urlencode "summary=Add $title to Fighters index" \
+    --data-urlencode "token=$CSRF")
+  if [[ $(echo "$resp" | jq -r '.edit.result // empty') == "Success" ]]; then
+    echo "[Index] Inserted into Fighters: $title"
+  else
+    echo "[Index] Edit failed for Fighters: $resp"
+  fi
+
+  rm -f "$tmp"
+}
+
+# Build SQL
+SQL='SELECT id, name, team, fighter_class AS class, strength, speed, endurance, technique, COALESCE(NULLIF(TRIM(lore),""),"") AS lore FROM fighters'
+if [[ "$ONLY_ALIVE" == "1" ]]; then
+  SQL+=" WHERE is_dead = 0"
+fi
+SQL+=';'
+
+echo "[4/4] Creating missing fighter pages (no clobber)"
+sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
+  id=$(jq -r '.id' <<<"$row")
+  name=$(jq -r '.name' <<<"$row")
+  team=$(jq -r '.team // ""' <<<"$row")
+  class=$(jq -r '.class // ""' <<<"$row")
+  strength=$(jq -r '.strength // 0' <<<"$row")
+  speed=$(jq -r '.speed // 0' <<<"$row")
+  endurance=$(jq -r '.endurance // 0' <<<"$row")
+  technique=$(jq -r '.technique // 0' <<<"$row")
+  lore=$(jq -r '.lore // ""' <<<"$row")
+
+  # Page title pattern. Keeps your existing “Roster #NNN Name” scheme.
+  TITLE=$(printf "Roster #%03d %s" "$id" "$name")
+
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "[DRY] Would create: $TITLE"
+    continue
+  fi
+
+  # Build page wikitext
+  TEXT=$(cat <<EOF
+{{Fighter
+|team=$team
+|class=$class
+|strength=$strength
+|speed=$speed
+|endurance=$endurance
+|technique=$technique
+|lore=$lore
+}}
+[[Category:Fighters]]
+EOF
+)
+
+  # Create-only: if page already exists, server responds with error code articleexists → skip.
+  resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
+    --data-urlencode "title=$TITLE" \
+    --data-urlencode "text=$TEXT" \
+    --data-urlencode "summary=Add fighter page via bot" \
+    --data-urlencode "token=$CSRF" \
+    --data-urlencode "createonly=1")
+
+  result=$(jq -r '.edit.result // empty' <<<"$resp")
+  code=$(jq -r '.error.code // empty' <<<"$resp")
+
+  if [[ "$result" == "Success" ]]; then
+    echo "✅ Created: $TITLE"
+    # Update index page
+    add_to_fighters_index "$TITLE"
+  elif [[ "$code" == "articleexists" ]]; then
+    echo "⏭️  Skipped (exists): $TITLE"
+  else
+    echo "⚠️  Error for $TITLE: $resp"
+  fi
+
+  # throttle
+  if [[ "$RATE_MS" -gt 0 ]]; then
+    sleep "$(awk -v ms="$RATE_MS" 'BEGIN{printf "%.3f", ms/1000}')"
+  fi
+
+done
+
+echo "Done."
