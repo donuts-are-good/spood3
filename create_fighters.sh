@@ -160,8 +160,10 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
   technique=$(jq -r '.technique // 0' <<<"$row")
   lore=$(jq -r '.lore // ""' <<<"$row")
 
-  # Page title pattern. Keeps your existing “Roster #NNN Name” scheme.
-  TITLE=$(printf "Roster #%03d %s" "$id" "$name")
+  DISPLAY_TITLE=$(printf "Roster #%03d %s" "$id" "$name")
+  SAFE_NAME=$(printf '%s' "$name" | sed 's/[^A-Za-z0-9 _-]/_/g')
+  URL_NAME=$(printf '%s' "$SAFE_NAME" | tr ' ' '_')
+  TITLE=$(printf "Roster_%03d_%s" "$id" "$URL_NAME")
 
   if [[ "$DRY_RUN" == "1" ]]; then
     echo "[DRY] Would create: $TITLE"
@@ -170,6 +172,7 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
 
   # Build page wikitext
   TEXT=$(cat <<EOF
+{{DISPLAYTITLE:$DISPLAY_TITLE}}
 {{Fighter
 |team=$team
 |class=$class
