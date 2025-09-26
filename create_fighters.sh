@@ -26,7 +26,7 @@ trap cleanup EXIT
 # Options (hard-coded)
 ONLY_ALIVE=0    # 1 to skip dead fighters
 DRY_RUN=0       # 1 to preview titles only
-RATE_MS=2000     # throttle between edits (ms)
+RATE_MS=5000     # throttle between edits (ms)
 INDEX_UPDATED=0  # Track if we've attempted index update to avoid rate limiting
 
 # Persistent queue + scheduling
