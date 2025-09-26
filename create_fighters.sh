@@ -77,12 +77,16 @@ ensure_template
 add_to_fighters_index() {
   local title="$1"  # e.g., Roster #062 Stone Cold Steve Austin
 
-  # Fetch current page content (raw to avoid ContentReview/format issues)
+  # Fetch current page content (follow redirects; raw endpoint)
   local content
-  content=$(curl -s "$WIKI_BASE/wiki/Fighters?action=raw")
+  content=$(curl -sL -H "User-Agent: SpoodblortBot/1.0" "$WIKI_BASE/wiki/Fighters?action=raw&ctype=text/plain")
   if [[ -z "$content" || "$content" == "null" ]]; then
-    echo "[Index] Could not load Fighters page; skipping index update"
-    return
+    # Fallback to MediaWiki API
+    content=$(curl -s "$API?action=query&prop=revisions&titles=Fighters&rvslots=main&rvprop=content&formatversion=2&format=json" -b "$COOKIE" | jq -r '.query.pages[0].revisions[0].slots.main.content // ""')
+    if [[ -z "$content" ]]; then
+      echo "[Index] Could not load Fighters page; skipping index update"
+      return
+    fi
   fi
 
   # If already present, skip
