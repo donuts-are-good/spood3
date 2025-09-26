@@ -177,16 +177,28 @@ header {
 }
 
 .advisory-dismiss {
+    position: relative;
+    margin-left: auto;
     border: 2px solid #ff4444;
     color: #ff4444;
-    background: transparent;
-    padding: 6px 10px;
-    border-radius: 6px;
+    background: #1a0000;
+    width: 40px;
+    height: 40px;
+    line-height: 34px;
+    text-align: center;
+    font-size: 28px;
+    border-radius: 50%;
     font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.4);
 }
 
-.advisory-dismiss:hover {
-    background: rgba(255, 68, 68, 0.15);
+.advisory-dismiss:hover,
+.advisory-dismiss:focus {
+    background: #330000;
+    outline: none;
+    transform: scale(1.05);
+    box-shadow: 0 0 18px rgba(255, 68, 68, 0.6);
 }
 
 @media (max-width: 768px) {
