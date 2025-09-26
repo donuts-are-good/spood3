@@ -448,9 +448,7 @@ while true; do
     main_cycle
 
     # Wait for next cycle
-    local next_cycle
     next_cycle=$((cycle_start + (CYCLE_HOURS * 3600)))
-    local wait_seconds
     wait_seconds=$((next_cycle - $(date +%s)))
 
     if [[ $wait_seconds -gt 0 ]]; then
