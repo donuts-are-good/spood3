@@ -139,6 +139,64 @@ header {
     z-index: 1000;
     display: none; /* Hidden by default, shown when advisory is dismissed */
 }
+/* Chaos Weather Advisory */
+.chaos-weather-advisory {
+    background: linear-gradient(135deg, rgba(255, 68, 68, 0.15), rgba(255, 170, 0, 0.08));
+    border-bottom: 2px solid #ff4444;
+    padding: 12px 0;
+}
+
+.chaos-weather-advisory .advisory-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.advisory-icon {
+    font-size: 1.5rem;
+}
+
+.advisory-text {
+    flex: 1;
+}
+
+.advisory-title {
+    font-family: var(--font-heading);
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #ffaaaa;
+    margin-bottom: 4px;
+}
+
+.advisory-body {
+    color: #ffffff;
+}
+
+.advisory-dismiss {
+    border: 2px solid #ff4444;
+    color: #ff4444;
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.advisory-dismiss:hover {
+    background: rgba(255, 68, 68, 0.15);
+}
+
+@media (max-width: 768px) {
+    .chaos-weather-advisory .advisory-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    .advisory-icon { font-size: 1.25rem; }
+}
 
 .weather-indicator:hover {
     transform: scale(1.05);
