@@ -78,6 +78,7 @@ INDEX_UPDATED=0  # Track if we've attempted index update to avoid rate limiting
 # Resilience options
 STATE_FILE="fighter_sync_state.txt"  # Track processed fighters
 CYCLE_HOURS=12   # Hours between full cycles
+cycle_start=0    # Global variable for cycle timing
 
 echo "[1/4] Get login token"
 LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
@@ -131,7 +132,6 @@ ensure_template
 
 # Main cycle loop - run every CYCLE_HOURS
 main_cycle() {
-    local cycle_start
     cycle_start=$(date +%s)
 
     echo "[CYCLE] Starting fighter sync cycle at $(date)"
