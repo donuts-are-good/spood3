@@ -102,7 +102,7 @@ function handleClap(fighterID, fighterName, avatarElement) {
         socket.send(JSON.stringify(clapMessage));
         
         // Show local feedback
-        showClapNotification(avatarElement, '👏 +1');
+        showClapNotification(avatarElement, '👏 +20');
         
         // Add clap burst animation
         avatarElement.classList.add('clap-burst');
@@ -156,7 +156,7 @@ function updateClappingState(round) {
         // Show notification about clapping
         addCommentaryMessage({
             action: `🎉 ROUND ${round} - CROWD PARTICIPATION ENABLED! 🎉`,
-            commentary: 'Cheer for your fighters! Click their avatars to give them +1 health!',
+            commentary: 'Cheer for your fighters! Click their avatars to give them +20 health!',
             announcer: 'THE COMMISSIONER',
             type: 'clap_enabled'
         });

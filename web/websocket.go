@@ -133,13 +133,13 @@ func (fb *FightBroadcaster) ProcessClapMessage(userID, fightID int, clap ClapMes
 		displayName = user.CustomUsername
 	}
 
-	clapAction := fight.LiveAction{
-		Type:       "clap",
-		Action:     fmt.Sprintf("%s cheered for %s! 👏👏 +1 health", displayName, clap.FighterName),
-		Announcer:  "",
-		Commentary: "",
-		Round:      clap.Round,
-	}
+    clapAction := fight.LiveAction{
+        Type:       "clap",
+        Action:     fmt.Sprintf("%s cheered for %s! 👏👏 +20 health", displayName, clap.FighterName),
+        Announcer:  "",
+        Commentary: "",
+        Round:      clap.Round,
+    }
 
 	// Broadcast to all viewers
 	fb.BroadcastAction(fightID, clapAction)
