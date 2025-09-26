@@ -105,6 +105,61 @@
     border: 1px solid #ff4444;
 }
 
+/* Lore embedded in header */
+.fighter-lore {
+    width: 100%;
+    background: #000000;
+    border: 1px solid #222222;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.fighter-lore h3 {
+    margin: 0 0 10px 0;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #333333;
+    padding-bottom: 8px;
+    text-align: left;
+}
+
+.fighter-lore .lore-text {
+    color: #e6e6e6;
+    line-height: 1.6;
+    font-size: 1rem;
+    font-family: 'Times New Roman', serif;
+    white-space: pre-wrap;
+}
+
+.fighter-lore .lore-edit h4 {
+    margin: 0 0 8px 0;
+    color: #ffaa00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.95rem;
+}
+
+.fighter-lore .lore-edit textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: #000000;
+    color: #ffffff;
+    border: 1px solid #555555;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: 'Times New Roman', serif;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.fighter-lore .lore-edit textarea:focus {
+    outline: none;
+    border-color: #ffaa00;
+    box-shadow: 0 0 0 2px rgba(255, 170, 0, 0.15);
+}
+
 /* Stats Container */
 .stats-container {
     display: grid;
