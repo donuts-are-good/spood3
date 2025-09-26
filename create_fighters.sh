@@ -200,23 +200,18 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
 EOF
 )
 
-  # Create-only: if page already exists, server responds with error code articleexists → skip.
+  # Create or update the page every run (no skipping)
   resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
     --data-urlencode "title=$TITLE" \
     --data-urlencode "text=$TEXT" \
-    --data-urlencode "summary=Add fighter page via bot" \
-    --data-urlencode "token=$CSRF" \
-    --data-urlencode "createonly=1")
+    --data-urlencode "summary=Sync fighter page from game DB" \
+    --data-urlencode "token=$CSRF")
 
   result=$(jq -r '.edit.result // empty' <<<"$resp")
-  code=$(jq -r '.error.code // empty' <<<"$resp")
-
   if [[ "$result" == "Success" ]]; then
-    echo "✅ Created: $TITLE"
-    # Update index page
+    echo "✅ Synced: $TITLE"
+    # Ensure it's on the Fighters index
     add_to_fighters_index "$TITLE"
-  elif [[ "$code" == "articleexists" ]]; then
-    echo "⏭️  Skipped (exists): $TITLE"
   else
     echo "⚠️  Error for $TITLE: $resp"
   fi
