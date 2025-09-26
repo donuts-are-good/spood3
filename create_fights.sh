@@ -82,9 +82,7 @@ ensure_template() {
 }
 
 build_sql() {
-  SQL='SELECT f.id, f.fighter1_id, f.fighter2_id, f.fighter1_name, f.fighter2_name, f.scheduled_time, f.status, f.winner_id, f.final_score1, f.final_score2,\
-               COALESCE(t.name, "Unknown Tournament") AS tournament_name\
-        FROM fights f LEFT JOIN tournaments t ON f.tournament_id = t.id'
+  SQL='SELECT f.id, f.fighter1_id, f.fighter2_id, f.fighter1_name, f.fighter2_name, f.scheduled_time, f.status, f.winner_id, f.final_score1, f.final_score2, COALESCE(t.name, "Unknown Tournament") AS tournament_name FROM fights f LEFT JOIN tournaments t ON f.tournament_id = t.id'
   if [[ "$ONLY_STATUS" != "all" ]]; then
     SQL+=" WHERE f.status = '"$ONLY_STATUS"'"
   fi
