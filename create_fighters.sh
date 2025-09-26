@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --reset)
+            RESET_STATE=1
+            shift
+            ;;
+        --help)
+            echo "Usage: $0 [--reset] [--help]"
+            echo "  --reset: Clear state file and start fresh"
+            echo "  --help:  Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
 # CONFIG
 WIKI_BASE="https://spoodblort.fandom.com"
 API="$WIKI_BASE/api.php"
@@ -13,6 +34,16 @@ BOT_PASS="q15iu06t2dk5adia5r9b37r4ibt5rvm1"
 command -v jq >/dev/null || { echo "Install jq"; exit 1; }
 command -v sqlite3 >/dev/null || { echo "Install sqlite3"; exit 1; }
 command -v curl >/dev/null || { echo "Install curl"; exit 1; }
+
+# Handle reset option
+if [[ "$RESET_STATE" == "1" ]]; then
+    if [[ -f "$STATE_FILE" ]]; then
+        echo "[RESET] Clearing state file: $STATE_FILE"
+        rm -f "$STATE_FILE"
+    else
+        echo "[RESET] State file doesn't exist, nothing to clear"
+    fi
+fi
 # Lore formatting relies on Python; optional. Set to empty to fall back to shell.
 PYTHON_BIN="$(command -v python3 || command -v python || true)"
 if [[ -z "$PYTHON_BIN" ]]; then
@@ -142,6 +173,7 @@ main_cycle() {
 
     # Load previously processed fighters
     load_processed_fighters
+    initial_processed_count=${#processed[@]}
     echo "[CYCLE] Found ${#processed[@]} previously processed fighters"
 
     # Update Fighters index page: insert a bullet for the new fighter in numeric order
@@ -448,9 +480,17 @@ EOF
 
 done < "$tmpfile"
 
+    # Final summary if all fighters were processed
+    if [[ "$fighter_count" -gt 0 ]]; then
+        processed_this_cycle=$((${#processed[@]} - initial_processed_count))
+        echo "[SUMMARY] Processed $processed_this_cycle fighters in this cycle"
+        echo "[SUMMARY] Total processed fighters: ${#processed[@]}"
+    fi
+
     rm -f "$tmpfile"
     echo "[CYCLE] Cycle completed at $(date)"
     echo "[CYCLE] Total processed fighters: ${#processed[@]}"
+    echo "[CYCLE] Next cycle will start at $(date -d "@$((cycle_start + (CYCLE_HOURS * 3600)))")"
 }
 
 # Main execution loop
