@@ -86,7 +86,8 @@ add_to_fighters_index() {
   local content
   content=$(curl -sL -H "User-Agent: SpoodblortBot/1.0" -b "$COOKIE" "$WIKI_BASE/wiki/Fighters?action=raw&ctype=text/plain")
   if [[ -z "$content" || "$content" == "null" ]]; then
-    content=$(curl -s "$API?action=query&redirects=1&prop=revisions&titles=Fighters&rvslots=main&rvprop=content&formatversion=2&format=json" -b "$COOKIE" | jq -r '.query.pages[0].revisions[0].slots.main.content // ""')
+    echo "[Index] Raw fetch empty, using parse API"
+    content=$(curl -s "$API?action=parse&page=Fighters&prop=wikitext&formatversion=2&format=json" -b "$COOKIE" | jq -r '.parse.wikitext // ""')
     if [[ -z "$content" ]]; then
       echo "[Index] Could not load Fighters page; skipping index update"
       return 0
@@ -123,7 +124,7 @@ add_to_fighters_index() {
   bullets=$(printf '%s\n' "$block" | awk '/^\*\s*Roster\s*#/{print}')
   others=$(printf '%s\n' "$block" | awk '!/^\*\s*Roster\s*#/{print}')
 
-  bullets=$(printf '%s\n* [[%s|%s]]\n' "$bullets" "$title" "$display" | awk 'NF')
+  bullets=$(printf '%s\n\n* [[%s|%s]]\n' "$bullets" "$title" "$display" | awk 'NF')
   bullets=$(printf '%s\n' "$bullets" | sort -t# -k2,2n)
 
   newcontent=$(printf '%s\n%s\n%s' "$pre" "$bullets" "$others$post")
@@ -166,7 +167,18 @@ fi
 SQL+=';'
 
 echo "[4/4] Creating missing fighter pages (no clobber)"
-sqlite3 -json "$DB" "$SQL" | jq -c '.[]' | while read -r row; do
+echo "[DEBUG] SQL Query: $SQL"
+total_fighters=$(sqlite3 "$DB" "SELECT COUNT(*) FROM fighters;")
+alive_fighters=$(sqlite3 "$DB" "SELECT COUNT(*) FROM fighters WHERE is_dead = 0;")
+echo "[DEBUG] Total fighters in DB: $total_fighters (alive: $alive_fighters)"
+
+# Store results in temp file to avoid subshell issues
+tmpfile=$(mktemp)
+sqlite3 -json "$DB" "$SQL" | jq -c '.[]' > "$tmpfile"
+fighter_count=$(wc -l < "$tmpfile")
+echo "[DEBUG] Processing $fighter_count fighters"
+
+while read -r row; do
   id=$(jq -r '.id' <<<"$row")
   name=$(jq -r '.name' <<<"$row")
   team=$(jq -r '.team // ""' <<<"$row")
@@ -342,6 +354,7 @@ EOF
     sleep "$(awk -v ms="$RATE_MS" 'BEGIN{printf "%.3f", ms/1000}')"
   fi
 
-done
+done < "$tmpfile"
 
+rm -f "$tmpfile"
 echo "Done."
