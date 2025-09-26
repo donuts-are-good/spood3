@@ -15,10 +15,8 @@ command -v sqlite3 >/dev/null || { echo "Install sqlite3"; exit 1; }
 command -v curl >/dev/null || { echo "Install curl"; exit 1; }
 # Lore formatting relies on Python; optional. Set to empty to fall back to shell.
 PYTHON_BIN="$(command -v python3 || command -v python || true)"
-PYTHON_BIN="$(command -v python3 || command -v python || true)"
 if [[ -z "$PYTHON_BIN" ]]; then
-  echo "Install python3" >&2
-  exit 1
+  echo "[Lore] python3 not found; using shell formatter"
 fi
 
 COOKIE="$(mktemp)"
@@ -315,7 +313,10 @@ EOF
     result=$(jq -r '.edit.result // empty' <<<"$resp")
     if [[ "$result" == "Success" ]]; then
       echo "✅ Synced: $TITLE"
-      idx_status=$(add_to_fighters_index "$TITLE" "$DISPLAY_TITLE") || idx_status=0
+      idx_status=0
+      if ! add_to_fighters_index "$TITLE" "$DISPLAY_TITLE"; then
+        idx_status=$?
+      fi
       if [[ "$idx_status" == "2" ]]; then
         echo "[Index] Backing off due to rate limit"
         sleep 5
