@@ -21,7 +21,7 @@ trap cleanup EXIT
 # Options
 ONLY_STATUS="${ONLY_STATUS:-all}"   # scheduled|active|completed|voided|all
 DRY_RUN=0       # 1 to preview titles only
-RATE_MS=5000     # throttle between edits (ms)
+RATE_MS=10000     # throttle between edits (ms)
 
 # Persistent queue + scheduling
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
