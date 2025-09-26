@@ -1,36 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --reset)
-            RESET_STATE=1
-            shift
-            ;;
-        --single)
-            SINGLE_CYCLE=1
-            shift
-            ;;
-        --help)
-            echo "Usage: $0 [--reset] [--single] [--help]"
-            echo "  --reset: Clear state file and start fresh"
-            echo "  --single: Run one cycle only, don't loop"
-            echo "  --help: Show this help message"
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1"
-            echo "Use --help for usage information"
-            exit 1
-            ;;
-    esac
-done
-
-# Command line options
-RESET_STATE=0    # Set to 1 to clear state file and start fresh
-SINGLE_CYCLE=0   # Set to 1 to run one cycle only
-
 # CONFIG
 WIKI_BASE="https://spoodblort.fandom.com"
 API="$WIKI_BASE/api.php"
@@ -43,17 +13,6 @@ BOT_PASS="q15iu06t2dk5adia5r9b37r4ibt5rvm1"
 command -v jq >/dev/null || { echo "Install jq"; exit 1; }
 command -v sqlite3 >/dev/null || { echo "Install sqlite3"; exit 1; }
 command -v curl >/dev/null || { echo "Install curl"; exit 1; }
-
-# Handle reset option
-if [[ "$RESET_STATE" == "1" ]]; then
-    if [[ -f "$STATE_FILE" ]]; then
-        echo "[RESET] Clearing state file: $STATE_FILE"
-        rm -f "$STATE_FILE"
-    else
-        echo "[RESET] State file doesn't exist, nothing to clear"
-    fi
-fi
-
 # Lore formatting relies on Python; optional. Set to empty to fall back to shell.
 PYTHON_BIN="$(command -v python3 || command -v python || true)"
 if [[ -z "$PYTHON_BIN" ]]; then
@@ -61,54 +20,8 @@ if [[ -z "$PYTHON_BIN" ]]; then
 fi
 
 COOKIE="$(mktemp)"
-cleanup() { rm -f "$COOKIE" "$tmpfile" 2>/dev/null || true; }
-trap cleanup EXIT INT TERM
-
-# State management functions
-load_processed_fighters() {
-    if [[ -f "$STATE_FILE" ]]; then
-        # Load processed fighter IDs from state file
-        processed=()
-        while IFS= read -r line; do
-            [[ -n "$line" ]] && processed+=("$line")
-        done < "$STATE_FILE"
-    else
-        processed=()
-    fi
-}
-
-save_processed_fighter() {
-    local fighter_id="$1"
-    echo "$fighter_id" >> "$STATE_FILE"
-}
-
-is_fighter_processed() {
-    local fighter_id="$1"
-    local found=0
-    for processed_id in "${processed[@]}"; do
-        if [[ "$processed_id" == "$fighter_id" ]]; then
-            found=1
-            break
-        fi
-    done
-    return $found
-}
-
-remove_processed_from_temp() {
-    local temp_file="$1"
-    local new_temp
-    new_temp=$(mktemp)
-
-    while read -r row; do
-        local id
-        id=$(jq -r '.id' <<<"$row")
-        if ! is_fighter_processed "$id"; then
-            echo "$row" >> "$new_temp"
-        fi
-    done < "$temp_file"
-
-    mv "$new_temp" "$temp_file"
-}
+cleanup() { rm -f "$COOKIE"; }
+trap cleanup EXIT
 
 # Options (hard-coded)
 ONLY_ALIVE=0    # 1 to skip dead fighters
@@ -116,26 +29,28 @@ DRY_RUN=0       # 1 to preview titles only
 RATE_MS=2000     # throttle between edits (ms)
 INDEX_UPDATED=0  # Track if we've attempted index update to avoid rate limiting
 
-# Resilience options
-STATE_FILE="fighter_sync_state.txt"  # Track processed fighters
-CYCLE_HOURS=12   # Hours between full cycles
-cycle_start=0    # Global variable for cycle timing
+# Persistent queue + scheduling
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+QUEUE_FILE="$SCRIPT_DIR/.create_fighters.queue"
+SLEEP_SECONDS=$((12*60*60))
 
-echo "[1/4] Get login token"
-LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
+perform_login() {
+  echo "[1/4] Get login token"
+  LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
 
-echo "[2/4] Login"
-LOGIN_RESULT=$(curl -s "$API?action=login&format=json" -b "$COOKIE" -c "$COOKIE" \
-  --data-urlencode "lgname=$BOT_USER" \
-  --data-urlencode "lgpassword=$BOT_PASS" \
-  --data-urlencode "lgtoken=$LOGIN_TOKEN" | jq -r '.login.result')
-if [[ "$LOGIN_RESULT" != "Success" ]]; then
-  echo "Login failed: $LOGIN_RESULT" >&2
-  exit 1
-fi
+  echo "[2/4] Login"
+  LOGIN_RESULT=$(curl -s "$API?action=login&format=json" -b "$COOKIE" -c "$COOKIE" \
+    --data-urlencode "lgname=$BOT_USER" \
+    --data-urlencode "lgpassword=$BOT_PASS" \
+    --data-urlencode "lgtoken=$LOGIN_TOKEN" | jq -r '.login.result')
+  if [[ "$LOGIN_RESULT" != "Success" ]]; then
+    echo "Login failed: $LOGIN_RESULT" >&2
+    return 1
+  fi
 
-echo "[3/4] Get CSRF token"
-CSRF=$(curl -s "$API?action=query&meta=tokens&type=csrf&format=json" -b "$COOKIE" | jq -r '.query.tokens.csrftoken')
+  echo "[3/4] Get CSRF token"
+  CSRF=$(curl -s "$API?action=query&meta=tokens&type=csrf&format=json" -b "$COOKIE" | jq -r '.query.tokens.csrftoken')
+}
 
 # Optional: ensure Template:Fighter exists (create only if missing)
 ensure_template() {
@@ -169,22 +84,9 @@ ensure_template() {
     --data-urlencode "token=$CSRF" \
     --data-urlencode "createonly=1" | jq -r '.edit.result'
 }
-ensure_template
+# ensure_template will be called each cycle after login
 
-# Main cycle loop - run every CYCLE_HOURS
-main_cycle() {
-    local initial_processed_count
-    cycle_start=$(date +%s)
-
-    echo "[CYCLE] Starting fighter sync cycle at $(date)"
-    echo "[CYCLE] State file: $STATE_FILE"
-
-    # Load previously processed fighters
-    load_processed_fighters
-    initial_processed_count=${#processed[@]}
-    echo "[CYCLE] Found $initial_processed_count previously processed fighters"
-
-    # Update Fighters index page: insert a bullet for the new fighter in numeric order
+# Update Fighters index page: insert a bullet for the new fighter in numeric order
 add_to_fighters_index() {
   local title="$1"
   local display="$2"
@@ -259,44 +161,43 @@ add_to_fighters_index() {
   return 0
 }
 
-# Build SQL
-SQL='SELECT id, name, team, fighter_class AS class,
-             strength, speed, endurance, technique,
-             blood_type, horoscope, molecular_density, existential_dread,
-             fingers, toes, ancestors,
-             wins, losses, draws,
-             COALESCE(NULLIF(TRIM(lore),""),"") AS lore
-      FROM fighters'
-if [[ "$ONLY_ALIVE" == "1" ]]; then
-  SQL+=" WHERE is_dead = 0"
-fi
-SQL+=';'
+build_sql() {
+  SQL='SELECT id, name, team, fighter_class AS class,
+               strength, speed, endurance, technique,
+               blood_type, horoscope, molecular_density, existential_dread,
+               fingers, toes, ancestors,
+               wins, losses, draws,
+               COALESCE(NULLIF(TRIM(lore),""),"") AS lore
+        FROM fighters'
+  if [[ "$ONLY_ALIVE" == "1" ]]; then
+    SQL+=" WHERE is_dead = 0"
+  fi
+  SQL+=';'
+}
 
-echo "[4/4] Creating missing fighter pages (no clobber)"
-echo "[DEBUG] SQL Query: $SQL"
-total_fighters=$(sqlite3 "$DB" "SELECT COUNT(*) FROM fighters;")
-alive_fighters=$(sqlite3 "$DB" "SELECT COUNT(*) FROM fighters WHERE is_dead = 0;")
-echo "[DEBUG] Total fighters in DB: $total_fighters (alive: $alive_fighters)"
+refresh_queue_if_needed() {
+  if [[ ! -s "$QUEUE_FILE" ]]; then
+    echo "[Queue] Building queue file at $QUEUE_FILE"
+    build_sql
+    echo "[4/4] Creating missing fighter pages (no clobber)"
+    echo "[DEBUG] SQL Query: $SQL"
+    total_fighters=$(sqlite3 "$DB" "SELECT COUNT(*) FROM fighters;")
+    alive_fighters=$(sqlite3 "$DB" "SELECT COUNT(*) FROM fighters WHERE is_dead = 0;")
+    echo "[DEBUG] Total fighters in DB: $total_fighters (alive: $alive_fighters)"
+    sqlite3 -json "$DB" "$SQL" | jq -c '.[]' > "$QUEUE_FILE"
+  else
+    echo "[Queue] Resuming from existing queue: $QUEUE_FILE"
+  fi
+}
 
-# Store results in temp file to avoid subshell issues
-tmpfile=$(mktemp)
-sqlite3 -json "$DB" "$SQL" | jq -c '.[]' > "$tmpfile"
-
-# Remove already processed fighters from temp file
-remove_processed_from_temp "$tmpfile"
-fighter_count=$(wc -l < "$tmpfile")
-echo "[DEBUG] Processing $fighter_count fighters (filtered from processed list)"
-
-# If no fighters to process and we have processed some before, mention it
-if [[ "$fighter_count" -eq 0 && "${#processed[@]}" -gt 0 ]]; then
-    echo "[INFO] All fighters already processed! Next cycle will run in $CYCLE_HOURS hours."
-elif [[ "$fighter_count" -eq 0 ]]; then
-    echo "[INFO] No fighters found in database to process."
-fi
-
-while read -r row; do
-    # Skip empty lines
-    [[ -z "$row" ]] && continue
+process_queue_cycle() {
+  INDEX_UPDATED=0
+  while true; do
+    row=$(head -n 1 "$QUEUE_FILE" || true)
+    if [[ -z "$row" ]]; then
+      echo "[Queue] Completed all entries"
+      break
+    fi
   id=$(jq -r '.id' <<<"$row")
   name=$(jq -r '.name' <<<"$row")
   team=$(jq -r '.team // ""' <<<"$row")
@@ -322,10 +223,12 @@ while read -r row; do
   URL_NAME=$(printf '%s' "$SAFE_NAME" | tr ' ' '_')
   TITLE=$(printf "Roster_%03d_%s" "$id" "$URL_NAME")
 
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "[DRY] Would create: $TITLE"
-    continue
-  fi
+    if [[ "$DRY_RUN" == "1" ]]; then
+      echo "[DRY] Would create: $TITLE"
+      # Remove from queue even on DRY to advance
+      tail -n +2 "$QUEUE_FILE" > "$QUEUE_FILE.tmp" && mv "$QUEUE_FILE.tmp" "$QUEUE_FILE"
+      continue
+    fi
 
   [[ -z "$team" || "$team" == "null" ]] && team="Unaffiliated"
   [[ -z "$class" || "$class" == "null" ]] && class="Unclassified"
@@ -370,7 +273,7 @@ PY
     lore_markdown+=$'\n'
   fi
 
-  TEXT=$(cat <<EOF
+    TEXT=$(cat <<EOF
 {{DISPLAYTITLE:$DISPLAY_TITLE}}
 {{Fighter
 |team=$team
@@ -430,90 +333,79 @@ $lore_markdown
 
 [[Category:Fighters]]
 EOF
-)
-  # Create or update the page every run (no skipping)
-  retries=0
-  while true; do
-    resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
-      --data-urlencode "title=$TITLE" \
-      --data-urlencode "text=$TEXT" \
-      --data-urlencode "summary=Sync fighter page from game DB" \
-      --data-urlencode "token=$CSRF")
+    )
+    # Create or update the page every run (no skipping)
+    retries=0
+    edit_success=0
+    while true; do
+      resp=$(curl -s "$API?action=edit&format=json" -b "$COOKIE" \
+        --data-urlencode "title=$TITLE" \
+        --data-urlencode "text=$TEXT" \
+        --data-urlencode "summary=Sync fighter page from game DB" \
+        --data-urlencode "token=$CSRF")
 
-    result=$(jq -r '.edit.result // empty' <<<"$resp")
-    if [[ "$result" == "Success" ]]; then
-      echo "✅ Synced: $TITLE"
-      # Mark this fighter as processed
-      save_processed_fighter "$id"
-
-      # Remove this fighter from temp file to save memory and prevent reprocessing
-      remove_processed_from_temp "$tmpfile"
-
-      # Only try index update once to avoid rate limiting
-      if [[ "$INDEX_UPDATED" != "1" ]]; then
-        idx_status=0
-        if ! add_to_fighters_index "$TITLE" "$DISPLAY_TITLE"; then
-          idx_status=$?
-        fi
-        if [[ "$idx_status" == "2" ]]; then
-          echo "[Index] Backing off due to rate limit"
-          sleep 5
-          RATE_MS=$((RATE_MS + 1000))
-          INDEX_UPDATED=1  # Don't try again this run
+      result=$(jq -r '.edit.result // empty' <<<"$resp")
+      if [[ "$result" == "Success" ]]; then
+        echo "✅ Synced: $TITLE"
+        edit_success=1
+        # Only try index update once to avoid rate limiting
+        if [[ "$INDEX_UPDATED" != "1" ]]; then
+          idx_status=0
+          if ! add_to_fighters_index "$TITLE" "$DISPLAY_TITLE"; then
+            idx_status=$?
+          fi
+          if [[ "$idx_status" == "2" ]]; then
+            echo "[Index] Backing off due to rate limit"
+            sleep 5
+            RATE_MS=$((RATE_MS + 1000))
+            INDEX_UPDATED=1  # Don't try again this run
+          else
+            INDEX_UPDATED=1  # Successfully updated, don't try again
+          fi
         else
-          INDEX_UPDATED=1  # Successfully updated, don't try again
+          echo "[Index] Skipping index update (already attempted this run)"
         fi
-      else
-        echo "[Index] Skipping index update (already attempted this run)"
+        break
       fi
+
+      errcode=$(jq -r '.error.code // empty' <<<"$resp")
+      if [[ "$errcode" == "ratelimited" ]]; then
+        retries=$((retries + 1))
+        echo "⚠️  Rate limited while syncing $TITLE. Retry #$retries"
+        sleep 5
+        RATE_MS=$((RATE_MS + 1000))
+        continue
+      fi
+
+      echo "⚠️  Error for $TITLE: $resp"
       break
+    done
+
+    if [[ "$edit_success" == "1" ]]; then
+      # Remove first line from queue (the processed row)
+      tail -n +2 "$QUEUE_FILE" > "$QUEUE_FILE.tmp" && mv "$QUEUE_FILE.tmp" "$QUEUE_FILE"
+    else
+      echo "[Queue] Keeping entry for retry: $TITLE"
     fi
 
-    errcode=$(jq -r '.error.code // empty' <<<"$resp")
-    if [[ "$errcode" == "ratelimited" ]]; then
-      retries=$((retries + 1))
-      echo "⚠️  Rate limited while syncing $TITLE. Retry #$retries"
-      sleep 5
-      RATE_MS=$((RATE_MS + 1000))
-      continue
+    if [[ "$RATE_MS" -gt 0 ]]; then
+      sleep "$(awk -v ms="$RATE_MS" 'BEGIN{printf "%.3f", ms/1000}')"
     fi
-
-    echo "⚠️  Error for $TITLE: $resp"
-    break
   done
-
-  if [[ "$RATE_MS" -gt 0 ]]; then
-    sleep "$(awk -v ms="$RATE_MS" 'BEGIN{printf "%.3f", ms/1000}')"
-  fi
-
-done < "$tmpfile"
-
-    # Final summary
-    processed_this_cycle=$((${#processed[@]} - initial_processed_count))
-    echo "[SUMMARY] Processed $processed_this_cycle fighters in this cycle"
-    echo "[SUMMARY] Total processed fighters: ${#processed[@]}"
-
-    rm -f "$tmpfile"
-    echo "[CYCLE] Cycle completed at $(date)"
-    echo "[CYCLE] Total processed fighters: ${#processed[@]}"
 }
 
-# Main execution loop
-if [[ "$SINGLE_CYCLE" == "1" ]]; then
-    echo "[MODE] Running single cycle only"
-    main_cycle
-else
-    echo "[MODE] Running continuous cycles every $CYCLE_HOURS hours"
-    while true; do
-        main_cycle
-
-        # Wait for next cycle
-        next_cycle=$((cycle_start + (CYCLE_HOURS * 3600)))
-        wait_seconds=$((next_cycle - $(date +%s)))
-
-        if [[ $wait_seconds -gt 0 ]]; then
-            echo "[CYCLE] Waiting $wait_seconds seconds until next cycle..."
-            sleep "$wait_seconds"
-        fi
-    done
-fi
+while true; do
+  if ! perform_login; then
+    echo "[Auth] Login failed; sleeping 60s before retry"
+    sleep 60
+    continue
+  fi
+  ensure_template
+  refresh_queue_if_needed
+  echo "[DEBUG] Processing $(wc -l < "$QUEUE_FILE") fighters"
+  process_queue_cycle
+  # Clear queue after a successful cycle so the next cycle rebuilds from DB
+  rm -f "$QUEUE_FILE"
+  echo "[Scheduler] Cycle complete. Sleeping for $SLEEP_SECONDS seconds (12h)"
+  sleep "$SLEEP_SECONDS"
+done
