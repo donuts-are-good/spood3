@@ -42,6 +42,7 @@ type Fighter struct {
 	IsCustom          bool       `db:"is_custom"`
 	CreationDate      *time.Time `db:"creation_date"`
 	CustomDescription *string    `db:"custom_description"`
+	Lore              string     `db:"lore"`
 }
 
 type ChampionLegacyRecord struct {

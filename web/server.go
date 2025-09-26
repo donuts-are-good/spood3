@@ -132,6 +132,8 @@ type PageData struct {
 	// Access and limits
 	FightBetMax  int // Per-user fight bet cap (min of credits and policy)
 	CasinoBetMax int // Casino wager cap (100M unless sacrifice exemption)
+	// Access flags
+	IsAdmin bool
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -244,6 +246,70 @@ func (s *Server) setupRoutes() {
 
 	// Extortion event resolver
 	protected.HandleFunc("/casino/extortion", s.handleExtortionResolve).Methods("POST")
+
+	// General protected subrouter for non-/user edits
+	protectedGeneral := s.router.PathPrefix("").Subrouter()
+	protectedGeneral.Use(s.authMW.LoadUser)
+	protectedGeneral.Use(s.authMW.RequireAuth)
+	protectedGeneral.HandleFunc("/fighter/edit", s.handleFighterEdit).Methods("POST")
+}
+
+// isAdmin checks if a user is an admin based on allowed Discord IDs from env
+func isAdmin(user *database.User) bool {
+	if user == nil {
+		return false
+	}
+	// Hardcoded admin Discord IDs (puggy, The Feature Creep)
+	switch user.DiscordID {
+	case "1213306439175766031", // puggy
+		"936770406004699208": // The Feature Creep
+		return true
+	default:
+		return false
+	}
+}
+
+// handleFighterEdit handles admin edits to fighter fields (e.g., lore)
+func (s *Server) handleFighterEdit(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if !isAdmin(user) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form", http.StatusBadRequest)
+		return
+	}
+
+	idStr := r.FormValue("id")
+	field := r.FormValue("field")
+	value := r.FormValue("value")
+
+	fighterID, err := strconv.Atoi(strings.TrimSpace(idStr))
+	if err != nil || fighterID <= 0 {
+		http.Error(w, "Invalid fighter id", http.StatusBadRequest)
+		return
+	}
+
+	switch field {
+	case "lore":
+		// optional normalization: clamp size
+		if len(value) > 2000 {
+			value = value[:2000]
+		}
+		if err := s.repo.UpdateFighterLore(fighterID, value); err != nil {
+			log.Printf("failed updating lore for fighter %d: %v", fighterID, err)
+			http.Error(w, "Update failed", http.StatusInternalServerError)
+			return
+		}
+	default:
+		http.Error(w, "Unsupported field", http.StatusBadRequest)
+		return
+	}
+
+	// Redirect back to fighter page
+	http.Redirect(w, r, fmt.Sprintf("/fighter/%d", fighterID), http.StatusSeeOther)
 }
 
 // handleSaturday renders the Saturday special schedule view
@@ -633,6 +699,9 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Printf("Debug: No creator user to add to template data")
 	}
+
+	// Mark admin flag so template can hide admin UI for non-admins
+	data.IsAdmin = isAdmin(user)
 
 	s.renderTemplate(w, "fighter.html", data)
 }

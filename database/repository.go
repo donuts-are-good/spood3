@@ -1009,6 +1009,12 @@ func (r *Repository) CreateCustomFighter(fighter Fighter) (int, error) {
 	return int(fighterID), nil
 }
 
+// UpdateFighterLore updates the lore text for a fighter
+func (r *Repository) UpdateFighterLore(fighterID int, lore string) error {
+	_, err := r.db.Exec("UPDATE fighters SET lore = ?, created_at = created_at WHERE id = ?", lore, fighterID)
+	return err
+}
+
 // GetUserIDsWithBetsOnFight returns user IDs of users who have bets on the given fight
 func (r *Repository) GetUserIDsWithBetsOnFight(fightID int) ([]int, error) {
 	var userIDs []int

@@ -130,6 +130,32 @@
             </div>
             {{end}}
         </div>
+
+        <!-- Lore Section -->
+        <div class="stats-card" style="margin-top: 1rem;">
+            <h3>Lore</h3>
+            <div class="lore-text" style="white-space: pre-wrap;">
+                {{if .Fighter.Lore}}{{.Fighter.Lore}}{{else}}...{{end}}
+            </div>
+        </div>
+
+        <!-- Admin-only edit form -->
+        {{if .IsAdmin}}
+        <div class="stats-card" style="margin-top: 1rem;">
+            <h3>Edit Lore (Admin)</h3>
+            <form method="POST" action="/fighter/edit">
+                <input type="hidden" name="id" value="{{.Fighter.ID}}">
+                <input type="hidden" name="field" value="lore">
+                <div style="margin-bottom: 0.5rem;">
+                    <textarea name="value" rows="6" style="width:100%;">{{.Fighter.Lore}}</textarea>
+                </div>
+                <div>
+                    <button type="submit" class="cta">Save</button>
+                    <a href="/fighter/{{.Fighter.ID}}" class="back-button">Cancel</a>
+                </div>
+            </form>
+        </div>
+        {{end}}
     {{else}}
         <div class="error-message">
             <h2>Fighter Not Found</h2>
