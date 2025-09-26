@@ -80,6 +80,9 @@ STATE_FILE="fighter_sync_state.txt"  # Track processed fighters
 CYCLE_HOURS=12   # Hours between full cycles
 cycle_start=0    # Global variable for cycle timing
 
+# Command line options
+RESET_STATE=0    # Set to 1 to clear state file and start fresh
+
 echo "[1/4] Get login token"
 LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
 
@@ -243,6 +246,13 @@ sqlite3 -json "$DB" "$SQL" | jq -c '.[]' > "$tmpfile"
 remove_processed_from_temp "$tmpfile"
 fighter_count=$(wc -l < "$tmpfile")
 echo "[DEBUG] Processing $fighter_count fighters (filtered from processed list)"
+
+# If no fighters to process and we have processed some before, mention it
+if [[ "$fighter_count" -eq 0 && "${#processed[@]}" -gt 0 ]]; then
+    echo "[INFO] All fighters already processed! Next cycle will run in $CYCLE_HOURS hours."
+elif [[ "$fighter_count" -eq 0 ]]; then
+    echo "[INFO] No fighters found in database to process."
+fi
 
 while read -r row; do
     # Skip empty lines
