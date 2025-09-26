@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"database/sql"
@@ -843,6 +844,126 @@ func (r *Repository) ProcessMVPRewards(fightID int, winnerID int) error {
 
 	log.Printf("MVP rewards processed: %d users rewarded for fighter %d winning", rewardCount, winnerID)
 	return nil
+}
+
+func (r *Repository) IncrementFighterCombatStat(fighterID int, stat string, delta int) error {
+	var column string
+	switch strings.ToLower(stat) {
+	case "strength":
+		column = "strength"
+	case "speed":
+		column = "speed"
+	case "endurance":
+		column = "endurance"
+	case "technique":
+		column = "technique"
+	default:
+		return fmt.Errorf("invalid combat stat: %s", stat)
+	}
+
+	query := fmt.Sprintf("UPDATE fighters SET %s = %s + ? WHERE id = ?", column, column)
+	_, err := r.db.Exec(query, delta, fighterID)
+	return err
+}
+
+func (r *Repository) CreateChampionLegacyRecord(rec ChampionLegacyRecord) error {
+	rec.StatAwarded = strings.ToLower(rec.StatAwarded)
+	_, err := r.db.NamedExec(`
+		INSERT OR IGNORE INTO champion_legacy_records (
+			fight_id,
+			fighter_id,
+			tournament_id,
+			tournament_week,
+			tournament_name,
+			stat_awarded,
+			stat_delta,
+			awarded_at
+		) VALUES (
+			:fight_id,
+			:fighter_id,
+			:tournament_id,
+			:tournament_week,
+			:tournament_name,
+			:stat_awarded,
+			:stat_delta,
+			:awarded_at
+		)
+	`, rec)
+	return err
+}
+
+func (r *Repository) GetRecentChampionLegacyRecords(limit int) ([]ChampionLegacyEntry, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+	query := `
+		SELECT clr.*, f.name AS fighter_name, fi.fighter1_name, fi.fighter2_name, fi.scheduled_time
+		FROM champion_legacy_records clr
+		JOIN fighters f ON clr.fighter_id = f.id
+		JOIN fights fi ON clr.fight_id = fi.id
+		ORDER BY clr.awarded_at DESC
+		LIMIT ?`
+	var records []ChampionLegacyEntry
+	err := r.db.Select(&records, query, limit)
+	return records, err
+}
+
+func (r *Repository) CountChampionTitlesForFighter(fighterID int) (int, error) {
+	var count int
+	err := r.db.Get(&count, `SELECT COUNT(*) FROM champion_legacy_records WHERE fighter_id = ?`, fighterID)
+	return count, err
+}
+
+func (r *Repository) GetChampionLegacyRecordsForFighter(fighterID int) ([]ChampionLegacyRecord, error) {
+	var records []ChampionLegacyRecord
+	err := r.db.Select(&records, `
+		SELECT * FROM champion_legacy_records
+		WHERE fighter_id = ?
+		ORDER BY awarded_at DESC`, fighterID)
+	return records, err
+}
+
+func (r *Repository) GetFighterChampionTitleCounts() ([]ChampionTitleCount, error) {
+	query := `
+		SELECT clr.fighter_id, f.name AS fighter_name, COUNT(*) AS title_count
+		FROM champion_legacy_records clr
+		JOIN fighters f ON clr.fighter_id = f.id
+		GROUP BY clr.fighter_id, f.name
+		ORDER BY title_count DESC, f.name ASC`
+	var rows []ChampionTitleCount
+	err := r.db.Select(&rows, query)
+	return rows, err
+}
+
+func (r *Repository) SumChampionFightBets(fightID int) (int, int, error) {
+	var totalWagered, totalPayout int
+	err := r.db.QueryRow(`
+		SELECT
+			COALESCE(SUM(amount), 0) AS total_wagered,
+			COALESCE(SUM(CASE WHEN status = 'won' THEN payout ELSE 0 END), 0) AS total_payout
+		FROM bets
+		WHERE fight_id = ?
+	`, fightID).Scan(&totalWagered, &totalPayout)
+	return totalWagered, totalPayout, err
+}
+
+func (r *Repository) CountEffectsForFightDay(fightID int) (int, int, error) {
+	var blessings, curses int
+	err := r.db.QueryRow(`
+		WITH fight_info AS (
+			SELECT fighter1_id, fighter2_id, DATE(scheduled_time) AS fight_date
+			FROM fights
+			WHERE id = ?
+		)
+		SELECT
+			COALESCE(SUM(CASE WHEN ae.effect_type LIKE '%_blessing' THEN 1 ELSE 0 END), 0) AS blessings,
+			COALESCE(SUM(CASE WHEN ae.effect_type LIKE '%_curse' THEN 1 ELSE 0 END), 0) AS curses
+		FROM applied_effects ae
+		JOIN fight_info fi ON ae.target_type = 'fighter'
+			AND ae.target_id IN (fi.fighter1_id, fi.fighter2_id)
+		WHERE DATE(ae.created_at) = fi.fight_date
+	`, fightID).Scan(&blessings, &curses)
+	return blessings, curses, err
 }
 
 // GetFighterByName gets a fighter by their name (for duplicate checking)

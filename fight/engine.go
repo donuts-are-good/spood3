@@ -768,6 +768,11 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 			log.Printf("Failed to process MVP rewards for fight %d: %v", fight.ID, err)
 			// Continue with fight completion even if MVP processing fails
 		}
+
+		err = e.applyLegacyInfusionIfSaturdayChampion(fight, state, time.Now())
+		if err != nil {
+			log.Printf("Failed to apply legacy infusion for fight %d: %v", fight.ID, err)
+		}
 	}
 
 	// Update fight in database
@@ -854,6 +859,92 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 	}
 
 	log.Printf("Fight completed successfully, bets and MVP rewards processed")
+	return nil
+}
+
+func (e *Engine) applyLegacyInfusionIfSaturdayChampion(fight database.Fight, state *FightState, now time.Time) error {
+	if state.WinnerID == 0 {
+		return nil
+	}
+
+	centralTime, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		return err
+	}
+
+	nowC := now.In(centralTime)
+	scheduledC := fight.ScheduledTime.In(centralTime)
+
+	if scheduledC.Weekday() != time.Saturday {
+		return nil
+	}
+
+	if scheduledC.Hour() < 23 || (scheduledC.Hour() == 23 && scheduledC.Minute() < 30) {
+		return nil
+	}
+
+	isInWindow := false
+	if nowC.Weekday() == time.Saturday {
+		if nowC.Hour() > 23 || (nowC.Hour() == 23 && nowC.Minute() >= 30) {
+			isInWindow = true
+		}
+	} else if nowC.Weekday() == time.Sunday {
+		if nowC.Hour() < 1 {
+			isInWindow = true
+		}
+	}
+
+	if !isInWindow {
+		return nil
+	}
+
+	stats := []string{"strength", "speed", "endurance", "technique"}
+	seed := now.UnixNano() ^ int64(fight.ID)
+	rng := utils.NewSeededRNG(seed)
+	chosenStat := stats[rng.Intn(len(stats))]
+
+	if err := e.repo.IncrementFighterCombatStat(state.WinnerID, chosenStat, 1); err != nil {
+		return err
+	}
+
+	rec := database.ChampionLegacyRecord{
+		FightID:      fight.ID,
+		FighterID:    state.WinnerID,
+		TournamentID: fight.TournamentID,
+		StatAwarded:  chosenStat,
+		StatDelta:    1,
+		AwardedAt:    nowC,
+	}
+
+	if totalWagered, totalPayout, err := e.repo.SumChampionFightBets(fight.ID); err == nil {
+		rec.TotalWagered = totalWagered
+		rec.TotalPayout = totalPayout
+	} else {
+		log.Printf("Legacy infusion: failed to aggregate bets for fight %d: %v", fight.ID, err)
+	}
+
+	if blessings, curses, err := e.repo.CountEffectsForFightDay(fight.ID); err == nil {
+		rec.BlessingsCount = blessings
+		rec.CursesCount = curses
+	} else {
+		log.Printf("Legacy infusion: failed to aggregate effects for fight %d: %v", fight.ID, err)
+	}
+
+	if tournament, err := e.repo.GetTournament(fight.TournamentID); err == nil {
+		rec.TournamentWeek = tournament.WeekNumber
+		rec.TournamentName = tournament.Name
+	}
+
+	if err := e.repo.CreateChampionLegacyRecord(rec); err != nil {
+		return err
+	}
+
+	if fighter, err := e.repo.GetFighter(state.WinnerID); err == nil {
+		log.Printf("Legacy infusion: %s gains +1 %s after Saturday championship", fighter.Name, chosenStat)
+	} else {
+		log.Printf("Legacy infusion applied to fighter %d (+1 %s)", state.WinnerID, chosenStat)
+	}
+
 	return nil
 }
 

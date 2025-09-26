@@ -111,6 +111,24 @@
         
         <div class="fighter-actions">
             <a href="/" class="back-button">← Back to Schedule</a>
+            {{if gt .FighterLegacyCount 0}}
+            <div class="fighter-championships">
+                <div class="champion-badge">🏆 {{.FighterLegacyCount}}x Champion</div>
+                <ul class="champion-list">
+                    {{range .FighterLegacy}}
+                    <li>
+                        <span class="champion-left">
+                            <a href="/fight/{{.FightID}}">{{.TournamentName}}</a>
+                            <span class="champion-meta">· {{formatDate .AwardedAt}}</span>
+                            <span class="champion-meta">· Total Bets {{commas .TotalWagered}} · Payout {{commas .TotalPayout}}</span>
+                            <span class="champion-meta">· Blessings {{.BlessingsCount}} · Curses {{.CursesCount}}</span>
+                        </span>
+                        <span class="champion-right">+{{.StatDelta}} {{toTitle .StatAwarded}}</span>
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+            {{end}}
         </div>
     {{else}}
         <div class="error-message">

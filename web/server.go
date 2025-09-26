@@ -89,6 +89,8 @@ type PageData struct {
 	Title           string
 	Tournament      *database.Tournament
 	Fights          []database.Fight
+	LegacyRecords   []database.ChampionLegacyEntry
+	ChampionCounts  []database.ChampionTitleCount
 	SaturdayFights  []scheduleFightDTO
 	Fighter         *database.Fighter
 	Fight           *database.Fight
@@ -117,6 +119,8 @@ type PageData struct {
 	Fighter2Curses     int
 	Fighter2Blessings  int
 	UserEffectsOnFight []database.AppliedEffectWithUser // New field for user effects
+	FighterLegacy      []database.ChampionLegacyRecord
+	FighterLegacyCount int
 	// MVP-related fields
 	CurrentMVP   *database.UserSetting
 	CanChangeMVP bool
@@ -179,6 +183,7 @@ func (s *Server) setupRoutes() {
 	public.HandleFunc("/fighters", s.handleFighters).Methods("GET")
 	public.HandleFunc("/fighter/{id}", s.handleFighter).Methods("GET")
 	public.HandleFunc("/fight/{id}", s.handleFight).Methods("GET")
+	public.HandleFunc("/champions", s.handleChampions).Methods("GET")
 	public.HandleFunc("/leaderboard", s.handleLeaderboard).Methods("GET")
 	public.HandleFunc("/closed", s.handleClosedPage).Methods("GET")
 	public.HandleFunc("/favicon.ico", s.handleFavicon).Methods("GET")
@@ -520,7 +525,45 @@ func (s *Server) handleFighters(w http.ResponseWriter, r *http.Request) {
 		data.SecondaryColor = secondaryColor
 	}
 
+	if titleCounts, err := s.repo.GetFighterChampionTitleCounts(); err == nil {
+		data.ChampionCounts = titleCounts
+	}
+
 	s.renderTemplate(w, "fighters.html", data)
+}
+
+func (s *Server) handleChampions(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+
+	records, err := s.repo.GetRecentChampionLegacyRecords(60)
+	if err != nil {
+		log.Printf("Error loading champion legacy records: %v", err)
+		records = nil
+	}
+
+	counts, err := s.repo.GetFighterChampionTitleCounts()
+	if err != nil {
+		log.Printf("Error loading champion title counts: %v", err)
+		counts = nil
+	}
+
+	data := PageData{
+		User:            user,
+		Title:           "Champions Hall of Fame",
+		LegacyRecords:   records,
+		ChampionCounts:  counts,
+		MetaDescription: "🏆 SATURDAY CHAMPIONS 🏆 Witness the fighters who secured legacy infusions under the Department of Recreational Violence.",
+		MetaType:        "website",
+		RequiredCSS:     []string{"champions.css"},
+	}
+
+	if user != nil {
+		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
+		data.PrimaryColor = primaryColor
+		data.SecondaryColor = secondaryColor
+	}
+
+	s.renderTemplate(w, "champions.html", data)
 }
 
 func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
@@ -537,12 +580,21 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 		fighter = nil
 	}
 
+	legacyCount := 0
+	var legacyRecords []database.ChampionLegacyRecord
+	if fighter != nil {
+		legacyCount, _ = s.repo.CountChampionTitlesForFighter(fighter.ID)
+		legacyRecords, _ = s.repo.GetChampionLegacyRecordsForFighter(fighter.ID)
+	}
+
 	user := GetUserFromContext(r.Context())
 	data := PageData{
-		User:        user,
-		Title:       "Fighter Profile",
-		Fighter:     fighter,
-		RequiredCSS: []string{"fighter.css"},
+		User:               user,
+		Title:              "Fighter Profile",
+		Fighter:            fighter,
+		RequiredCSS:        []string{"fighter.css"},
+		FighterLegacy:      legacyRecords,
+		FighterLegacyCount: legacyCount,
 	}
 
 	// If this is a custom fighter with a creator, get the creator's info
@@ -3027,6 +3079,28 @@ func (s *Server) renderTemplate(w http.ResponseWriter, templateName string, data
 				return template.JS("null")
 			}
 			return template.JS(bytes)
+		},
+		"formatDate": func(t time.Time) string {
+			loc, err := time.LoadLocation("America/Chicago")
+			if err != nil {
+				return t.UTC().Format("Jan 2, 2006 15:04 MST")
+			}
+			return t.In(loc).Format("Jan 2, 2006 15:04 MST")
+		},
+		"toTitle": func(s string) string {
+			replacements := map[string]string{
+				"strength":  "Strength",
+				"speed":     "Speed",
+				"endurance": "Endurance",
+				"technique": "Technique",
+			}
+			if v, ok := replacements[strings.ToLower(s)]; ok {
+				return v
+			}
+			if s == "" {
+				return ""
+			}
+			return strings.ToUpper(string(s[0])) + strings.ToLower(s[1:])
 		},
 	}
 

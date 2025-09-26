@@ -44,6 +44,37 @@ type Fighter struct {
 	CustomDescription *string    `db:"custom_description"`
 }
 
+type ChampionLegacyRecord struct {
+	ID             int       `db:"id"`
+	FightID        int       `db:"fight_id"`
+	FighterID      int       `db:"fighter_id"`
+	TournamentID   int       `db:"tournament_id"`
+	TournamentWeek int       `db:"tournament_week"`
+	TournamentName string    `db:"tournament_name"`
+	StatAwarded    string    `db:"stat_awarded"`
+	StatDelta      int       `db:"stat_delta"`
+	TotalWagered   int       `db:"total_wagered"`
+	TotalPayout    int       `db:"total_payout"`
+	BlessingsCount int       `db:"blessings_count"`
+	CursesCount    int       `db:"curses_count"`
+	AwardedAt      time.Time `db:"awarded_at"`
+	CreatedAt      time.Time `db:"created_at"`
+}
+
+type ChampionLegacyEntry struct {
+	ChampionLegacyRecord
+	FighterName   string    `db:"fighter_name"`
+	Fighter1Name  string    `db:"fighter1_name"`
+	Fighter2Name  string    `db:"fighter2_name"`
+	ScheduledTime time.Time `db:"scheduled_time"`
+}
+
+type ChampionTitleCount struct {
+	FighterID   int    `db:"fighter_id"`
+	FighterName string `db:"fighter_name"`
+	TitleCount  int    `db:"title_count"`
+}
+
 type Tournament struct {
 	ID         int       `db:"id"`
 	WeekNumber int       `db:"week_number"`

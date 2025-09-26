@@ -154,6 +154,28 @@ CREATE TABLE IF NOT EXISTS user_settings (
     UNIQUE(user_id, setting_type) -- One setting per type per user
 );
 
+-- Champion legacy history (Saturday winners)
+CREATE TABLE IF NOT EXISTS champion_legacy_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fight_id INTEGER NOT NULL,
+    fighter_id INTEGER NOT NULL,
+    tournament_id INTEGER NOT NULL,
+    tournament_week INTEGER,
+    tournament_name TEXT,
+    stat_awarded TEXT NOT NULL,
+    stat_delta INTEGER NOT NULL,
+    total_wagered INTEGER DEFAULT 0,
+    total_payout INTEGER DEFAULT 0,
+    blessings_count INTEGER DEFAULT 0,
+    curses_count INTEGER DEFAULT 0,
+    awarded_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(fight_id),
+    FOREIGN KEY (fight_id) REFERENCES fights(id),
+    FOREIGN KEY (fighter_id) REFERENCES fighters(id),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id)
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_fights_tournament_date ON fights(tournament_id, scheduled_time);
 CREATE INDEX IF NOT EXISTS idx_fights_status ON fights(status);
