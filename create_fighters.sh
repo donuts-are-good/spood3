@@ -20,14 +20,64 @@ if [[ -z "$PYTHON_BIN" ]]; then
 fi
 
 COOKIE="$(mktemp)"
-cleanup() { rm -f "$COOKIE"; }
-trap cleanup EXIT
+cleanup() { rm -f "$COOKIE" "$tmpfile" 2>/dev/null || true; }
+trap cleanup EXIT INT TERM
+
+# State management functions
+load_processed_fighters() {
+    if [[ -f "$STATE_FILE" ]]; then
+        # Load processed fighter IDs from state file
+        processed=()
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && processed+=("$line")
+        done < "$STATE_FILE"
+    else
+        processed=()
+    fi
+}
+
+save_processed_fighter() {
+    local fighter_id="$1"
+    echo "$fighter_id" >> "$STATE_FILE"
+}
+
+is_fighter_processed() {
+    local fighter_id="$1"
+    local found=0
+    for processed_id in "${processed[@]}"; do
+        if [[ "$processed_id" == "$fighter_id" ]]; then
+            found=1
+            break
+        fi
+    done
+    return $found
+}
+
+remove_processed_from_temp() {
+    local temp_file="$1"
+    local new_temp
+    new_temp=$(mktemp)
+
+    while read -r row; do
+        local id
+        id=$(jq -r '.id' <<<"$row")
+        if ! is_fighter_processed "$id"; then
+            echo "$row" >> "$new_temp"
+        fi
+    done < "$temp_file"
+
+    mv "$new_temp" "$temp_file"
+}
 
 # Options (hard-coded)
 ONLY_ALIVE=0    # 1 to skip dead fighters
 DRY_RUN=0       # 1 to preview titles only
 RATE_MS=2000     # throttle between edits (ms)
 INDEX_UPDATED=0  # Track if we've attempted index update to avoid rate limiting
+
+# Resilience options
+STATE_FILE="fighter_sync_state.txt"  # Track processed fighters
+CYCLE_HOURS=12   # Hours between full cycles
 
 echo "[1/4] Get login token"
 LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
@@ -79,7 +129,19 @@ ensure_template() {
 }
 ensure_template
 
-# Update Fighters index page: insert a bullet for the new fighter in numeric order
+# Main cycle loop - run every CYCLE_HOURS
+main_cycle() {
+    local cycle_start
+    cycle_start=$(date +%s)
+
+    echo "[CYCLE] Starting fighter sync cycle at $(date)"
+    echo "[CYCLE] State file: $STATE_FILE"
+
+    # Load previously processed fighters
+    load_processed_fighters
+    echo "[CYCLE] Found ${#processed[@]} previously processed fighters"
+
+    # Update Fighters index page: insert a bullet for the new fighter in numeric order
 add_to_fighters_index() {
   local title="$1"
   local display="$2"
@@ -176,10 +238,15 @@ echo "[DEBUG] Total fighters in DB: $total_fighters (alive: $alive_fighters)"
 # Store results in temp file to avoid subshell issues
 tmpfile=$(mktemp)
 sqlite3 -json "$DB" "$SQL" | jq -c '.[]' > "$tmpfile"
+
+# Remove already processed fighters from temp file
+remove_processed_from_temp "$tmpfile"
 fighter_count=$(wc -l < "$tmpfile")
-echo "[DEBUG] Processing $fighter_count fighters"
+echo "[DEBUG] Processing $fighter_count fighters (filtered from processed list)"
 
 while read -r row; do
+    # Skip empty lines
+    [[ -z "$row" ]] && continue
   id=$(jq -r '.id' <<<"$row")
   name=$(jq -r '.name' <<<"$row")
   team=$(jq -r '.team // ""' <<<"$row")
@@ -326,6 +393,12 @@ EOF
     result=$(jq -r '.edit.result // empty' <<<"$resp")
     if [[ "$result" == "Success" ]]; then
       echo "✅ Synced: $TITLE"
+      # Mark this fighter as processed
+      save_processed_fighter "$id"
+
+      # Remove this fighter from temp file to save memory and prevent reprocessing
+      remove_processed_from_temp "$tmpfile"
+
       # Only try index update once to avoid rate limiting
       if [[ "$INDEX_UPDATED" != "1" ]]; then
         idx_status=0
@@ -365,5 +438,23 @@ EOF
 
 done < "$tmpfile"
 
-rm -f "$tmpfile"
-echo "Done."
+    rm -f "$tmpfile"
+    echo "[CYCLE] Cycle completed at $(date)"
+    echo "[CYCLE] Total processed fighters: ${#processed[@]}"
+}
+
+# Main execution loop
+while true; do
+    main_cycle
+
+    # Wait for next cycle
+    local next_cycle
+    next_cycle=$((cycle_start + (CYCLE_HOURS * 3600)))
+    local wait_seconds
+    wait_seconds=$((next_cycle - $(date +%s)))
+
+    if [[ $wait_seconds -gt 0 ]]; then
+        echo "[CYCLE] Waiting $wait_seconds seconds until next cycle..."
+        sleep "$wait_seconds"
+    fi
+done
