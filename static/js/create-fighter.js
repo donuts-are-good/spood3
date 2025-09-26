@@ -178,6 +178,14 @@ function applyPreset(presetName) {
 
 // Randomize a valid 300-point distribution within [20,120] for each stat
 function randomizeStats() {
+    const btn = document.getElementById('randomize-button');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('spinning');
+    }
+
+    showRandomizeOverlay();
+
     const statNames = ["strength", "speed", "endurance", "technique"];
     const minPerStat = 20;
     const maxPerStat = 120;
@@ -201,8 +209,33 @@ function randomizeStats() {
     }
 
     fighterData.stats = base;
-    updateStatDisplay();
-    updateStatsNextButton();
+    // Animate numbers/sliders by updating after a short delay to simulate rolling
+    setTimeout(() => {
+        updateStatDisplay();
+        updateStatsNextButton();
+        hideRandomizeOverlay();
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('spinning');
+        }
+    }, 600);
+}
+
+// simple overlay spinner for randomizing UX
+function showRandomizeOverlay() {
+    let overlay = document.getElementById('randomize-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'randomize-overlay';
+        overlay.innerHTML = '<div class="spinner"></div>';
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+}
+
+function hideRandomizeOverlay() {
+    const overlay = document.getElementById('randomize-overlay');
+    if (overlay) overlay.style.display = 'none';
 }
 
 // Chaos stats generation
