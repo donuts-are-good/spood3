@@ -8,10 +8,15 @@ while [[ $# -gt 0 ]]; do
             RESET_STATE=1
             shift
             ;;
+        --single)
+            SINGLE_CYCLE=1
+            shift
+            ;;
         --help)
-            echo "Usage: $0 [--reset] [--help]"
+            echo "Usage: $0 [--reset] [--single] [--help]"
             echo "  --reset: Clear state file and start fresh"
-            echo "  --help:  Show this help message"
+            echo "  --single: Run one cycle only, don't loop"
+            echo "  --help: Show this help message"
             exit 0
             ;;
         *)
@@ -21,6 +26,10 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Command line options
+RESET_STATE=0    # Set to 1 to clear state file and start fresh
+SINGLE_CYCLE=0   # Set to 1 to run one cycle only
 
 # CONFIG
 WIKI_BASE="https://spoodblort.fandom.com"
@@ -44,6 +53,7 @@ if [[ "$RESET_STATE" == "1" ]]; then
         echo "[RESET] State file doesn't exist, nothing to clear"
     fi
 fi
+
 # Lore formatting relies on Python; optional. Set to empty to fall back to shell.
 PYTHON_BIN="$(command -v python3 || command -v python || true)"
 if [[ -z "$PYTHON_BIN" ]]; then
@@ -111,9 +121,6 @@ STATE_FILE="fighter_sync_state.txt"  # Track processed fighters
 CYCLE_HOURS=12   # Hours between full cycles
 cycle_start=0    # Global variable for cycle timing
 
-# Command line options
-RESET_STATE=0    # Set to 1 to clear state file and start fresh
-
 echo "[1/4] Get login token"
 LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
 
@@ -166,6 +173,7 @@ ensure_template
 
 # Main cycle loop - run every CYCLE_HOURS
 main_cycle() {
+    local initial_processed_count
     cycle_start=$(date +%s)
 
     echo "[CYCLE] Starting fighter sync cycle at $(date)"
@@ -174,7 +182,7 @@ main_cycle() {
     # Load previously processed fighters
     load_processed_fighters
     initial_processed_count=${#processed[@]}
-    echo "[CYCLE] Found ${#processed[@]} previously processed fighters"
+    echo "[CYCLE] Found $initial_processed_count previously processed fighters"
 
     # Update Fighters index page: insert a bullet for the new fighter in numeric order
 add_to_fighters_index() {
@@ -480,29 +488,32 @@ EOF
 
 done < "$tmpfile"
 
-    # Final summary if all fighters were processed
-    if [[ "$fighter_count" -gt 0 ]]; then
-        processed_this_cycle=$((${#processed[@]} - initial_processed_count))
-        echo "[SUMMARY] Processed $processed_this_cycle fighters in this cycle"
-        echo "[SUMMARY] Total processed fighters: ${#processed[@]}"
-    fi
+    # Final summary
+    processed_this_cycle=$((${#processed[@]} - initial_processed_count))
+    echo "[SUMMARY] Processed $processed_this_cycle fighters in this cycle"
+    echo "[SUMMARY] Total processed fighters: ${#processed[@]}"
 
     rm -f "$tmpfile"
     echo "[CYCLE] Cycle completed at $(date)"
     echo "[CYCLE] Total processed fighters: ${#processed[@]}"
-    echo "[CYCLE] Next cycle will start at $(date -d "@$((cycle_start + (CYCLE_HOURS * 3600)))")"
 }
 
 # Main execution loop
-while true; do
+if [[ "$SINGLE_CYCLE" == "1" ]]; then
+    echo "[MODE] Running single cycle only"
     main_cycle
+else
+    echo "[MODE] Running continuous cycles every $CYCLE_HOURS hours"
+    while true; do
+        main_cycle
 
-    # Wait for next cycle
-    next_cycle=$((cycle_start + (CYCLE_HOURS * 3600)))
-    wait_seconds=$((next_cycle - $(date +%s)))
+        # Wait for next cycle
+        next_cycle=$((cycle_start + (CYCLE_HOURS * 3600)))
+        wait_seconds=$((next_cycle - $(date +%s)))
 
-    if [[ $wait_seconds -gt 0 ]]; then
-        echo "[CYCLE] Waiting $wait_seconds seconds until next cycle..."
-        sleep "$wait_seconds"
-    fi
-done
+        if [[ $wait_seconds -gt 0 ]]; then
+            echo "[CYCLE] Waiting $wait_seconds seconds until next cycle..."
+            sleep "$wait_seconds"
+        fi
+    done
+fi
