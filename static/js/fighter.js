@@ -1,26 +1,27 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const toggle = document.querySelector('.lore-edit-toggle');
-    const area = document.querySelector('.lore-edit');
-    const cancel = document.querySelector('.lore-cancel');
-    if (toggle && area) {
-        toggle.addEventListener('click', () => {
-            const open = area.style.display !== 'none' && area.style.display !== '' ? true : area.classList.contains('open');
-            const nextState = !(area.style.display !== 'none' && area.style.display !== '' || area.classList.contains('open'));
-            if (nextState) {
-                area.style.display = 'block';
-                area.classList.add('open');
-            } else {
+    try {
+        const toggle = document.querySelector('.lore-edit-toggle');
+        const area = document.querySelector('.lore-edit');
+        const cancel = document.querySelector('.lore-cancel');
+        if (!toggle || !area) return;
+        // start hidden unless template renders open
+        if (!area.classList.contains('open')) area.style.display = 'none';
+
+        toggle.addEventListener('click', function () {
+            const isOpen = area.style.display !== 'none';
+            area.style.display = isOpen ? 'none' : 'block';
+            area.classList.toggle('open', !isOpen);
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        if (cancel) {
+            cancel.addEventListener('click', function () {
                 area.style.display = 'none';
                 area.classList.remove('open');
-            }
-            toggle.setAttribute('aria-expanded', String(nextState));
-        });
-    }
-    if (cancel && area && toggle) {
-        cancel.addEventListener('click', () => {
-            area.style.display = 'none';
-            area.classList.remove('open');
-            toggle.setAttribute('aria-expanded', 'false');
-        });
+                toggle.setAttribute('aria-expanded', 'false');
+            });
+        }
+    } catch (e) {
+        console.warn('fighter.js init error', e);
     }
 });
