@@ -1,0 +1,79 @@
+{{define "content"}}
+<div class="champions-page">
+  <div class="champions-hero">
+    <h2>🏆 Champions Hall of Fame</h2>
+    <p class="sub">Saturday champions who received legacy infusions. Click fights or fighters for details.</p>
+  </div>
+
+  <div class="champions-grid">
+    <section class="champions-leaderboard">
+      <h3>All-Time Titles</h3>
+      <table class="champions-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Fighter</th>
+            <th>Titles</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{if .ChampionCounts}}
+            {{range $i, $row := .ChampionCounts}}
+            <tr>
+              <td>{{add $i 1}}</td>
+              <td><a href="/fighter/{{$row.FighterID}}">{{$row.FighterName}}</a></td>
+              <td>{{$row.TitleCount}}</td>
+            </tr>
+            {{end}}
+          {{else}}
+            <tr><td colspan="3" class="empty">No champions yet.</td></tr>
+          {{end}}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="champions-recent">
+      <h3>Recent Legacy Awards</h3>
+      <div class="records">
+        {{if .LegacyRecords}}
+          {{range .LegacyRecords}}
+          <div class="record">
+            <div class="record-main">
+              <div class="record-title">
+                <a href="/fight/{{.FightID}}">{{.TournamentName}}</a>
+              </div>
+              <div class="record-meta">
+                <span>{{formatDate .ScheduledTime}}</span>
+                <span>·</span>
+                <a href="/fighter/{{.FighterID}}">{{.FighterName}}</a>
+                <span class="award">+{{.StatDelta}} {{toTitle .StatAwarded}}</span>
+              </div>
+            </div>
+            <div class="record-stats">
+              <span title="Total wagered">Bets: {{commas .TotalWagered}}</span>
+              <span title="Total paid out">Payout: {{commas .TotalPayout}}</span>
+              <span title="Blessings applied">Blessings: {{.BlessingsCount}}</span>
+              <span title="Curses applied">Curses: {{.CursesCount}}</span>
+            </div>
+            <div class="record-fightline">
+              <span class="fighters">{{.Fighter1Name}} vs {{.Fighter2Name}}</span>
+            </div>
+          </div>
+          {{end}}
+        {{else}}
+          <div class="empty">No legacy records yet.</div>
+        {{end}}
+      </div>
+    </section>
+  </div>
+
+  <div class="champions-actions">
+    <a class="back" href="/fighters">← Fighters</a>
+    <a class="back" href="/">← Schedule</a>
+  </div>
+</div>
+
+<script src="/static/js/champions.js"></script>
+{{end}}
+
+
