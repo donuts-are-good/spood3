@@ -77,6 +77,11 @@
     <!-- Toast notification system -->
     <script src="/static/js/toast.js"></script>
     
+    {{/* Page-specific JS loader */}}
+    {{if eq .Title "Fighter Profile"}}
+    <script src="/static/js/fighter.js"></script>
+    {{end}}
+    
     <!-- Format header credits balance -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {

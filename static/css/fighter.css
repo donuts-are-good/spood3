@@ -7,14 +7,16 @@
 
 /* Fighter Header */
 .fighter-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+    align-items: start;
     background: #000000;
     border: 2px solid #ffffff;
-    padding: 30px;
-    margin-bottom: 30px;
-    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 28px;
+    border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
 }
 
 /* Fighter name section */
@@ -53,6 +55,9 @@
 
 .fighter-record {
     text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .record-box {
@@ -112,6 +117,8 @@
     border: 1px solid #222222;
     border-radius: 6px;
     padding: 16px;
+    grid-column: 1 / -1; /* span full width under the two columns */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
 }
 
 .fighter-lore h3 {
@@ -125,10 +132,32 @@
     text-align: left;
 }
 
+.lore-header h3 {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin: 0;
+}
+
+.lore-edit-toggle {
+    background: #111;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.lore-edit-toggle:hover {
+    background: #1a1a1a;
+    border-color: #666;
+}
+
 .fighter-lore .lore-text {
     color: #e6e6e6;
-    line-height: 1.6;
-    font-size: 1rem;
+    line-height: 1.7;
+    font-size: 1.05rem;
     font-family: 'Times New Roman', serif;
     white-space: pre-wrap;
 }
@@ -147,7 +176,7 @@
     background: #000000;
     color: #ffffff;
     border: 1px solid #555555;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 0.95rem;
     font-family: 'Times New Roman', serif;
     resize: vertical;
@@ -158,6 +187,38 @@
     outline: none;
     border-color: #ffaa00;
     box-shadow: 0 0 0 2px rgba(255, 170, 0, 0.15);
+}
+
+.lore-actions .cta,
+.lore-actions .cta-secondary {
+    flex: 1;
+    text-align: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.cta-secondary {
+    background: #222;
+    color: #fff;
+    border: 1px solid #555;
+}
+
+.cta-secondary:hover {
+    background: #2a2a2a;
+    border-color: #777;
+}
+
+/* Responsive header layout improvements */
+@media (max-width: 992px) {
+    .fighter-header {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 24px;
+    }
+    .fighter-record {
+        text-align: center;
+        align-items: center;
+    }
 }
 
 /* Stats Container */

@@ -703,6 +703,8 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 	// Mark admin flag so template can hide admin UI for non-admins
 	data.IsAdmin = isAdmin(user)
 
+	// Add fighter page JS
+	// The template base loads CSS only; we add a small inline registration via MetaType to let the base know which JS to load
 	s.renderTemplate(w, "fighter.html", data)
 }
 

@@ -36,23 +36,27 @@
 
             <!-- Lore embedded in header card -->
             <div class="fighter-lore" style="margin-top: 1rem; width: 100%;">
-                <h3>Lore</h3>
+                <div class="lore-header" style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                    <h3>Lore</h3>
+                    {{if .IsAdmin}}
+                    <button type="button" class="lore-edit-toggle" title="Edit lore" aria-label="Edit lore" aria-expanded="false">✎</button>
+                    {{end}}
+                </div>
                 <div class="lore-text" style="white-space: pre-wrap;">
                     {{if .Fighter.Lore}}{{.Fighter.Lore}}{{else}}...{{end}}
                 </div>
 
                 {{if .IsAdmin}}
-                <div class="lore-edit" style="margin-top: 0.75rem;">
-                    <h4>Edit Lore (Admin)</h4>
+                <div class="lore-edit" style="margin-top: 0.75rem; display: none;">
                     <form method="POST" action="/fighter/edit">
                         <input type="hidden" name="id" value="{{.Fighter.ID}}">
                         <input type="hidden" name="field" value="lore">
-                        <div style="margin-bottom: 0.5rem;">
-                            <textarea name="value" rows="6" style="width:100%;">{{.Fighter.Lore}}</textarea>
+                        <div style="margin-bottom: 0.75rem;">
+                            <textarea name="value" rows="6">{{.Fighter.Lore}}</textarea>
                         </div>
-                        <div>
+                        <div class="lore-actions" style="display:flex; gap:10px;">
                             <button type="submit" class="cta">Save</button>
-                            <a href="/fighter/{{.Fighter.ID}}" class="back-button">Cancel</a>
+                            <button type="button" class="cta cta-secondary lore-cancel">Cancel</button>
                         </div>
                     </form>
                 </div>
