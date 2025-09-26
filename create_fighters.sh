@@ -27,6 +27,7 @@ trap cleanup EXIT
 ONLY_ALIVE=0    # 1 to skip dead fighters
 DRY_RUN=0       # 1 to preview titles only
 RATE_MS=2000     # throttle between edits (ms)
+INDEX_UPDATED=0  # Track if we've attempted index update to avoid rate limiting
 
 echo "[1/4] Get login token"
 LOGIN_TOKEN=$(curl -s "$API?action=query&meta=tokens&type=login&format=json" -c "$COOKIE" | jq -r '.query.tokens.logintoken')
@@ -325,14 +326,22 @@ EOF
     result=$(jq -r '.edit.result // empty' <<<"$resp")
     if [[ "$result" == "Success" ]]; then
       echo "✅ Synced: $TITLE"
-      idx_status=0
-      if ! add_to_fighters_index "$TITLE" "$DISPLAY_TITLE"; then
-        idx_status=$?
-      fi
-      if [[ "$idx_status" == "2" ]]; then
-        echo "[Index] Backing off due to rate limit"
-        sleep 5
-        RATE_MS=$((RATE_MS + 1000))
+      # Only try index update once to avoid rate limiting
+      if [[ "$INDEX_UPDATED" != "1" ]]; then
+        idx_status=0
+        if ! add_to_fighters_index "$TITLE" "$DISPLAY_TITLE"; then
+          idx_status=$?
+        fi
+        if [[ "$idx_status" == "2" ]]; then
+          echo "[Index] Backing off due to rate limit"
+          sleep 5
+          RATE_MS=$((RATE_MS + 1000))
+          INDEX_UPDATED=1  # Don't try again this run
+        else
+          INDEX_UPDATED=1  # Successfully updated, don't try again
+        fi
+      else
+        echo "[Index] Skipping index update (already attempted this run)"
       fi
       break
     fi
