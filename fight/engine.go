@@ -432,12 +432,12 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 		}
 	}
 
-	// Comeback Critical: losing fighter may attempt a multi-d20 crit
-	// Determine who is losing after the base exchange
+	// Comeback Critical: only if someone is losing by >= 3000 health
 	var critAttacker *database.Fighter
-	if state.Fighter1Health < state.Fighter2Health {
+	healthDiff := state.Fighter2Health - state.Fighter1Health // positive means fighter1 is behind
+	if healthDiff >= 3000 {
 		critAttacker = &fighter1
-	} else if state.Fighter2Health < state.Fighter1Health {
+	} else if healthDiff <= -3000 {
 		critAttacker = &fighter2
 	}
 
@@ -650,11 +650,12 @@ func (e *Engine) simulateTickQuiet(fightID, tickNumber int, fighter1, fighter2 d
 		return
 	}
 
-	// Comeback Critical (quiet): losing fighter may attempt crit
+	// Comeback Critical (quiet): only if someone is losing by >= 3000 health
 	var critAttacker *database.Fighter
-	if state.Fighter1Health < state.Fighter2Health {
+	healthDiff := state.Fighter2Health - state.Fighter1Health // positive means fighter1 is behind
+	if healthDiff >= 3000 {
 		critAttacker = &fighter1
-	} else if state.Fighter2Health < state.Fighter1Health {
+	} else if healthDiff <= -3000 {
 		critAttacker = &fighter2
 	}
 
