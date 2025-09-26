@@ -18,6 +18,7 @@ import (
 const (
 	TICK_DURATION_SECONDS = 5
 	DEATH_CHANCE          = 100000 // 1 in 100,000 chance per damage tick
+	CRIT_CHANCE           = 5000   // 1 in 5,000 chance per tick for the losing fighter to attempt a crit
 	STARTING_HEALTH       = 100000 // Increased from 100k for longer fights
 	MIN_DAMAGE            = 5
 	MAX_DAMAGE            = 1000 // Reduced from 5000 to balance simultaneous combat
@@ -431,6 +432,94 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 		}
 	}
 
+	// Comeback Critical: losing fighter may attempt a multi-d20 crit
+	// Determine who is losing after the base exchange
+	var critAttacker *database.Fighter
+	if state.Fighter1Health < state.Fighter2Health {
+		critAttacker = &fighter1
+	} else if state.Fighter2Health < state.Fighter1Health {
+		critAttacker = &fighter2
+	}
+
+	if critAttacker != nil && rng.Intn(CRIT_CHANCE) == 0 {
+		critDmg := e.calculateCritDamage(rng)
+		if critDmg > 0 {
+			if critAttacker == &fighter1 {
+				// Fighter1 crits Fighter2
+				state.Fighter2Health -= critDmg
+				state.LastDamage2 += critDmg
+				if e.broadcaster != nil {
+					critAction := LiveAction{
+						Type:       "critical",
+						Action:     fmt.Sprintf("COMEBACK CRIT! %s detonates %s for %s bonus damage!", fighter1.Name, fighter2.Name, formatNumber(critDmg)),
+						Damage:     critDmg,
+						Attacker:   fighter1.Name,
+						Victim:     fighter2.Name,
+						Commentary: "",
+						Announcer:  "\"Screaming\" Sally Bloodworth",
+						Health1:    state.Fighter1Health,
+						Health2:    state.Fighter2Health,
+						Round:      state.CurrentRound,
+						TickNumber: tickNumber,
+					}
+					e.broadcaster.BroadcastAction(fightID, critAction)
+					e.logFightAction(fightID, critAction.Action)
+				}
+				// Extra death chance due to crit damage on Fighter2
+				if e.checkDeath(rng) {
+					state.DeathOccurred = true
+					state.IsComplete = true
+					state.WinnerID = fighter1.ID
+					if e.broadcaster != nil {
+						deathAction := GenerateDeathAction(fightID, fighter1, fighter2, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+						e.broadcaster.BroadcastAction(fightID, deathAction)
+						e.logFightAction(fightID, deathAction.Action)
+						if deathAction.Commentary != "" {
+							e.logFightAction(fightID, fmt.Sprintf("%s: \"%s\"", deathAction.Announcer, deathAction.Commentary))
+						}
+					}
+					return
+				}
+			} else {
+				// Fighter2 crits Fighter1
+				state.Fighter1Health -= critDmg
+				state.LastDamage1 += critDmg
+				if e.broadcaster != nil {
+					critAction := LiveAction{
+						Type:       "critical",
+						Action:     fmt.Sprintf("COMEBACK CRIT! %s detonates %s for %s bonus damage!", fighter2.Name, fighter1.Name, formatNumber(critDmg)),
+						Damage:     critDmg,
+						Attacker:   fighter2.Name,
+						Victim:     fighter1.Name,
+						Commentary: "",
+						Announcer:  "\"Screaming\" Sally Bloodworth",
+						Health1:    state.Fighter1Health,
+						Health2:    state.Fighter2Health,
+						Round:      state.CurrentRound,
+						TickNumber: tickNumber,
+					}
+					e.broadcaster.BroadcastAction(fightID, critAction)
+					e.logFightAction(fightID, critAction.Action)
+				}
+				// Extra death chance due to crit damage on Fighter1
+				if e.checkDeath(rng) {
+					state.DeathOccurred = true
+					state.IsComplete = true
+					state.WinnerID = fighter2.ID
+					if e.broadcaster != nil {
+						deathAction := GenerateDeathAction(fightID, fighter2, fighter1, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+						e.broadcaster.BroadcastAction(fightID, deathAction)
+						e.logFightAction(fightID, deathAction.Action)
+						if deathAction.Commentary != "" {
+							e.logFightAction(fightID, fmt.Sprintf("%s: \"%s\"", deathAction.Announcer, deathAction.Commentary))
+						}
+					}
+					return
+				}
+			}
+		}
+	}
+
 	// Check for death (only if damage was dealt)
 	if damage1 > 0 && e.checkDeath(rng) {
 		state.DeathOccurred = true
@@ -561,6 +650,39 @@ func (e *Engine) simulateTickQuiet(fightID, tickNumber int, fighter1, fighter2 d
 		return
 	}
 
+	// Comeback Critical (quiet): losing fighter may attempt crit
+	var critAttacker *database.Fighter
+	if state.Fighter1Health < state.Fighter2Health {
+		critAttacker = &fighter1
+	} else if state.Fighter2Health < state.Fighter1Health {
+		critAttacker = &fighter2
+	}
+
+	if critAttacker != nil && rng.Intn(CRIT_CHANCE) == 0 {
+		critDmg := e.calculateCritDamage(rng)
+		if critDmg > 0 {
+			if critAttacker == &fighter1 {
+				state.Fighter2Health -= critDmg
+				state.LastDamage2 += critDmg
+				if e.checkDeath(rng) {
+					state.DeathOccurred = true
+					state.IsComplete = true
+					state.WinnerID = fighter1.ID
+					return
+				}
+			} else {
+				state.Fighter1Health -= critDmg
+				state.LastDamage1 += critDmg
+				if e.checkDeath(rng) {
+					state.DeathOccurred = true
+					state.IsComplete = true
+					state.WinnerID = fighter2.ID
+					return
+				}
+			}
+		}
+	}
+
 	// Check for KO
 	if state.Fighter1Health <= 0 {
 		state.IsComplete = true
@@ -586,6 +708,33 @@ func (e *Engine) calculateDamage(winner database.Fighter, rng *rand.Rand) int {
 	finalDamage := int(float64(baseDamage) * strengthMultiplier)
 
 	return int(math.Max(float64(MIN_DAMAGE), float64(finalDamage)))
+}
+
+// calculateCritDamage rolls 5d20 and maps number of success dice to bonus damage.
+// We treat a die as a success if it rolls >= 10 (50% success) to get a decent spread.
+// 1 success → 1000, 2 → 2000, 3 → 4000, 4 → 8000, 5 → 10000. 0 → 0.
+func (e *Engine) calculateCritDamage(rng *rand.Rand) int {
+	successes := 0
+	for i := 0; i < 5; i++ {
+		roll := rng.Intn(20) + 1 // 1..20
+		if roll == 20 {          // natural 20 counts as a success
+			successes++
+		}
+	}
+	switch successes {
+	case 1:
+		return 1000
+	case 2:
+		return 2000
+	case 3:
+		return 4000
+	case 4:
+		return 8000
+	case 5:
+		return 10000
+	default:
+		return 0
+	}
 }
 
 // checkDeath determines if death occurs this tick
