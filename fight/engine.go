@@ -973,7 +973,8 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 	// Close the fight log
 	defer e.closeFightLog(fight.ID)
 
-	// Determine winner ID for betting purposes
+	// Determine winner ID for betting purposes. Orientation swap doesn't change
+	// winner ID because WinnerID is compared against fight.Fighter1ID/2ID later.
 	var winnerIDPtr *int
 	if state.WinnerID != 0 {
 		winnerIDPtr = &state.WinnerID
@@ -1011,7 +1012,15 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 	}
 
 	// Update fight in database
-	err = e.repo.UpdateFightResult(fight.ID, nullableInt64(state.WinnerID), state.Fighter1Health, state.Fighter2Health)
+	// If we swapped orientation for this fight's simulation, map healths back to
+	// the original database ordering so FinalScore1 always corresponds to
+	// fight.Fighter1 and FinalScore2 to fight.Fighter2.
+	h1 := state.Fighter1Health
+	h2 := state.Fighter2Health
+	if e.shouldSwapOrientation(fight.ID) {
+		h1, h2 = h2, h1
+	}
+	err = e.repo.UpdateFightResult(fight.ID, nullableInt64(state.WinnerID), h1, h2)
 	if err != nil {
 		return fmt.Errorf("failed to update fight: %w", err)
 	}
