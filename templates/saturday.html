@@ -4,6 +4,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet">
 
 <div class="saturday-shell">
+  <div id="chaosWeatherAdvisory" class="chaos-weather-advisory" style="display:none;">
+    <div class="advisory-content">
+      <div class="advisory-icon">⛈️⚡</div>
+      <div class="advisory-text">
+        <div class="advisory-title">CHAOS WEATHER ADVISORY</div>
+        <div class="advisory-body">
+          The Department reports elevated atmospheric weirdness. Spatial barometers are sticky, time smells like metal, and the ring canvas is developing opinions. Expect surprise voids, redirected punches, and an above-average chance of dramatic outcomes. Proceed with enthusiasm and poor judgment.
+        </div>
+      </div>
+      <button class="advisory-dismiss" onclick="dismissWeatherAdvisory()" aria-label="Dismiss weather advisory" title="Hide this warning (you can restore it from the header)">&times;</button>
+    </div>
+  </div>
   <header class="saturday-hero">
     <div>
       <center><h1>Saturday Main Event</h1></center>
@@ -44,6 +56,7 @@
 <script id="saturday-fights" type="application/json" data-week="{{if .Tournament}}{{.Tournament.WeekNumber}}{{end}}">{{json .SaturdayFights}}</script>
 <script id="saturday-bets" type="application/json">{{json .UserBetFightIDs}}</script>
 <script id="saturday-now" type="application/json">{"now":"{{.Now.Format "2006-01-02T15:04:05Z07:00"}}"}</script>
+<script src="/static/js/index.js"></script>
 <script src="/static/js/saturday.js"></script>
 {{end}}
 
