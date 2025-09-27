@@ -5,6 +5,9 @@
   const showdownRoot = document.getElementById('showdown');
   if (!overviewRoot || !groupsRoot || !showdownRoot) return;
 
+  // Interval used to update the subtle countdown inside the Live Now card
+  let liveNowCountdownInterval = null;
+
   const fightsPayload = loadJSON('#saturday-fights') || [];
   const betMap = loadJSON('#saturday-bets') || {};
   const nowPayload = loadJSON('#saturday-now');
@@ -89,7 +92,11 @@
       {
         label: 'Live Now',
         value: liveFight ? `${liveFight.fighter1_name} vs ${liveFight.fighter2_name}` : '—',
-        sub: liveFight ? 'Broadcasting live across the AR grid' : 'No active bout',
+        sub: liveFight
+          ? 'Broadcasting live across the AR grid'
+          : (nextFight
+              ? 'Next bout in <span id="live-now-countdown" aria-live="polite">—</span>'
+              : 'No active bout'),
         className: 'live',
         dataUrl: liveFight ? `/fight/${liveFight.id}` : undefined
       },
@@ -127,6 +134,37 @@
         </div>
       `;
     }).join('');
+
+    // Handle subtle countdown inside the Live Now card when there is no active fight
+    if (!liveFight && nextFight) {
+      if (liveNowCountdownInterval) {
+        clearInterval(liveNowCountdownInterval);
+        liveNowCountdownInterval = null;
+      }
+      const targetEl = document.getElementById('live-now-countdown');
+      const targetTime = nextFight.scheduledTime instanceof Date ? nextFight.scheduledTime : new Date(nextFight.scheduledTime);
+      if (targetEl && targetTime) {
+        const update = () => {
+          const now = new Date();
+          const diff = targetTime - now;
+          if (diff <= 0) {
+            targetEl.textContent = 'Any moment';
+            clearInterval(liveNowCountdownInterval);
+            liveNowCountdownInterval = null;
+            return;
+          }
+          const totalSeconds = Math.floor(diff / 1000);
+          const minutes = Math.floor(totalSeconds / 60);
+          const seconds = totalSeconds % 60;
+          targetEl.textContent = `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+        };
+        update();
+        liveNowCountdownInterval = setInterval(update, 1000);
+      }
+    } else if (liveNowCountdownInterval) {
+      clearInterval(liveNowCountdownInterval);
+      liveNowCountdownInterval = null;
+    }
   }
 
   function buildCountdown(nextFight, now) {
