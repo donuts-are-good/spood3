@@ -44,6 +44,10 @@ type FightState struct {
 	IsComplete     bool
 	WinnerID       int
 	DeathOccurred  bool
+	// Simulation orientation bookkeeping: which DB fighter IDs correspond to the
+	// Fighter1Health/Fighter2Health lanes used during simulation.
+	SimFighter1ID int
+	SimFighter2ID int
 }
 
 type Engine struct {
@@ -193,7 +197,7 @@ func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2
 	log.Printf("Starting fight simulation: %s vs %s", fighter1.Name, fighter2.Name)
 
 	// Randomize orientation once per fight using a deterministic seed to avoid any
-	// subtle bias toward the first argument. This does not change persisted IDs.
+	// subtle bias toward the first argument. Track mapping for correct persistence.
 	if e.shouldSwapOrientation(fight.ID) {
 		fighter1, fighter2 = fighter2, fighter1
 	}
@@ -211,6 +215,8 @@ func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2
 		Fighter2Health: fighter2Health,
 		TickNumber:     0,
 		CurrentRound:   1,
+		SimFighter1ID:  fighter1.ID,
+		SimFighter2ID:  fighter2.ID,
 	}
 
 	maxTicks := (30 * 60) / TICK_DURATION_SECONDS // 30 minutes worth of ticks
@@ -264,6 +270,8 @@ func (e *Engine) CatchUpSimulation(fight database.Fight, fighter1, fighter2 data
 		Fighter2Health: fighter2Health,
 		TickNumber:     0,
 		CurrentRound:   1,
+		SimFighter1ID:  fighter1.ID,
+		SimFighter2ID:  fighter2.ID,
 	}
 
 	// Simulate all elapsed ticks at once
@@ -324,6 +332,8 @@ func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighte
 		Fighter2Health: fighter2Health,
 		TickNumber:     0,
 		CurrentRound:   1,
+		SimFighter1ID:  fighter1.ID,
+		SimFighter2ID:  fighter2.ID,
 	}
 
 	// Catch up to current time without broadcasting (for consistency)
@@ -1012,12 +1022,11 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 	}
 
 	// Update fight in database
-	// If we swapped orientation for this fight's simulation, map healths back to
-	// the original database ordering so FinalScore1 always corresponds to
-	// fight.Fighter1 and FinalScore2 to fight.Fighter2.
+	// Map simulated lanes back to DB order using tracked IDs
 	h1 := state.Fighter1Health
 	h2 := state.Fighter2Health
-	if e.shouldSwapOrientation(fight.ID) {
+	if state.SimFighter1ID != fight.Fighter1ID {
+		// If the sim's lane1 is not DB fighter1, swap
 		h1, h2 = h2, h1
 	}
 	err = e.repo.UpdateFightResult(fight.ID, nullableInt64(state.WinnerID), h1, h2)
