@@ -209,3 +209,23 @@
   .regalia {padding:26px;}
 }
 
+/* Saturday override: weather advisory close button without circular border */
+.chaos-weather-advisory .advisory-dismiss {
+  border: none !important;
+  background: none !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1 !important;
+  font-size: 28px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ff9999 !important;
+}
+.chaos-weather-advisory .advisory-dismiss:hover,
+.chaos-weather-advisory .advisory-dismiss:focus {
+  background: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
