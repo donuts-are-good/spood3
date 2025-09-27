@@ -146,7 +146,7 @@
         ${standings.map(row => `
           <div class="standing-row">
             <div class="rank">${row.rank}</div>
-            <div class="name ${betMap[row.id] ? 'bet' : ''}">${row.name}</div>
+            <div class="name ${betMap[row.id] ? 'bet' : ''}"><a href="/fighter/${row.id}" title="View fighter">${row.name}</a></div>
             <div>${row.wins}-${row.losses}</div>
             <div>${row.diff > 0 ? `+${row.diff}` : row.diff}</div>
           </div>
