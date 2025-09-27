@@ -108,6 +108,7 @@
   transition:opacity 0.3s;
 }
 .overview-card:hover::after {opacity:1;}
+.overview-card.clickable {cursor:pointer;}
 
 .card-title {font-size:0.75rem; letter-spacing:3px; text-transform:uppercase; color:var(--sat-muted);}
 .card-value {font-size:1.6rem; font-weight:700; position:relative; z-index:1; line-height:1.2;}

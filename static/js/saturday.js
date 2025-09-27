@@ -75,6 +75,10 @@
     const completedCount = fights.filter((f) => f.status === 'completed' || f.status === 'voided').length;
     const progressPct = Math.round((completedCount / 27) * 100);
 
+    const nextURL = nextFight
+      ? (nextFight.status === 'active' ? `/watch/${nextFight.id}` : `/fight/${nextFight.id}`)
+      : null;
+
     const cards = [
       {
         label: 'Week',
@@ -92,7 +96,8 @@
         label: 'Next Fight',
         value: nextFight ? `${nextFight.timeLabel} ${nextFight.fighter1_name} vs ${nextFight.fighter2_name}` : 'TBD',
         sub: buildCountdown(nextFight, now),
-        cta: true
+        cta: true,
+        dataUrl: nextURL
       },
       {
         label: 'Progress',
@@ -102,13 +107,26 @@
     ];
 
     overviewRoot.innerHTML = cards.map((card) => `
-      <div class="overview-card ${card.className || ''}">
+      <div class="overview-card ${card.className || ''}" ${card.dataUrl ? `data-url="${card.dataUrl}"` : ''}>
         <div class="card-title">${card.label}</div>
         <div class="card-value">${card.value}</div>
         <div class="card-sub">${card.sub}</div>
         ${card.cta ? '<div class="bet-tag">Place bets before bell</div>' : ''}
       </div>
     `).join('');
+
+    // Make the Next Fight card clickable when URL provided
+    const nextCard = overviewRoot.querySelector('.overview-card[data-url]');
+    if (nextCard) {
+      nextCard.classList.add('clickable');
+      nextCard.tabIndex = 0;
+      const target = nextCard.getAttribute('data-url');
+      const go = () => { window.location = target; };
+      nextCard.addEventListener('click', go);
+      nextCard.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
+      });
+    }
   }
 
   function buildCountdown(nextFight, now) {
