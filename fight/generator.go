@@ -57,6 +57,9 @@ func (g *Generator) GenerateFightSchedule(tournament *database.Tournament, fight
 
 	var fights []database.Fight
 
+	// Deterministic RNG per day/tournament to randomly flip fighter order
+	flipRNG := utils.NewSeededRNG(utils.DailyFighterSeed(date) ^ int64(tournament.ID))
+
 	startTime := time.Date(date.Year(), date.Month(), date.Day(), 12, 0, 0, 0, date.Location())
 
 	for i := 0; i < len(fighters); i += 2 {
@@ -66,12 +69,19 @@ func (g *Generator) GenerateFightSchedule(tournament *database.Tournament, fight
 
 		fightTime := startTime.Add(time.Duration(i/2) * 30 * time.Minute)
 
+		// Base pairing by neighbor, then coin flip orientation
+		f1 := fighters[i]
+		f2 := fighters[i+1]
+		if flipRNG.Intn(2) == 1 {
+			f1, f2 = f2, f1
+		}
+
 		fight := database.Fight{
 			TournamentID:  tournament.ID,
-			Fighter1ID:    fighters[i].ID,
-			Fighter2ID:    fighters[i+1].ID,
-			Fighter1Name:  fighters[i].Name,
-			Fighter2Name:  fighters[i+1].Name,
+			Fighter1ID:    f1.ID,
+			Fighter2ID:    f2.ID,
+			Fighter1Name:  f1.Name,
+			Fighter2Name:  f2.Name,
 			ScheduledTime: fightTime,
 			Status:        "scheduled",
 		}
@@ -151,6 +161,9 @@ func (g *Generator) GenerateRoundRobinGroups(tournament *database.Tournament, en
 	start := time.Date(date.Year(), date.Month(), date.Day(), startHour, startMinute, 0, 0, date.Location())
 	var fights []database.Fight
 
+	// Deterministic RNG per day/tournament to randomly flip fighter order
+	flipRNG := utils.NewSeededRNG(utils.DailyFighterSeed(date) ^ int64(tournament.ID))
+
 	for gi, grp := range groups {
 		indices := matchTemplates[len(grp)]
 		if len(indices) == 0 {
@@ -160,6 +173,9 @@ func (g *Generator) GenerateRoundRobinGroups(tournament *database.Tournament, en
 			pair := indices[slot%len(indices)]
 			f1 := grp[pair[0]]
 			f2 := grp[pair[1]]
+			if flipRNG.Intn(2) == 1 {
+				f1, f2 = f2, f1
+			}
 			scheduled := start.Add(time.Duration(gi*slotsPerGroup+slot) * 30 * time.Minute)
 			fights = append(fights, database.Fight{
 				TournamentID:  tournament.ID,
