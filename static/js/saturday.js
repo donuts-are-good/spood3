@@ -98,7 +98,7 @@
               ? 'Next bout in <span id="live-now-countdown" aria-live="polite">—</span>'
               : 'No active bout'),
         className: 'live',
-        dataUrl: liveFight ? `/fight/${liveFight.id}` : undefined
+        dataUrl: liveFight ? `/watch/${liveFight.id}` : undefined
       },
       {
         label: 'Next Fight',

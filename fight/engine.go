@@ -773,15 +773,15 @@ func (e *Engine) calculateCritDamage(rng *rand.Rand) int {
 	}
 	switch successes {
 	case 1:
-		return 1000
+		return 5000
 	case 2:
-		return 2000
-	case 3:
-		return 4000
-	case 4:
-		return 8000
-	case 5:
 		return 10000
+	case 3:
+		return 15000
+	case 4:
+		return 20000
+	case 5:
+		return 100000
 	default:
 		return 0
 	}
