@@ -63,16 +63,8 @@ type Engine struct {
 	fightLogMutex sync.Mutex
 }
 
-// shouldSwapOrientation returns true if we should swap fighter order for this
-// fight's simulation to reduce any systemic bias toward fighter1. It uses a
-// stable seed so the same fight ID always makes the same choice.
-func (e *Engine) shouldSwapOrientation(fightID int) bool {
-	// Use a fixed 63-bit constant to avoid int64 overflow
-	const mix int64 = 0x1ed6f1a5b7c3d2e // arbitrary but fixed
-	seed := utils.FightTickSeed(fightID, 0) ^ mix
-	rng := utils.NewSeededRNG(seed)
-	return rng.Intn(2) == 1
-}
+// shouldSwapOrientation was used to randomly flip fighter lanes. Disabled.
+func (e *Engine) shouldSwapOrientation(fightID int) bool { return false }
 
 func NewEngine(repo *database.Repository) *Engine {
 	// Check if Discord features should be disabled
@@ -196,11 +188,7 @@ func sanitizeName(name string) string {
 func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2 database.Fighter) (*FightState, error) {
 	log.Printf("Starting fight simulation: %s vs %s", fighter1.Name, fighter2.Name)
 
-	// Randomize orientation once per fight using a deterministic seed to avoid any
-	// subtle bias toward the first argument. Track mapping for correct persistence.
-	if e.shouldSwapOrientation(fight.ID) {
-		fighter1, fighter2 = fighter2, fighter1
-	}
+	// Orientation swap disabled
 
 	// Apply stat effects to fighters for this fight's date
 	modifiedFighter1 := e.applyStatEffectsToFighter(fighter1, fight.ScheduledTime)
@@ -215,8 +203,6 @@ func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2
 		Fighter2Health: fighter2Health,
 		TickNumber:     0,
 		CurrentRound:   1,
-		SimFighter1ID:  fighter1.ID,
-		SimFighter2ID:  fighter2.ID,
 	}
 
 	maxTicks := (30 * 60) / TICK_DURATION_SECONDS // 30 minutes worth of ticks
@@ -252,10 +238,7 @@ func (e *Engine) CatchUpSimulation(fight database.Fight, fighter1, fighter2 data
 
 	log.Printf("Catching up fight simulation: %d ticks elapsed", targetTick)
 
-	// Randomize orientation once per fight to avoid any bias
-	if e.shouldSwapOrientation(fight.ID) {
-		fighter1, fighter2 = fighter2, fighter1
-	}
+	// Orientation swap disabled
 
 	// Apply stat effects to fighters for this fight's date
 	modifiedFighter1 := e.applyStatEffectsToFighter(fighter1, fight.ScheduledTime)
@@ -270,8 +253,6 @@ func (e *Engine) CatchUpSimulation(fight database.Fight, fighter1, fighter2 data
 		Fighter2Health: fighter2Health,
 		TickNumber:     0,
 		CurrentRound:   1,
-		SimFighter1ID:  fighter1.ID,
-		SimFighter2ID:  fighter2.ID,
 	}
 
 	// Simulate all elapsed ticks at once
@@ -301,10 +282,7 @@ func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighte
 	log.Printf("Starting live simulation for fight %d: %s vs %s", fight.ID, fighter1.Name, fighter2.Name)
 
 	// Initialize fight log
-	// Swap orientation for fairness before logging/broadcasting the simulation
-	if e.shouldSwapOrientation(fight.ID) {
-		fighter1, fighter2 = fighter2, fighter1
-	}
+	// Orientation swap disabled
 
 	err := e.initFightLog(fight, fighter1, fighter2)
 	if err != nil {
@@ -332,8 +310,6 @@ func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighte
 		Fighter2Health: fighter2Health,
 		TickNumber:     0,
 		CurrentRound:   1,
-		SimFighter1ID:  fighter1.ID,
-		SimFighter2ID:  fighter2.ID,
 	}
 
 	// Catch up to current time without broadcasting (for consistency)
@@ -1021,15 +997,8 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 		}
 	}
 
-	// Update fight in database
-	// Map simulated lanes back to DB order using tracked IDs
-	h1 := state.Fighter1Health
-	h2 := state.Fighter2Health
-	if state.SimFighter1ID != fight.Fighter1ID {
-		// If the sim's lane1 is not DB fighter1, swap
-		h1, h2 = h2, h1
-	}
-	err = e.repo.UpdateFightResult(fight.ID, nullableInt64(state.WinnerID), h1, h2)
+	// Update fight in database using lane healths directly
+	err = e.repo.UpdateFightResult(fight.ID, nullableInt64(state.WinnerID), state.Fighter1Health, state.Fighter2Health)
 	if err != nil {
 		return fmt.Errorf("failed to update fight: %w", err)
 	}
