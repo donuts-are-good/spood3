@@ -154,6 +154,7 @@
 
 .matches {display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; position:relative; z-index:1;}
 .match-card {background:rgba(12,7,18,0.85); border-radius:18px; border:1px solid rgba(255,255,255,0.06); padding:14px 16px; display:flex; flex-direction:column; gap:10px; transition:transform 0.25s, border-color 0.25s;}
+.match-card.clickable {cursor:pointer;}
 .match-card:hover {transform:translateY(-4px); border-color:rgba(255,204,102,0.35);}
 .match-top {display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; letter-spacing:2px; text-transform:uppercase; color:var(--sat-muted);}
 .tag {display:inline-block; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.06); font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.65);}
@@ -171,6 +172,7 @@
 .showdown-sub {font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.72);} 
 .showdown-grid {display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px;}
 .showdown-card {background:rgba(10,4,16,0.78); border-radius:22px; border:1px solid rgba(255,255,255,0.12); padding:20px 22px; position:relative; transition:transform 0.3s, box-shadow 0.3s;}
+.showdown-card.clickable {cursor:pointer;}
 .showdown-card:hover {transform:translateY(-6px); box-shadow:0 25px 55px rgba(255,204,102,0.25);}
 .showdown-card::before {content:""; position:absolute; inset:12px; border-radius:18px; border:1px dashed rgba(255,255,255,0.08); opacity:0.35; pointer-events:none;}
 .showdown-time {font-size:0.8rem; letter-spacing:3px; text-transform:uppercase; color:var(--sat-muted); margin-bottom:12px;}

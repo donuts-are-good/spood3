@@ -248,6 +248,22 @@
       el.classList.add('bet');
     }
 
+    // Enable navigation to the fight details page
+    if (fight && fight.id) {
+      el.classList.add('clickable');
+      el.addEventListener('click', () => {
+        window.location = `/fight/${fight.id}`;
+      });
+      // Basic keyboard accessibility
+      el.tabIndex = 0;
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          window.location = `/fight/${fight.id}`;
+        }
+      });
+    }
+
     return el;
   }
 
@@ -296,7 +312,7 @@
           const fight = playoffs.find(p => p.timeLabel === time);
           const revealed = fight && fight.fighter1_name && fight.fighter2_name;
           return `
-            <div class="showdown-card">
+            <div class="showdown-card ${revealed && fight && fight.id ? 'clickable' : ''}" ${revealed && fight && fight.id ? `onclick="window.location='/fight/${fight.id}'"` : ''}>
               <div class="showdown-time">${time}</div>
               <div class="showdown-match ${revealed ? 'revealed' : 'pending'}">
                 ${revealed ? `${fight.fighter1_name} vs ${fight.fighter2_name}` : '▓▓▓▓▓▓▓▓▓ vs ▓▓▓▓▓▓▓▓▓'}
