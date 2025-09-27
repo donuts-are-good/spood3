@@ -497,6 +497,15 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 				// Fighter1 crits Fighter2
 				state.Fighter2Health -= critDmg
 				state.LastDamage2 += critDmg
+				// Lifesteal: attacker recovers half the crit damage (capped)
+				heal := critDmg / 2
+				if heal > 0 {
+					healed := state.Fighter1Health + heal
+					if healed > STARTING_HEALTH {
+						healed = STARTING_HEALTH
+					}
+					state.Fighter1Health = healed
+				}
 				if e.broadcaster != nil {
 					critAction := LiveAction{
 						Type:       "critical",
@@ -533,6 +542,15 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 				// Fighter2 crits Fighter1
 				state.Fighter1Health -= critDmg
 				state.LastDamage1 += critDmg
+				// Lifesteal: attacker recovers half the crit damage (capped)
+				heal := critDmg / 2
+				if heal > 0 {
+					healed := state.Fighter2Health + heal
+					if healed > STARTING_HEALTH {
+						healed = STARTING_HEALTH
+					}
+					state.Fighter2Health = healed
+				}
 				if e.broadcaster != nil {
 					critAction := LiveAction{
 						Type:       "critical",
@@ -714,6 +732,15 @@ func (e *Engine) simulateTickQuiet(fightID, tickNumber int, fighter1, fighter2 d
 			if critAttacker == &fighter1 {
 				state.Fighter2Health -= critDmg
 				state.LastDamage2 += critDmg
+				// Lifesteal: attacker recovers half the crit damage (capped)
+				heal := critDmg / 2
+				if heal > 0 {
+					healed := state.Fighter1Health + heal
+					if healed > STARTING_HEALTH {
+						healed = STARTING_HEALTH
+					}
+					state.Fighter1Health = healed
+				}
 				if e.checkDeath(rng) {
 					state.DeathOccurred = true
 					state.IsComplete = true
@@ -723,6 +750,15 @@ func (e *Engine) simulateTickQuiet(fightID, tickNumber int, fighter1, fighter2 d
 			} else {
 				state.Fighter1Health -= critDmg
 				state.LastDamage1 += critDmg
+				// Lifesteal: attacker recovers half the crit damage (capped)
+				heal := critDmg / 2
+				if heal > 0 {
+					healed := state.Fighter2Health + heal
+					if healed > STARTING_HEALTH {
+						healed = STARTING_HEALTH
+					}
+					state.Fighter2Health = healed
+				}
 				if e.checkDeath(rng) {
 					state.DeathOccurred = true
 					state.IsComplete = true
