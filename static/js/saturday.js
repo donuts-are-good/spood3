@@ -90,7 +90,8 @@
         label: 'Live Now',
         value: liveFight ? `${liveFight.fighter1_name} vs ${liveFight.fighter2_name}` : '—',
         sub: liveFight ? 'Broadcasting live across the AR grid' : 'No active bout',
-        className: 'live'
+        className: 'live',
+        dataUrl: liveFight ? `/fight/${liveFight.id}` : undefined
       },
       {
         label: 'Next Fight',
@@ -115,18 +116,18 @@
       </div>
     `).join('');
 
-    // Make the Next Fight card clickable when URL provided
-    const nextCard = overviewRoot.querySelector('.overview-card[data-url]');
-    if (nextCard) {
-      nextCard.classList.add('clickable');
-      nextCard.tabIndex = 0;
-      const target = nextCard.getAttribute('data-url');
+    // Make any overview card with a URL clickable (e.g., Live Now, Next Fight)
+    const clickableCards = overviewRoot.querySelectorAll('.overview-card[data-url]');
+    clickableCards.forEach((cardEl) => {
+      cardEl.classList.add('clickable');
+      cardEl.tabIndex = 0;
+      const target = cardEl.getAttribute('data-url');
       const go = () => { window.location = target; };
-      nextCard.addEventListener('click', go);
-      nextCard.addEventListener('keydown', (e) => {
+      cardEl.addEventListener('click', go);
+      cardEl.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
       });
-    }
+    });
   }
 
   function buildCountdown(nextFight, now) {
