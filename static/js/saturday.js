@@ -107,27 +107,26 @@
       }
     ];
 
-    overviewRoot.innerHTML = cards.map((card) => `
-      <div class="overview-card ${card.className || ''}" ${card.dataUrl ? `data-url="${card.dataUrl}"` : ''}>
+    overviewRoot.innerHTML = cards.map((card) => {
+      const inner = `
         <div class="card-title">${card.label}</div>
         <div class="card-value">${card.value}</div>
         <div class="card-sub">${card.sub}</div>
         ${card.cta ? '<div class="bet-tag">Place bets before bell</div>' : ''}
-      </div>
-    `).join('');
-
-    // Make any overview card with a URL clickable (e.g., Live Now, Next Fight)
-    const clickableCards = overviewRoot.querySelectorAll('.overview-card[data-url]');
-    clickableCards.forEach((cardEl) => {
-      cardEl.classList.add('clickable');
-      cardEl.tabIndex = 0;
-      const target = cardEl.getAttribute('data-url');
-      const go = () => { window.location = target; };
-      cardEl.addEventListener('click', go);
-      cardEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
-      });
-    });
+      `;
+      if (card.dataUrl) {
+        return `
+          <a class="overview-card ${card.className || ''} clickable" href="${card.dataUrl}">
+            ${inner}
+          </a>
+        `;
+      }
+      return `
+        <div class="overview-card ${card.className || ''}">
+          ${inner}
+        </div>
+      `;
+    }).join('');
   }
 
   function buildCountdown(nextFight, now) {
