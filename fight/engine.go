@@ -59,6 +59,17 @@ type Engine struct {
 	fightLogMutex sync.Mutex
 }
 
+// shouldSwapOrientation returns true if we should swap fighter order for this
+// fight's simulation to reduce any systemic bias toward fighter1. It uses a
+// stable seed so the same fight ID always makes the same choice.
+func (e *Engine) shouldSwapOrientation(fightID int) bool {
+	// Use a fixed 63-bit constant to avoid int64 overflow
+	const mix int64 = 0x1ed6f1a5b7c3d2e // arbitrary but fixed
+	seed := utils.FightTickSeed(fightID, 0) ^ mix
+	rng := utils.NewSeededRNG(seed)
+	return rng.Intn(2) == 1
+}
+
 func NewEngine(repo *database.Repository) *Engine {
 	// Check if Discord features should be disabled
 	noDiscord := os.Getenv("SPOODBLORT_NO_DISCORD") != ""
@@ -181,6 +192,12 @@ func sanitizeName(name string) string {
 func (e *Engine) SimulateFightFromStart(fight database.Fight, fighter1, fighter2 database.Fighter) (*FightState, error) {
 	log.Printf("Starting fight simulation: %s vs %s", fighter1.Name, fighter2.Name)
 
+	// Randomize orientation once per fight using a deterministic seed to avoid any
+	// subtle bias toward the first argument. This does not change persisted IDs.
+	if e.shouldSwapOrientation(fight.ID) {
+		fighter1, fighter2 = fighter2, fighter1
+	}
+
 	// Apply stat effects to fighters for this fight's date
 	modifiedFighter1 := e.applyStatEffectsToFighter(fighter1, fight.ScheduledTime)
 	modifiedFighter2 := e.applyStatEffectsToFighter(fighter2, fight.ScheduledTime)
@@ -229,6 +246,11 @@ func (e *Engine) CatchUpSimulation(fight database.Fight, fighter1, fighter2 data
 
 	log.Printf("Catching up fight simulation: %d ticks elapsed", targetTick)
 
+	// Randomize orientation once per fight to avoid any bias
+	if e.shouldSwapOrientation(fight.ID) {
+		fighter1, fighter2 = fighter2, fighter1
+	}
+
 	// Apply stat effects to fighters for this fight's date
 	modifiedFighter1 := e.applyStatEffectsToFighter(fighter1, fight.ScheduledTime)
 	modifiedFighter2 := e.applyStatEffectsToFighter(fighter2, fight.ScheduledTime)
@@ -271,6 +293,11 @@ func (e *Engine) StartLiveFightSimulation(fight database.Fight, fighter1, fighte
 	log.Printf("Starting live simulation for fight %d: %s vs %s", fight.ID, fighter1.Name, fighter2.Name)
 
 	// Initialize fight log
+	// Swap orientation for fairness before logging/broadcasting the simulation
+	if e.shouldSwapOrientation(fight.ID) {
+		fighter1, fighter2 = fighter2, fighter1
+	}
+
 	err := e.initFightLog(fight, fighter1, fighter2)
 	if err != nil {
 		log.Printf("Failed to initialize fight log: %v", err)
