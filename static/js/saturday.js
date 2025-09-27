@@ -304,18 +304,17 @@
       el.classList.add('bet');
     }
 
-    // Enable navigation to the fight details page
+    // Enable navigation to the correct destination based on status
     if (fight && fight.id) {
+      const targetUrl = fight.status === 'active' ? `/watch/${fight.id}` : `/fight/${fight.id}`;
       el.classList.add('clickable');
-      el.addEventListener('click', () => {
-        window.location = `/fight/${fight.id}`;
-      });
+      el.addEventListener('click', () => { window.location = targetUrl; });
       // Basic keyboard accessibility
       el.tabIndex = 0;
       el.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          window.location = `/fight/${fight.id}`;
+          window.location = targetUrl;
         }
       });
     }
@@ -367,8 +366,9 @@
         ${['22:30', '23:00', '23:30'].map((time, idx) => {
           const fight = playoffs.find(p => p.timeLabel === time);
           const revealed = fight && fight.fighter1_name && fight.fighter2_name;
+          const href = revealed && fight && fight.id ? (fight.status === 'active' ? `/watch/${fight.id}` : `/fight/${fight.id}`) : '';
           return `
-            <div class="showdown-card ${revealed && fight && fight.id ? 'clickable' : ''}" ${revealed && fight && fight.id ? `onclick="window.location='/fight/${fight.id}'"` : ''}>
+            <div class="showdown-card ${revealed && fight && fight.id ? 'clickable' : ''}" ${href ? `onclick="window.location='${href}'"` : ''}>
               <div class="showdown-time">${time}</div>
               <div class="showdown-match ${revealed ? 'revealed' : 'pending'}">
                 ${revealed ? `${fight.fighter1_name} vs ${fight.fighter2_name}` : '▓▓▓▓▓▓▓▓▓ vs ▓▓▓▓▓▓▓▓▓'}
