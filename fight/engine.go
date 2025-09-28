@@ -63,9 +63,6 @@ type Engine struct {
 	fightLogMutex sync.Mutex
 }
 
-// shouldSwapOrientation was used to randomly flip fighter lanes. Disabled.
-func (e *Engine) shouldSwapOrientation(fightID int) bool { return false }
-
 func NewEngine(repo *database.Repository) *Engine {
 	// Check if Discord features should be disabled
 	noDiscord := os.Getenv("SPOODBLORT_NO_DISCORD") != ""

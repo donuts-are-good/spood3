@@ -159,6 +159,13 @@ func (r *Repository) GetActiveFights() ([]Fight, error) {
 	return fights, err
 }
 
+// GetAllFights returns all fights in the database ordered by scheduled_time
+func (r *Repository) GetAllFights() ([]Fight, error) {
+	var fights []Fight
+	err := r.db.Select(&fights, "SELECT * FROM fights ORDER BY scheduled_time ASC")
+	return fights, err
+}
+
 func (r *Repository) GetFighter(fighterID int) (*Fighter, error) {
 	var fighter Fighter
 	err := r.db.Get(&fighter, "SELECT * FROM fighters WHERE id = ?", fighterID)

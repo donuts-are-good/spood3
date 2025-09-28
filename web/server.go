@@ -205,6 +205,8 @@ func (s *Server) setupRoutes() {
 
 	// Internal JSON endpoints
 	public.HandleFunc("/api/schedule/today", s.handleScheduleTodayAPI).Methods("GET")
+	public.HandleFunc("/api/fighters", s.handleFightersAPI).Methods("GET")
+	public.HandleFunc("/api/fights", s.handleFightsAPI).Methods("GET")
 
 	// Protected routes (require authentication)
 	protected := s.router.PathPrefix("/user").Subrouter()
@@ -3876,6 +3878,38 @@ func (s *Server) handleScheduleTodayAPI(w http.ResponseWriter, r *http.Request) 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		log.Printf("schedule API encode error: %v", err)
 	}
+}
+
+// handleFightersAPI returns all fighters as JSON
+func (s *Server) handleFightersAPI(w http.ResponseWriter, r *http.Request) {
+	fighters, err := s.repo.GetAllFightersByRecord()
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": "failed to load fighters",
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(fighters)
+}
+
+// handleFightsAPI returns all fights as JSON
+func (s *Server) handleFightsAPI(w http.ResponseWriter, r *http.Request) {
+	fights, err := s.repo.GetAllFights()
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": "failed to load fights",
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(fights)
 }
 
 func toScheduleDTOs(fights []database.Fight) []scheduleFightDTO {
