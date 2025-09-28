@@ -3,7 +3,6 @@ package main
 import (
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"regexp"
 	"spoodblort/database"
@@ -197,7 +196,7 @@ func main() {
 	log.Printf("🥊 Ready for violence!")
 
 	// Start server (this blocks)
-	if err := http.ListenAndServe(":"+port, server.Router()); err != nil {
+	if err := server.Start(port); err != nil {
 		log.Fatal("Failed to start web server:", err)
 	}
 }
