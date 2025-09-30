@@ -618,7 +618,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		NextFight:       nextFight,
 		Tournament:      tournament,
 		Now:             now,
-		MetaDescription: "🔥 TODAY'S VIOLENCE SCHEDULE 🔥 24 IMPOSSIBLE FIGHTS EVERY 30 MINUTES. FIGHTERS WITH BLOOD TYPE 'NACHO CHEESE' AND 1000 TOES AWAIT YOUR DEGENERATE GAMBLING. WITNESS THE CHAOS. EMBRACE THE EXISTENTIAL DREAD.",
+		MetaDescription: "Spoodblort is a timewaster game to play at work. Bets, bribes, and violence await.",
 		MetaType:        "website",
 		RequiredCSS:     []string{"index-demo1.css"},
 		FighterMap:      fighterMap,

@@ -39,8 +39,16 @@
 .section-title{ margin-top:26px; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
 .section-title .now{ color:var(--idx-dim); font-size:.95rem; }
 .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-.fight-card{ border:1px solid var(--idx-card-border); border-radius:12px; background:#0a0a0a; padding:14px; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
+.fight-card{ border:1px solid var(--idx-card-border); border-radius:12px; background:#0a0a0a; padding:14px; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; position:relative; overflow:hidden; }
 .fight-card:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,.5); }
+.fight-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#444; }
+/* Status-specific left-edge colors */
+.fight-card.status-active::before{ background:#00ff00; }
+.fight-card.status-completed::before{ background:#888888; }
+.fight-card.status-voided::before{ background:#ff4444; }
+.fight-card.status-scheduled::before{ background:#ffaa00; }
+/* Bet placed highlight for scheduled */
+.fight-card.bet-placed.status-scheduled::before{ background:#4A90E2; }
 .time-display{ color:var(--idx-dim); font-weight:700; }
 .match{ display:grid; gap:4px; }
 .names{ font-family:'Mozilla Headline',sans-serif; letter-spacing:1px; }
