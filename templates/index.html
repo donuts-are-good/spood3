@@ -86,6 +86,11 @@
             
             <div class="fight-matchup">
                 <div class="fighter-slot fighter1{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
+                    {{if index $.FighterMap $fight.Fighter1ID}}
+                        <div class="schedule-fighter-avatar">
+                            <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="schedule-avatar-img">
+                        </div>
+                    {{end}}
                     <span class="fighter-name">
                         <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
                         {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}}<span class="mvp-crown">👑</span>{{end}}
@@ -98,6 +103,11 @@
                 </div>
                 
                 <div class="fighter-slot fighter2{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
+                    {{if index $.FighterMap $fight.Fighter2ID}}
+                        <div class="schedule-fighter-avatar">
+                            <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="schedule-avatar-img">
+                        </div>
+                    {{end}}
                     <span class="fighter-name">
                         <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
                         {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}}<span class="mvp-crown">👑</span>{{end}}
@@ -125,11 +135,17 @@
     <div class="fight-card-mobile mobile-only status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
         <div class="mobile-fight-content">
             <div class="mobile-fighter-name">
+                {{if index $.FighterMap $fight.Fighter1ID}}
+                    <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="mobile-schedule-avatar-img">
+                {{end}}
                 <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
                 {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} 👑{{end}}
             </div>
             <div class="mobile-vs">vs</div>
             <div class="mobile-fighter-name">
+                {{if index $.FighterMap $fight.Fighter2ID}}
+                    <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="mobile-schedule-avatar-img">
+                {{end}}
                 <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
                 {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} 👑{{end}}
             </div>

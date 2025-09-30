@@ -97,6 +97,7 @@ type PageData struct {
 	Fight           *database.Fight
 	Users           []database.User
 	Fighters        []database.Fighter
+	FighterMap      map[int]*database.Fighter // For looking up fighters by ID in templates
 	Now             time.Time
 	PrimaryColor    string
 	SecondaryColor  string
@@ -594,6 +595,21 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Load all fighters for today's fights (for avatars)
+	fighterMap := make(map[int]*database.Fighter)
+	for _, fight := range fights {
+		if _, exists := fighterMap[fight.Fighter1ID]; !exists {
+			if f, err := s.repo.GetFighter(fight.Fighter1ID); err == nil {
+				fighterMap[fight.Fighter1ID] = f
+			}
+		}
+		if _, exists := fighterMap[fight.Fighter2ID]; !exists {
+			if f, err := s.repo.GetFighter(fight.Fighter2ID); err == nil {
+				fighterMap[fight.Fighter2ID] = f
+			}
+		}
+	}
+
 	user := GetUserFromContext(r.Context())
 	data := PageData{
 		User:            user,
@@ -605,6 +621,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		MetaDescription: "🔥 TODAY'S VIOLENCE SCHEDULE 🔥 24 IMPOSSIBLE FIGHTS EVERY 30 MINUTES. FIGHTERS WITH BLOOD TYPE 'NACHO CHEESE' AND 1000 TOES AWAIT YOUR DEGENERATE GAMBLING. WITNESS THE CHAOS. EMBRACE THE EXISTENTIAL DREAD.",
 		MetaType:        "website",
 		RequiredCSS:     []string{"schedule.css"},
+		FighterMap:      fighterMap,
 	}
 
 	// Add colors and MVP setting if user is present

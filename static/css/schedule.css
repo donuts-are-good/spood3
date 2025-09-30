@@ -653,15 +653,45 @@
 }
 
 .fighter-slot {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
 .fighter1 {
     text-align: right;
+    align-items: flex-end;
 }
 
 .fighter2 {
     text-align: left;
+    align-items: flex-start;
+}
+
+/* Fighter avatars on schedule */
+.schedule-fighter-avatar {
+    display: inline-block;
+}
+
+.schedule-avatar-img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid #555;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Mobile schedule avatars */
+.mobile-schedule-avatar-img {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #555;
+    margin-right: 6px;
+    vertical-align: middle;
 }
 
 /* Winner/Loser styling for completed fights */
