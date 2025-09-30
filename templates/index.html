@@ -108,7 +108,7 @@
 									<a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()">{{$fight.Fighter1Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
 									<a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()">{{$fight.Fighter2Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
 								</div>
-								<div class="sub" style="color:var(--idx-dim)">Fight {{add $i 1}}</div>
+								<div class="sub" style="color:var(--idx-dim)">Slot {{add $i 1}}</div>
 							</div>
 							<div class="status {{if eq $fight.Status "active"}}live{{else}}upcoming{{end}}">{{if eq $fight.Status "active"}}LIVE{{else}}UPCOMING{{end}}</div>
 						</div>
