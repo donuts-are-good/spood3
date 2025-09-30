@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const DefaultFighterAvatarPath = "/img-cdn/default.png"
+
 type User struct {
 	ID             int       `db:"id"`
 	DiscordID      string    `db:"discord_id"`
@@ -43,6 +45,7 @@ type Fighter struct {
 	CreationDate      *time.Time `db:"creation_date"`
 	CustomDescription *string    `db:"custom_description"`
 	Lore              string     `db:"lore"`
+	AvatarURL         string     `db:"avatar_url"`
 }
 
 type ChampionLegacyRecord struct {

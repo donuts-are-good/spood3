@@ -42,6 +42,9 @@
 			<div class="fight-section-card">
 			<div class="tale-of-tape">
 				<div class="tot-col left">
+					<div class="tot-fighter-avatar">
+						<img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="tot-avatar-img">
+					</div>
 					<div class="tot-fighter-name">{{.Fight.Fighter1Name}}</div>
 					<div class="tot-row"><span class="label">Strength</span><span id="tot-f1-strength" class="value {{if gt .Fighter1.Strength .Fighter2.Strength}}win{{end}}">{{.Fighter1.Strength}}</span></div>
 					<div class="tot-row"><span class="label">Speed</span><span id="tot-f1-speed" class="value {{if gt .Fighter1.Speed .Fighter2.Speed}}win{{end}}">{{.Fighter1.Speed}}</span></div>
@@ -57,6 +60,9 @@
 					<div class="tot-faceoff">{{.Fight.Fighter1Name}} <span class="vs-dot">VS</span> {{.Fight.Fighter2Name}}</div>
 				</div>
 				<div class="tot-col right">
+					<div class="tot-fighter-avatar">
+						<img src="{{.Fighter2.AvatarURL}}" alt="{{.Fight.Fighter2Name}}" class="tot-avatar-img">
+					</div>
 					<div class="tot-fighter-name">{{.Fight.Fighter2Name}}</div>
 					<div class="tot-row"><span id="tot-f2-strength" class="value {{if gt .Fighter2.Strength .Fighter1.Strength}}win{{end}}">{{.Fighter2.Strength}}</span><span class="label">Strength</span></div>
 					<div class="tot-row"><span id="tot-f2-speed" class="value {{if gt .Fighter2.Speed .Fighter1.Speed}}win{{end}}">{{.Fighter2.Speed}}</span><span class="label">Speed</span></div>

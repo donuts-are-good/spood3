@@ -15,6 +15,7 @@
             <thead>
                 <tr>
                     <th class="rank-column">RANK</th>
+                    <th class="avatar-column"></th>
                     <th class="fighter-column sortable" data-sort="name">
                         FIGHTER
                     </th>
@@ -56,6 +57,9 @@
                                 <span class="rank-number">{{add $index 1}}</span>
                             {{end}}
                         </td>
+                        <td class="avatar-cell">
+                            <img src="{{$fighter.AvatarURL}}" alt="{{$fighter.Name}}" class="fighter-avatar-img">
+                        </td>
                         <td class="fighter-cell">
                             <span class="fighter-name">{{$fighter.Name}}</span>
                         </td>
@@ -82,7 +86,7 @@
                     {{end}}
                 {{else}}
                     <tr>
-                        <td colspan="7" class="empty-fighters">
+                        <td colspan="8" class="empty-fighters">
                             <div class="empty-state">
                                 <h3>No fighters found</h3>
                                 <p>The violence database appears to be empty.</p>

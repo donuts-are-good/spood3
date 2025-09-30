@@ -19,6 +19,20 @@ func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{db: db}
 }
 
+// ensureFighterDefaults applies default values to fighter fields if not set
+func ensureFighterDefaults(f *Fighter) {
+	if f.AvatarURL == "" {
+		f.AvatarURL = DefaultFighterAvatarPath
+	}
+}
+
+// ensureFightersDefaults applies default values to a slice of fighters
+func ensureFightersDefaults(fighters []Fighter) {
+	for i := range fighters {
+		ensureFighterDefaults(&fighters[i])
+	}
+}
+
 func (r *Repository) GetTournamentByWeek(weekNumber int) (*Tournament, error) {
 	var tournament Tournament
 	err := r.db.Get(&tournament, "SELECT * FROM tournaments WHERE week_number = ?", weekNumber)
@@ -34,6 +48,9 @@ func (r *Repository) GetTournament(tournamentID int) (*Tournament, error) {
 func (r *Repository) GetAliveFighters() ([]Fighter, error) {
 	var fighters []Fighter
 	err := r.db.Select(&fighters, "SELECT * FROM fighters WHERE is_dead = FALSE ORDER BY id")
+	if err == nil {
+		ensureFightersDefaults(fighters)
+	}
 	return fighters, err
 }
 
@@ -169,6 +186,9 @@ func (r *Repository) GetAllFights() ([]Fight, error) {
 func (r *Repository) GetFighter(fighterID int) (*Fighter, error) {
 	var fighter Fighter
 	err := r.db.Get(&fighter, "SELECT * FROM fighters WHERE id = ?", fighterID)
+	if err == nil {
+		ensureFighterDefaults(&fighter)
+	}
 	return &fighter, err
 }
 
@@ -273,6 +293,9 @@ func (r *Repository) GetAllUsersByCredits() ([]User, error) {
 func (r *Repository) GetAllFightersByRecord() ([]Fighter, error) {
 	var fighters []Fighter
 	err := r.db.Select(&fighters, "SELECT * FROM fighters ORDER BY wins DESC, losses ASC, name ASC")
+	if err == nil {
+		ensureFightersDefaults(fighters)
+	}
 	return fighters, err
 }
 
@@ -983,26 +1006,30 @@ func (r *Repository) GetFighterByName(name string) (*Fighter, error) {
 		}
 		return nil, err
 	}
+	ensureFighterDefaults(fighter)
 	return fighter, nil
 }
 
 // CreateCustomFighter creates a new custom fighter and returns the fighter ID
 func (r *Repository) CreateCustomFighter(fighter Fighter) (int, error) {
+	// Ensure default avatar if not set
+	ensureFighterDefaults(&fighter)
+
 	result, err := r.db.Exec(`
 		INSERT INTO fighters (
 			name, team, strength, speed, endurance, technique, 
 			blood_type, horoscope, molecular_density, existential_dread, 
 			fingers, toes, ancestors, fighter_class, wins, losses, draws, 
 			is_dead, created_by_user_id, is_custom, creation_date, 
-			custom_description, created_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			custom_description, avatar_url, created_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		fighter.Name, fighter.Team, fighter.Strength, fighter.Speed,
 		fighter.Endurance, fighter.Technique, fighter.BloodType,
 		fighter.Horoscope, fighter.MolecularDensity, fighter.ExistentialDread,
 		fighter.Fingers, fighter.Toes, fighter.Ancestors, fighter.FighterClass,
 		fighter.Wins, fighter.Losses, fighter.Draws, fighter.IsDead,
 		fighter.CreatedByUserID, fighter.IsCustom, fighter.CreationDate,
-		fighter.CustomDescription, time.Now(),
+		fighter.CustomDescription, fighter.AvatarURL, time.Now(),
 	)
 	if err != nil {
 		return 0, err
@@ -1019,6 +1046,12 @@ func (r *Repository) CreateCustomFighter(fighter Fighter) (int, error) {
 // UpdateFighterLore updates the lore text for a fighter
 func (r *Repository) UpdateFighterLore(fighterID int, lore string) error {
 	_, err := r.db.Exec("UPDATE fighters SET lore = ?, created_at = created_at WHERE id = ?", lore, fighterID)
+	return err
+}
+
+// UpdateFighterAvatarURL updates the avatar URL for a fighter
+func (r *Repository) UpdateFighterAvatarURL(fighterID int, avatarURL string) error {
+	_, err := r.db.Exec("UPDATE fighters SET avatar_url = ?, created_at = created_at WHERE id = ?", avatarURL, fighterID)
 	return err
 }
 

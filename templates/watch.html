@@ -28,7 +28,9 @@
         <div class="arena-display">
             <div class="fighter-section fighter-left">
                 <div class="fighter-portrait">
-                    <div class="fighter-avatar" id="fighter1-avatar" data-fighter-id="{{.Fight.Fighter1ID}}" data-fighter-name="{{.Fight.Fighter1Name}}">💀</div>
+                    <div class="fighter-avatar" id="fighter1-avatar" data-fighter-id="{{.Fight.Fighter1ID}}" data-fighter-name="{{.Fight.Fighter1Name}}">
+                        {{if .Fighter1}}<img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="avatar-img">{{else}}💀{{end}}
+                    </div>
                     <div class="fighter-name">{{.Fight.Fighter1Name}}</div>
                     <div class="fighter-team">{{if .Fighter1}}{{.Fighter1.Team}}{{end}}</div>
                     {{if or (gt .Fighter1Blessings 0) (gt .Fighter1Curses 0)}}
@@ -63,7 +65,9 @@
 
             <div class="fighter-section fighter-right">
                 <div class="fighter-portrait">
-                    <div class="fighter-avatar" id="fighter2-avatar" data-fighter-id="{{.Fight.Fighter2ID}}" data-fighter-name="{{.Fight.Fighter2Name}}">🗡️</div>
+                    <div class="fighter-avatar" id="fighter2-avatar" data-fighter-id="{{.Fight.Fighter2ID}}" data-fighter-name="{{.Fight.Fighter2Name}}">
+                        {{if .Fighter2}}<img src="{{.Fighter2.AvatarURL}}" alt="{{.Fight.Fighter2Name}}" class="avatar-img">{{else}}🗡️{{end}}
+                    </div>
                     <div class="fighter-name">{{.Fight.Fighter2Name}}</div>
                     <div class="fighter-team">{{if .Fighter2}}{{.Fighter2.Team}}{{end}}</div>
                     {{if or (gt .Fighter2Blessings 0) (gt .Fighter2Curses 0)}}

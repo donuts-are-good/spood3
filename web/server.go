@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"spoodblort/database"
@@ -172,6 +173,9 @@ func (s *Server) setupRoutes() {
 	// Static files
 	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
+	// Fighter avatar CDN (serves /var/www/downloads/fighters as /img-cdn)
+	s.router.PathPrefix("/img-cdn/").Handler(http.StripPrefix("/img-cdn/", http.FileServer(http.Dir("/var/www/downloads/fighters/"))))
+
 	// Public routes
 	public := s.router.PathPrefix("").Subrouter()
 	public.Use(s.authMW.LoadUser)
@@ -254,6 +258,8 @@ func (s *Server) setupRoutes() {
 	protectedGeneral.Use(s.authMW.LoadUser)
 	protectedGeneral.Use(s.authMW.RequireAuth)
 	protectedGeneral.HandleFunc("/fighter/edit", s.handleFighterEdit).Methods("POST")
+	protectedGeneral.HandleFunc("/fighter/avatar/upload", s.handleFighterAvatarUpload).Methods("POST")
+	protectedGeneral.HandleFunc("/fighter/avatar/clear", s.handleFighterAvatarClear).Methods("POST")
 }
 
 // isAdmin checks if a user is an admin based on allowed Discord IDs from env
@@ -311,6 +317,127 @@ func (s *Server) handleFighterEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect back to fighter page
+	http.Redirect(w, r, fmt.Sprintf("/fighter/%d", fighterID), http.StatusSeeOther)
+}
+
+// handleFighterAvatarUpload handles admin avatar image uploads for fighters
+func (s *Server) handleFighterAvatarUpload(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if !isAdmin(user) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	// Parse multipart form (2MB max)
+	if err := r.ParseMultipartForm(2 << 20); err != nil {
+		http.Error(w, "File too large (max 2MB)", http.StatusBadRequest)
+		return
+	}
+
+	fighterIDStr := r.FormValue("fighter_id")
+	fighterID, err := strconv.Atoi(strings.TrimSpace(fighterIDStr))
+	if err != nil || fighterID <= 0 {
+		http.Error(w, "Invalid fighter ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get fighter to build filename
+	fighter, err := s.repo.GetFighter(fighterID)
+	if err != nil {
+		http.Error(w, "Fighter not found", http.StatusNotFound)
+		return
+	}
+
+	// Get uploaded file
+	file, header, err := r.FormFile("avatar")
+	if err != nil {
+		http.Error(w, "No file uploaded", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Validate file type
+	contentType := header.Header.Get("Content-Type")
+	var ext string
+	switch contentType {
+	case "image/jpeg", "image/jpg":
+		ext = ".jpg"
+	case "image/png":
+		ext = ".png"
+	case "image/gif":
+		ext = ".gif"
+	case "image/webp":
+		ext = ".webp"
+	default:
+		http.Error(w, "Invalid file type (must be jpg, png, gif, or webp)", http.StatusBadRequest)
+		return
+	}
+
+	// Build safe filename: {id}-{safeName}.{ext}
+	safeName := strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+			return r
+		}
+		return '_'
+	}, fighter.Name)
+	filename := fmt.Sprintf("%d-%s%s", fighterID, safeName, ext)
+	filepath := fmt.Sprintf("/var/www/downloads/fighters/%s", filename)
+
+	// Read file contents
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		log.Printf("Failed to read uploaded file: %v", err)
+		http.Error(w, "Failed to read file", http.StatusInternalServerError)
+		return
+	}
+
+	// Write to destination
+	if err := os.WriteFile(filepath, fileBytes, 0644); err != nil {
+		log.Printf("Failed to write avatar file: %v", err)
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		return
+	}
+
+	// Update database with new avatar URL
+	avatarURL := fmt.Sprintf("/img-cdn/%s", filename)
+	if err := s.repo.UpdateFighterAvatarURL(fighterID, avatarURL); err != nil {
+		log.Printf("Failed to update fighter avatar URL: %v", err)
+		http.Error(w, "Failed to update database", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Admin %s uploaded avatar for fighter %d: %s", user.Username, fighterID, avatarURL)
+	http.Redirect(w, r, fmt.Sprintf("/fighter/%d", fighterID), http.StatusSeeOther)
+}
+
+// handleFighterAvatarClear handles admin clearing/resetting fighter avatars
+func (s *Server) handleFighterAvatarClear(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if !isAdmin(user) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form", http.StatusBadRequest)
+		return
+	}
+
+	fighterIDStr := r.FormValue("fighter_id")
+	fighterID, err := strconv.Atoi(strings.TrimSpace(fighterIDStr))
+	if err != nil || fighterID <= 0 {
+		http.Error(w, "Invalid fighter ID", http.StatusBadRequest)
+		return
+	}
+
+	// Reset to default avatar
+	if err := s.repo.UpdateFighterAvatarURL(fighterID, database.DefaultFighterAvatarPath); err != nil {
+		log.Printf("Failed to clear fighter avatar: %v", err)
+		http.Error(w, "Failed to clear avatar", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Admin %s cleared avatar for fighter %d", user.Username, fighterID)
 	http.Redirect(w, r, fmt.Sprintf("/fighter/%d", fighterID), http.StatusSeeOther)
 }
 

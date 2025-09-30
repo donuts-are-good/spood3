@@ -34,6 +34,39 @@
                 </div>
             </div>
 
+            <!-- Avatar embedded in header card -->
+            <div class="fighter-avatar-section" style="margin-top: 1rem; width: 100%;">
+                <div class="avatar-header" style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                    <h3>Avatar</h3>
+                    {{if .IsAdmin}}
+                    <button type="button" class="avatar-edit-toggle" title="Manage avatar" aria-label="Manage avatar" aria-expanded="false">✎</button>
+                    {{end}}
+                </div>
+                <div class="avatar-display" style="margin-top: 0.75rem;">
+                    <img src="{{.Fighter.AvatarURL}}" alt="{{.Fighter.Name}}" style="max-width: 200px; max-height: 200px; border: 2px solid #444; border-radius: 8px;">
+                </div>
+
+                {{if .IsAdmin}}
+                <div class="avatar-edit" style="margin-top: 0.75rem; display: none;">
+                    <form method="POST" action="/fighter/avatar/upload" enctype="multipart/form-data">
+                        <input type="hidden" name="fighter_id" value="{{.Fighter.ID}}">
+                        <div style="margin-bottom: 0.75rem;">
+                            <label for="avatar-file" style="display: block; margin-bottom: 0.5rem; color: #ccc;">Upload new avatar (max 2MB, jpg/png/gif/webp):</label>
+                            <input type="file" id="avatar-file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" required style="display: block; padding: 8px; background: #000; color: #fff; border: 1px solid #555; border-radius: 6px;">
+                        </div>
+                        <div class="avatar-actions" style="display:flex; gap:10px;">
+                            <button type="submit" class="cta">Upload</button>
+                            <button type="button" class="cta cta-secondary avatar-cancel">Cancel</button>
+                        </div>
+                    </form>
+                    <form method="POST" action="/fighter/avatar/clear" style="margin-top: 10px;">
+                        <input type="hidden" name="fighter_id" value="{{.Fighter.ID}}">
+                        <button type="submit" class="cta cta-secondary" onclick="return confirm('Clear avatar and use default?');">Clear Avatar</button>
+                    </form>
+                </div>
+                {{end}}
+            </div>
+
             <!-- Lore embedded in header card -->
             <div class="fighter-lore" style="margin-top: 1rem; width: 100%;">
                 <div class="lore-header" style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
