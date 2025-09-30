@@ -21,7 +21,7 @@ const (
 	CRIT_CHANCE           = 2      // 1 in 2 chance per tick for the losing fighter to attempt a crit
 	STARTING_HEALTH       = 100000 // Increased from 100k for longer fights
 	MIN_DAMAGE            = 5
-	MAX_DAMAGE            = 1000 // Reduced from 5000 to balance simultaneous combat
+	MAX_DAMAGE            = 500 // Reduced from 5000 to balance simultaneous combat
 )
 
 // Broadcaster interface for live fight updates
