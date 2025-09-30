@@ -35,6 +35,35 @@
             </div>
         </div>
 
+        <!-- Lore section full width -->
+        <div class="profile-card lore-card">
+            <div class="card-header">
+                <h3>LORE</h3>
+                {{if .IsAdmin}}
+                <button type="button" class="lore-edit-toggle edit-btn" title="Edit lore" aria-expanded="false">✎</button>
+                {{end}}
+            </div>
+            <div class="lore-text">
+                {{if .Fighter.Lore}}{{.Fighter.Lore}}{{else}}...{{end}}
+            </div>
+
+            {{if .IsAdmin}}
+            <div class="lore-edit">
+                <form method="POST" action="/fighter/edit">
+                    <input type="hidden" name="id" value="{{.Fighter.ID}}">
+                    <input type="hidden" name="field" value="lore">
+                    <div class="form-group">
+                        <textarea name="value" rows="6" class="lore-textarea">{{.Fighter.Lore}}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="cta">Save</button>
+                        <button type="button" class="cta cta-secondary lore-cancel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            {{end}}
+        </div>
+
         <!-- Main content grid: Avatar | Stats -->
         <div class="fighter-content-grid">
             <!-- Left sidebar: Avatar -->
@@ -150,35 +179,6 @@
         </div>
             </div><!-- End fighter-main-content -->
         </div><!-- End fighter-content-grid -->
-        
-        <!-- Lore section full width -->
-        <div class="profile-card lore-card">
-            <div class="card-header">
-                <h3>LORE</h3>
-                {{if .IsAdmin}}
-                <button type="button" class="lore-edit-toggle edit-btn" title="Edit lore" aria-expanded="false">✎</button>
-                {{end}}
-            </div>
-            <div class="lore-text">
-                {{if .Fighter.Lore}}{{.Fighter.Lore}}{{else}}...{{end}}
-            </div>
-
-            {{if .IsAdmin}}
-            <div class="lore-edit">
-                <form method="POST" action="/fighter/edit">
-                    <input type="hidden" name="id" value="{{.Fighter.ID}}">
-                    <input type="hidden" name="field" value="lore">
-                    <div class="form-group">
-                        <textarea name="value" rows="6" class="lore-textarea">{{.Fighter.Lore}}</textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="cta">Save</button>
-                        <button type="button" class="cta cta-secondary lore-cancel">Cancel</button>
-                    </div>
-                </form>
-            </div>
-            {{end}}
-        </div>
         
         <div class="fighter-actions">
             <a href="/" class="back-button">← Back to Schedule</a>
