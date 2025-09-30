@@ -29,12 +29,13 @@ type FightState struct {
 }
 
 type Notifier struct {
-	repo            *database.Repository
-	botToken        string
-	channelID       string
-	actionChannelID string
-	webhookURL      string
-	serverBaseURL   string
+	repo             *database.Repository
+	botToken         string
+	channelID        string
+	actionChannelID  string
+	generalChannelID string
+	webhookURL       string
+	serverBaseURL    string
 }
 
 type DiscordEmbed struct {
@@ -69,12 +70,13 @@ type DiscordMessage struct {
 
 func NewNotifier(repo *database.Repository) *Notifier {
 	return &Notifier{
-		repo:            repo,
-		botToken:        os.Getenv("DISCORD_BOT_TOKEN"),
-		channelID:       os.Getenv("DISCORD_CHANNEL_ID"),
-		actionChannelID: "1419508683171168296", // hard-coded action channel ID
-		webhookURL:      os.Getenv("DISCORD_WEBHOOK_URL"),
-		serverBaseURL:   getServerBaseURL(),
+		repo:             repo,
+		botToken:         os.Getenv("DISCORD_BOT_TOKEN"),
+		channelID:        os.Getenv("DISCORD_CHANNEL_ID"),
+		actionChannelID:  "1419508683171168296", // hard-coded action channel ID
+		generalChannelID: "1398829103615971380", // general chat channel ID
+		webhookURL:       os.Getenv("DISCORD_WEBHOOK_URL"),
+		serverBaseURL:    getServerBaseURL(),
 	}
 }
 
@@ -126,13 +128,32 @@ func (n *Notifier) NotifyFightResult(fightData database.Fight, state *FightState
 	embed := n.createFightResultEmbed(fightData, state, fighter1, fighter2, fighter1Effects, fighter2Effects, allBets)
 
 	// Send via webhook if available (preferred), otherwise use bot
+	var sendErr error
 	if n.webhookURL != "" {
-		return n.sendViaWebhook(embed)
+		sendErr = n.sendViaWebhook(embed)
 	} else if n.channelID != "" {
-		return n.sendViaBot(embed)
+		sendErr = n.sendViaBot(embed)
+	} else {
+		return fmt.Errorf("no Discord channel configured")
 	}
 
-	return fmt.Errorf("no Discord channel configured")
+	// Also post a simple death notice to general chat if a death occurred
+	if state.DeathOccurred && n.botToken != "" && n.generalChannelID != "" {
+		var killed, killer string
+		if state.WinnerID == fighter1.ID {
+			killer = fighter1.Name
+			killed = fighter2.Name
+		} else {
+			killer = fighter2.Name
+			killed = fighter1.Name
+		}
+		content := fmt.Sprintf("%s has been killed in battle by %s.", killed, killer)
+		if err := n.sendTextViaBot(n.generalChannelID, content); err != nil {
+			log.Printf("failed to send general death notice: %v", err)
+		}
+	}
+
+	return sendErr
 }
 
 // createFightResultEmbed builds the Discord embed for fight results
