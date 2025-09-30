@@ -620,11 +620,10 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Now:             now,
 		MetaDescription: "🔥 TODAY'S VIOLENCE SCHEDULE 🔥 24 IMPOSSIBLE FIGHTS EVERY 30 MINUTES. FIGHTERS WITH BLOOD TYPE 'NACHO CHEESE' AND 1000 TOES AWAIT YOUR DEGENERATE GAMBLING. WITNESS THE CHAOS. EMBRACE THE EXISTENTIAL DREAD.",
 		MetaType:        "website",
-		RequiredCSS:     []string{"schedule.css"},
+		RequiredCSS:     []string{"index-demo1.css"},
 		FighterMap:      fighterMap,
 	}
 
-	// Add colors and MVP setting if user is present
 	if user != nil {
 		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
 		data.PrimaryColor = primaryColor
