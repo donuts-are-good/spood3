@@ -1,8 +1,281 @@
 
 .fighter-profile {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+}
+
+/* New Clean Header */
+.fighter-header-clean {
+    background: #000000;
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.fighter-title h2 {
+    font-size: 2.5rem;
+    margin: 0 0 12px 0;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.fighter-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.team-badge, .class-badge, .creator-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.team-badge {
+    background: #1a1a1a;
+    color: #4ecdc4;
+    border: 1px solid #4ecdc4;
+}
+
+.class-badge {
+    background: #1a1a1a;
+    color: #ffd700;
+    border: 1px solid #ffd700;
+}
+
+.creator-badge {
+    background: #1a1a1a;
+    color: #ff6b9d;
+    border: 1px solid #ff6b9d;
+    font-size: 0.8rem;
+}
+
+.fighter-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #333;
+}
+
+.record-display {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.record-label {
+    font-size: 0.75rem;
+    color: #888;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.record-value {
+    display: flex;
+    gap: 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.wins-num { color: #00ff00; }
+.losses-num { color: #ff4444; }
+.draws-num { color: #ffaa00; }
+
+.status-badge {
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+.status-badge.alive {
+    background: #0a3d0a;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+}
+
+.status-badge.dead {
+    background: #3d0a0a;
+    color: #ff4444;
+    border: 1px solid #ff4444;
+}
+
+/* Content Grid Layout */
+.fighter-content-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.fighter-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.fighter-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Profile Cards */
+.profile-card {
+    background: #000000;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #333;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.edit-btn {
+    background: none;
+    border: 1px solid #666;
+    color: #aaa;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.edit-btn:hover {
+    background: #1a1a1a;
+    border-color: #fff;
+    color: #fff;
+}
+
+/* Avatar Card */
+.avatar-card .avatar-display {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.fighter-avatar-large {
+    max-width: 100%;
+    height: auto;
+    border: 2px solid #444;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.avatar-edit {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #333;
+}
+
+.avatar-edit.open {
+    display: block;
+}
+
+/* Lore Card (Full Width) */
+.lore-card {
+    margin-bottom: 24px;
+}
+
+.lore-text {
+    color: #ddd;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+}
+
+.lore-edit {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #333;
+}
+
+.lore-edit.open {
+    display: block;
+}
+
+.lore-textarea {
+    width: 100%;
+    min-height: 150px;
+    background: #1a1a1a;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 12px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.file-input {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    background: #1a1a1a;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.clear-form {
+    margin-top: 12px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .fighter-content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .fighter-status-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
 }
 
 /* Fighter Header */
