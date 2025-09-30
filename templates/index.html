@@ -1,305 +1,200 @@
 {{define "content"}}
-<div id="chaosWeatherAdvisory" class="chaos-weather-advisory" style="display:none;">
-    <div class="advisory-content">
-        <div class="advisory-icon">⛈️⚡</div>
-        <div class="advisory-text">
-            <div class="advisory-title">EXTREMELY DEADLY WEATHER ADVISORY</div>
-            <div class="advisory-body" data-echo="The Department reports elevated atmospheric weirdness.">
-                The Department reports elevated atmospheric weirdness. <br><h1>Death imminence is increasing.<br></h1> DIE. DIE DIE IDEIDIEIDIEDIEDIEDIE DIE DIE. <br><br>Err 0x000029.
-            </div>
-        </div>
-        <button class="advisory-dismiss" onclick="dismissWeatherAdvisory()" aria-label="Dismiss weather advisory" title="Hide this warning (you can restore it from the header)">&times;</button>
-    </div>
-</div>
-<div class="schedule-container">
+	<div id="chaosWeatherAdvisory" class="chaos-weather-advisory" style="display:none;">
+		<div class="advisory-content">
+			<div class="advisory-icon">⛈️⚡</div>
+			<div class="advisory-text">
+				<div class="advisory-title">EXTREMELY DEADLY WEATHER ADVISORY</div>
+				<div class="advisory-body" data-echo="The Department reports elevated atmospheric weirdness.">
+					The Department reports elevated atmospheric weirdness. <br><h1>Death imminence is increasing.<br></h1> DIE. DIE DIE IDEIDIEIDIEDIEDIEDIE DIE DIE. <br><br>Err 0x000029.
+				</div>
+			</div>
+			<button class="advisory-dismiss" onclick="dismissWeatherAdvisory()" aria-label="Dismiss weather advisory" title="Hide this warning (you can restore it from the header)">&times;</button>
+		</div>
+	</div>
 
-<div class="tournament-header">
-    {{if .Tournament}}
-        <div class="tournament-banner">
-            <h1 style="font-size: 2em; font-weight: bold;">2025 <span style="color: #ff0000;">SUMMER</span> PRE-SEASON</h1>
-            <h2 class="tournament-title" >{{.Tournament.Name}} Tournament</h2>
-            <p class="sponsor">Sponsored by <strong title="Spoodblort Inc. is not affiliated with {{.Tournament.Sponsor}}, for legal reasons. - Spoodblort Inc. Legal Team">{{.Tournament.Sponsor}}</strong></p>
-            <div class="tournament-meta">
-                <span class="week-badge">Week {{.Tournament.WeekNumber}}</span>
-                <span class="date-badge">{{.Tournament.StartDate.Format "January 2, 2006"}}</span>
-            </div>
-        </div>
-    {{end}}
-</div>
+	<style>
+		/***** Demo1-inspired inline styles *****/
+		:root { --idx-card-border:#1e1e1e; --idx-dim:#bdbdbd; --idx-accent:#ffaa00; --idx-danger:#ff4444; }
+		.hero { margin: 16px auto; width: min(1200px, 94%); display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 18px; }
+		.card { border: 1px solid var(--idx-card-border); border-radius: 14px; background: #0b0b0b; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+		.card-header { padding: 14px 16px; border-bottom: 1px solid #151515; display: flex; align-items: center; justify-content: space-between; }
+		.card-body { padding: 16px; }
+		.pill { border: 1px solid #222; border-radius: 999px; padding: 6px 10px; font-weight: 700; letter-spacing: 1px; }
+		.pill.live { border-color: var(--idx-danger); color: var(--idx-danger); }
+		.pill.next { border-color: var(--idx-accent); color: var(--idx-accent); }
+		.live-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+		.fighter { display: grid; gap: 8px; }
+		.fighter .name { font-family: 'Mozilla Headline', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
+		.fighter .record { color: var(--idx-dim); font-size: .95rem; }
+		.live-avatar-img, .countdown-avatar-img { width: 84px; height: 84px; border-radius: 50%; border: 2px solid #242424; object-fit: cover; }
+		.vs-chip { font-family: 'Mozilla Headline', sans-serif; font-size: 1.1rem; color: var(--idx-dim); letter-spacing: 4px; padding: 6px 14px; border: 1px dashed #242424; border-radius: 999px; }
+		.cta { display: inline-block; margin-top: 10px; background: var(--idx-danger); color: #000 !important; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; padding: 10px 16px; border-radius: 999px; border: 2px solid var(--idx-danger); }
+		.cta:hover { background: #fff; color: #000 !important; }
+		.countdown { display: grid; grid-template-columns: 1fr; gap: 10px; }
+		.timer { font-family: 'Mozilla Headline', sans-serif; font-size: 2rem; letter-spacing: 3px; }
+		.meter { position: relative; height: 8px; background: #151515; border-radius: 999px; overflow: hidden; border: 1px solid #191919; }
+		.meter > i { position: absolute; inset: 0; width: 0%; background: linear-gradient(90deg, #ffaa00, #ff4444); box-shadow: 0 0 16px rgba(255,170,0,0.5); }
+		.section-wrap { width: min(1200px, 94%); margin: 0 auto; }
+		.section-title { margin-top: 26px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+		.section-title .now { color: var(--idx-dim); font-size: .95rem; }
+		.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+		.fight-card { border: 1px solid var(--idx-card-border); border-radius: 12px; background: #0a0a0a; padding: 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+		.fight-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.5); }
+		.time-display { color: var(--idx-dim); font-weight: 700; }
+		.match { display: grid; gap: 4px; }
+		.names { font-family: 'Mozilla Headline', sans-serif; letter-spacing: 1px; }
+		.status { font-size: .85rem; font-weight: 700; letter-spacing: 1px; padding: 6px 10px; border-radius: 999px; border: 1px solid #242424; }
+		.status.upcoming { color: #fff; }
+		.status.completed { color: #9e9e9e; }
+		.status.voided { color: #b66; font-style: italic; }
+		@media (max-width: 960px) { .hero { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } }
+	</style>
 
-<div class="schedule-header">
-    <h3 class="schedule-title">🥊 TODAY'S SCHEDULE</h3>
-    <p class="current-time">{{.Now.Format "Monday, January 2, 2006 at 3:04 PM MST"}}</p>
-    
-    {{/* Find next upcoming fight and active fight */}}
-    {{$nextFight := .NextFight}}
-    {{$activeFight := ""}}
-    {{range .Fights}}
-        {{if eq .Status "active"}}
-            {{$activeFight = .}}
-        {{end}}
-    {{end}}
-    
-    {{if or $nextFight $activeFight}}
-        <div class="live-countdown-section {{if $activeFight}}split-layout{{else}}full-layout{{end}}">
-            {{if $activeFight}}
-                <div class="live-fight-alert">
-                    {{if index $.FighterMap $activeFight.Fighter1ID}}
-                        <div class="live-fighter-avatar avatar-left">
-                            <img src="{{(index $.FighterMap $activeFight.Fighter1ID).AvatarURL}}" alt="{{$activeFight.Fighter1Name}}" class="live-avatar-img">
-                        </div>
-                    {{end}}
-                    <div class="live-content">
-                        <div class="live-label">🔴 LIVE NOW</div>
-                        <div class="live-fight-name">
-                            {{$activeFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter1ID))}} 👑{{end}} vs {{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}
-                        </div>
-                        <a href="/watch/{{$activeFight.ID}}" class="watch-live-btn">⚡ WATCH NOW ⚡</a>
-                    </div>
-                    {{if index $.FighterMap $activeFight.Fighter2ID}}
-                        <div class="live-fighter-avatar avatar-right">
-                            <img src="{{(index $.FighterMap $activeFight.Fighter2ID).AvatarURL}}" alt="{{$activeFight.Fighter2Name}}" class="live-avatar-img">
-                        </div>
-                    {{end}}
-                </div>
-            {{end}}
-            
-            {{if $nextFight}}
-                <div class="next-fight-countdown {{if $activeFight}}half-width{{else}}full-width{{end}}">
-                    {{if index $.FighterMap $nextFight.Fighter1ID}}
-                        <div class="countdown-fighter-avatar avatar-left">
-                            <img src="{{(index $.FighterMap $nextFight.Fighter1ID).AvatarURL}}" alt="{{$nextFight.Fighter1Name}}" class="countdown-avatar-img">
-                        </div>
-                    {{end}}
-                    <div class="countdown-content">
-                        <div class="countdown-label">⏰ NEXT FIGHT IN:</div>
-                        <div class="countdown-timer" 
-                             data-target-time="{{$nextFight.ScheduledTime.Format "2006-01-02T15:04:05Z07:00"}}"
-                             data-fight-id="{{$nextFight.ID}}"
-                             data-fighter1="{{$nextFight.Fighter1Name}}"
-                             data-fighter2="{{$nextFight.Fighter2Name}}">
-                            <span class="countdown-display">Calculating chaos...</span>
-                        </div>
-                        <div class="countdown-fight">
-                            {{$nextFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter1ID))}} 👑{{end}} vs {{$nextFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter2ID))}} 👑{{end}}
-                        </div>
-                    </div>
-                    {{if index $.FighterMap $nextFight.Fighter2ID}}
-                        <div class="countdown-fighter-avatar avatar-right">
-                            <img src="{{(index $.FighterMap $nextFight.Fighter2ID).AvatarURL}}" alt="{{$nextFight.Fighter2Name}}" class="countdown-avatar-img">
-                        </div>
-                    {{end}}
-                </div>
-            {{end}}
-        </div>
-    {{end}}
-</div>
+	<div class="tournament-header">
+		{{if .Tournament}}
+			<div class="tournament-banner">
+				<h1 style="font-size: 2em; font-weight: bold;">2025 <span style="color: #ff0000;">SUMMER</span> PRE-SEASON</h1>
+				<h2 class="tournament-title">{{.Tournament.Name}} Tournament</h2>
+				<p class="sponsor">Sponsored by <strong title="Spoodblort Inc. is not affiliated with {{.Tournament.Sponsor}}, for legal reasons. - Spoodblort Inc. Legal Team">{{.Tournament.Sponsor}}</strong></p>
+				<div class="tournament-meta">
+					<span class="week-badge">Week {{.Tournament.WeekNumber}}</span>
+					<span class="date-badge">{{.Tournament.StartDate.Format "January 2, 2006"}}</span>
+				</div>
+			</div>
+		{{end}}
+	</div>
 
-{{if .Fights}}
-{{/* Display upcoming fights first */}}
-<div class="fights-grid">
-    {{range $i, $fight := .Fights}}
-    {{if or (eq $fight.Status "scheduled") (eq $fight.Status "active")}}
-    
-    {{/* Desktop Fight Card */}}
-    <div class="fight-card desktop-only status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
-        <div class="fight-content">
-            <div class="fight-time">
-                <span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span>
-            </div>
-            
-            <div class="fight-matchup">
-                {{if index $.FighterMap $fight.Fighter1ID}}
-                    <div class="schedule-fighter-avatar avatar-left">
-                        <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="schedule-avatar-img">
-                    </div>
-                {{end}}
-                
-                <div class="fighter-slot fighter1{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
-                    <span class="fighter-name">
-                        <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
-                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}}<span class="mvp-crown">👑</span>{{end}}
-                    </span>
-                </div>
-                
-                <div class="vs-section">
-                    <span class="vs-text">VS</span>
-                    <div class="fight-number">{{add $i 1}}</div>
-                </div>
-                
-                <div class="fighter-slot fighter2{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
-                    <span class="fighter-name">
-                        <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
-                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}}<span class="mvp-crown">👑</span>{{end}}
-                    </span>
-                </div>
-                
-                {{if index $.FighterMap $fight.Fighter2ID}}
-                    <div class="schedule-fighter-avatar avatar-right">
-                        <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="schedule-avatar-img">
-                    </div>
-                {{end}}
-            </div>
-        </div>
-        
-        <div class="fight-status">
-            {{if eq $fight.Status "active"}}
-                <div class="fight-actions">
-                    <a href="/watch/{{$fight.ID}}" class="live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
-                </div>
-            {{else if eq $fight.Status "completed"}}
-                <span class="status-indicator completed">✅ COMPLETED</span>
-            {{else if eq $fight.Status "voided"}}
-                <span class="status-indicator voided">❌ VOIDED</span>
-            {{else}}
-                <span class="status-indicator upcoming">⏱️ UPCOMING</span>
-            {{end}}
-        </div>
-    </div>
-    
-    {{/* Mobile Fight Card */}}
-    <div class="fight-card-mobile mobile-only status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
-        <div class="mobile-fight-content">
-            <div class="mobile-fighter-name">
-                {{if index $.FighterMap $fight.Fighter1ID}}
-                    <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="mobile-schedule-avatar-img">
-                {{end}}
-                <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
-                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} 👑{{end}}
-            </div>
-            <div class="mobile-vs">vs</div>
-            <div class="mobile-fighter-name">
-                {{if index $.FighterMap $fight.Fighter2ID}}
-                    <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="mobile-schedule-avatar-img">
-                {{end}}
-                <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
-                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} 👑{{end}}
-            </div>
-            <div class="mobile-fight-time">{{$fight.ScheduledTime.Format "3:04 PM"}}</div>
-            
-            {{if eq $fight.Status "active"}}
-                <div class="mobile-fight-status">
-                    <a href="/watch/{{$fight.ID}}" class="mobile-live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
-                </div>
-            {{else if eq $fight.Status "completed"}}
-                <div class="mobile-fight-status completed">✅ COMPLETED</div>
-            {{else if eq $fight.Status "voided"}}
-                <div class="mobile-fight-status voided">❌ VOIDED</div>
-            {{else}}
-                <div class="mobile-fight-status upcoming">⏱️ UPCOMING</div>
-            {{end}}
-        </div>
-    </div>
-    
-    {{end}}
-    {{end}}
-</div>
+	{{/* Prepare fight context */}}
+	{{$nextFight := .NextFight}}
+	{{$activeFight := ""}}
+	{{range .Fights}}
+		{{if eq .Status "active"}}
+			{{$activeFight = .}}
+		{{end}}
+	{{end}}
 
-{{/* Display completed fights below */}}
-<div class="fights-grid">
-    {{range $i, $fight := .Fights}}
-    {{if or (eq $fight.Status "completed") (eq $fight.Status "voided")}}
-    
-    {{/* Desktop Fight Card */}}
-    <div class="fight-card desktop-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
-        <div class="fight-content">
-            <div class="fight-time">
-                <span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span>
-            </div>
-            
-            <div class="fight-matchup">
-                {{if index $.FighterMap $fight.Fighter1ID}}
-                    <div class="schedule-fighter-avatar avatar-left">
-                        <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="schedule-avatar-img">
-                    </div>
-                {{end}}
-                
-                <div class="fighter-slot fighter1{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
-                    <span class="fighter-name">
-                        <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
-                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}}<span class="mvp-crown">👑</span>{{end}}
-                    </span>
-                </div>
-                
-                <div class="vs-section">
-                    <span class="vs-text">VS</span>
-                    <div class="fight-number">{{add $i 1}}</div>
-                </div>
-                
-                <div class="fighter-slot fighter2{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
-                    <span class="fighter-name">
-                        <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
-                        {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}}<span class="mvp-crown">👑</span>{{end}}
-                    </span>
-                </div>
-                
-                {{if index $.FighterMap $fight.Fighter2ID}}
-                    <div class="schedule-fighter-avatar avatar-right">
-                        <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="schedule-avatar-img">
-                    </div>
-                {{end}}
-            </div>
-        </div>
-        
-        <div class="fight-status">
-            {{if eq $fight.Status "active"}}
-                <div class="fight-actions">
-                    <a href="/watch/{{$fight.ID}}" class="live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
-                </div>
-            {{else if eq $fight.Status "completed"}}
-                <span class="status-indicator completed">✅ COMPLETED</span>
-            {{else if eq $fight.Status "voided"}}
-                <span class="status-indicator voided">❌ VOIDED</span>
-            {{else}}
-                <span class="status-indicator upcoming">⏱️ UPCOMING</span>
-            {{end}}
-        </div>
-    </div>
-    
-    {{/* Mobile Fight Card */}}
-    <div class="fight-card-mobile mobile-only status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
-        <div class="mobile-fight-content">
-            <div class="mobile-fighter-name{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
-                {{if index $.FighterMap $fight.Fighter1ID}}
-                    <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="mobile-schedule-avatar-img">
-                {{end}}
-                <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
-                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} 👑{{end}}
-            </div>
-            <div class="mobile-vs">vs</div>
-            <div class="mobile-fighter-name{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
-                {{if index $.FighterMap $fight.Fighter2ID}}
-                    <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="mobile-schedule-avatar-img">
-                {{end}}
-                <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
-                {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} 👑{{end}}
-            </div>
-            <div class="mobile-fight-time">{{$fight.ScheduledTime.Format "3:04 PM"}}</div>
-            
-            {{if eq $fight.Status "active"}}
-                <div class="mobile-fight-status">
-                    <a href="/watch/{{$fight.ID}}" class="mobile-live-button" onclick="event.stopPropagation()">🔴 WATCH LIVE</a>
-                </div>
-            {{else if eq $fight.Status "completed"}}
-                <div class="mobile-fight-status completed">✅ COMPLETED</div>
-            {{else if eq $fight.Status "voided"}}
-                <div class="mobile-fight-status voided">❌ VOIDED</div>
-            {{else}}
-                <div class="mobile-fight-status upcoming">⏱️ UPCOMING</div>
-            {{end}}
-        </div>
-    </div>
-    
-    {{end}}
-    {{end}}
-</div>
-{{else}}
-<div class="no-fights">
-    <h3>💀 NO VIOLENCE SCHEDULED 💀</h3>
-    <p>The fighters are probably touching grass or something equally disturbing.</p>
-</div>
-{{end}}
-</div>
+	{{if or $nextFight $activeFight}}
+		<section class="hero">
+			{{if $activeFight}}
+				<article class="card">
+					<div class="card-header">
+						<h3>Live Right Now</h3>
+						<span class="pill live">LIVE</span>
+					</div>
+					<div class="card-body">
+						<div class="live-grid">
+							<div class="fighter">
+								{{if index $.FighterMap $activeFight.Fighter1ID}}
+									<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter1ID).AvatarURL}}" alt="{{$activeFight.Fighter1Name}}">
+								{{end}}
+								<div class="name">{{$activeFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter1ID))}} 👑{{end}}</div>
+								<div class="record">&nbsp;</div>
+							</div>
+							<div class="vs-chip">VS</div>
+							<div class="fighter" style="text-align:right;">
+								{{if index $.FighterMap $activeFight.Fighter2ID}}
+									<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter2ID).AvatarURL}}" alt="{{$activeFight.Fighter2Name}}" style="justify-self:end;">
+								{{end}}
+								<div class="name">{{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}</div>
+								<div class="record">&nbsp;</div>
+							</div>
+						</div>
+						<a class="cta" href="/watch/{{$activeFight.ID}}">⚡ WATCH NOW</a>
+					</div>
+				</article>
+			{{end}}
 
-<script src="/static/js/index.js"></script>
+			{{if $nextFight}}
+				<aside class="card">
+					<div class="card-header">
+						<h3>Next Fight</h3>
+						<span class="pill next">UPCOMING</span>
+					</div>
+					<div class="card-body countdown">
+						<div class="timer">
+							<span class="countdown-timer"
+								data-target-time="{{$nextFight.ScheduledTime.Format "2006-01-02T15:04:05Z07:00"}}"
+								data-fight-id="{{$nextFight.ID}}"
+								data-fighter1="{{$nextFight.Fighter1Name}}"
+								data-fighter2="{{$nextFight.Fighter2Name}}">
+								<span class="countdown-display">Calculating chaos...</span>
+							</span>
+						</div>
+						<div class="meter"><i id="idxMeterFill"></i></div>
+						<div style="color:var(--idx-dim)">{{$nextFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter1ID))}} 👑{{end}} vs {{$nextFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter2ID))}} 👑{{end}}</div>
+					</div>
+				</aside>
+			{{end}}
+		</section>
+	{{end}}
+
+	<div class="section-wrap">
+		<div class="section-title">
+			<h3>🥊 TODAY'S SCHEDULE</h3>
+			<div class="now">{{.Now.Format "Monday, January 2, 2006 at 3:04 PM MST"}}</div>
+		</div>
+		{{if .Fights}}
+			<section class="grid">
+				{{range $i, $fight := .Fights}}
+					{{if or (eq $fight.Status "scheduled") (eq $fight.Status "active")}}
+						<div class="fight-card status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
+							<div class="fight-time"><span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span></div>
+							<div class="match">
+								<div class="names">
+									<a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()">{{$fight.Fighter1Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
+									<a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()">{{$fight.Fighter2Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
+								</div>
+								<div class="sub" style="color:var(--idx-dim)">Fight {{add $i 1}}</div>
+							</div>
+							<div class="status {{if eq $fight.Status "active"}}live{{else}}upcoming{{end}}">{{if eq $fight.Status "active"}}LIVE{{else}}UPCOMING{{end}}</div>
+						</div>
+					{{end}}
+				{{end}}
+			</section>
+
+			<section class="grid" style="margin-top: 10px;">
+				{{range $i, $fight := .Fights}}
+					{{if or (eq $fight.Status "completed") (eq $fight.Status "voided")}}
+						<div class="fight-card status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+							<div class="fight-time"><span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span></div>
+							<div class="match">
+								<div class="names">
+									<a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()">{{$fight.Fighter1Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
+									<a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()">{{$fight.Fighter2Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
+								</div>
+								<div class="sub" style="color:var(--idx-dim)">Fight {{add $i 1}}</div>
+							</div>
+							<div class="status {{if eq $fight.Status "voided"}}voided{{else}}completed{{end}}">{{if eq $fight.Status "voided"}}VOIDED{{else}}COMPLETED{{end}}</div>
+						</div>
+					{{end}}
+				{{end}}
+			</section>
+		{{else}}
+			<div class="no-fights">
+				<h3>💀 NO VIOLENCE SCHEDULED 💀</h3>
+				<p>The fighters are probably touching grass or something equally disturbing.</p>
+			</div>
+		{{end}}
+	</div>
+
+	<script src="/static/js/index.js"></script>
+	<script>
+		// Lightweight progress meter tied to the next fight's target time
+		(function(){
+			var el = document.querySelector('.countdown-timer');
+			var meter = document.getElementById('idxMeterFill');
+			if (!el || !meter) return;
+			var target = new Date(el.getAttribute('data-target-time')).getTime();
+			var start = Date.now();
+			var total = Math.max(60*1000, target - start); // at least 60s span so bar animates
+			function tick(){
+				var now = Date.now();
+				var remaining = Math.max(0, target - now);
+				var pct = Math.min(100, Math.max(0, (1 - remaining/total) * 100));
+				meter.style.width = pct + '%';
+				if (remaining <= 0) return; requestAnimationFrame(tick);
+			}
+			tick();
+		})();
+	</script>
 {{end}}
