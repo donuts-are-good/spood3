@@ -44,27 +44,51 @@
         <div class="live-countdown-section {{if $activeFight}}split-layout{{else}}full-layout{{end}}">
             {{if $activeFight}}
                 <div class="live-fight-alert">
-                    <div class="live-label">🔴 LIVE NOW</div>
-                    <div class="live-fight-name">
-                        {{$activeFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter1ID))}} 👑{{end}} vs {{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}
+                    {{if index $.FighterMap $activeFight.Fighter1ID}}
+                        <div class="live-fighter-avatar avatar-left">
+                            <img src="{{(index $.FighterMap $activeFight.Fighter1ID).AvatarURL}}" alt="{{$activeFight.Fighter1Name}}" class="live-avatar-img">
+                        </div>
+                    {{end}}
+                    <div class="live-content">
+                        <div class="live-label">🔴 LIVE NOW</div>
+                        <div class="live-fight-name">
+                            {{$activeFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter1ID))}} 👑{{end}} vs {{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}
+                        </div>
+                        <a href="/watch/{{$activeFight.ID}}" class="watch-live-btn">⚡ WATCH NOW ⚡</a>
                     </div>
-                    <a href="/watch/{{$activeFight.ID}}" class="watch-live-btn">⚡ WATCH NOW ⚡</a>
+                    {{if index $.FighterMap $activeFight.Fighter2ID}}
+                        <div class="live-fighter-avatar avatar-right">
+                            <img src="{{(index $.FighterMap $activeFight.Fighter2ID).AvatarURL}}" alt="{{$activeFight.Fighter2Name}}" class="live-avatar-img">
+                        </div>
+                    {{end}}
                 </div>
             {{end}}
             
             {{if $nextFight}}
                 <div class="next-fight-countdown {{if $activeFight}}half-width{{else}}full-width{{end}}">
-                    <div class="countdown-label">⏰ NEXT FIGHT IN:</div>
-                    <div class="countdown-timer" 
-                         data-target-time="{{$nextFight.ScheduledTime.Format "2006-01-02T15:04:05Z07:00"}}"
-                         data-fight-id="{{$nextFight.ID}}"
-                         data-fighter1="{{$nextFight.Fighter1Name}}"
-                         data-fighter2="{{$nextFight.Fighter2Name}}">
-                        <span class="countdown-display">Calculating chaos...</span>
+                    {{if index $.FighterMap $nextFight.Fighter1ID}}
+                        <div class="countdown-fighter-avatar avatar-left">
+                            <img src="{{(index $.FighterMap $nextFight.Fighter1ID).AvatarURL}}" alt="{{$nextFight.Fighter1Name}}" class="countdown-avatar-img">
+                        </div>
+                    {{end}}
+                    <div class="countdown-content">
+                        <div class="countdown-label">⏰ NEXT FIGHT IN:</div>
+                        <div class="countdown-timer" 
+                             data-target-time="{{$nextFight.ScheduledTime.Format "2006-01-02T15:04:05Z07:00"}}"
+                             data-fight-id="{{$nextFight.ID}}"
+                             data-fighter1="{{$nextFight.Fighter1Name}}"
+                             data-fighter2="{{$nextFight.Fighter2Name}}">
+                            <span class="countdown-display">Calculating chaos...</span>
+                        </div>
+                        <div class="countdown-fight">
+                            {{$nextFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter1ID))}} 👑{{end}} vs {{$nextFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter2ID))}} 👑{{end}}
+                        </div>
                     </div>
-                    <div class="countdown-fight">
-                        {{$nextFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter1ID))}} 👑{{end}} vs {{$nextFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter2ID))}} 👑{{end}}
-                    </div>
+                    {{if index $.FighterMap $nextFight.Fighter2ID}}
+                        <div class="countdown-fighter-avatar avatar-right">
+                            <img src="{{(index $.FighterMap $nextFight.Fighter2ID).AvatarURL}}" alt="{{$nextFight.Fighter2Name}}" class="countdown-avatar-img">
+                        </div>
+                    {{end}}
                 </div>
             {{end}}
         </div>
@@ -85,12 +109,13 @@
             </div>
             
             <div class="fight-matchup">
+                {{if index $.FighterMap $fight.Fighter1ID}}
+                    <div class="schedule-fighter-avatar avatar-left">
+                        <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="schedule-avatar-img">
+                    </div>
+                {{end}}
+                
                 <div class="fighter-slot fighter1{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter1ID}} winner{{else}} loser{{end}}{{end}}">
-                    {{if index $.FighterMap $fight.Fighter1ID}}
-                        <div class="schedule-fighter-avatar">
-                            <img src="{{(index $.FighterMap $fight.Fighter1ID).AvatarURL}}" alt="{{$fight.Fighter1Name}}" class="schedule-avatar-img">
-                        </div>
-                    {{end}}
                     <span class="fighter-name">
                         <a href="/fighter/{{$fight.Fighter1ID}}">{{$fight.Fighter1Name}}</a>
                         {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}}<span class="mvp-crown">👑</span>{{end}}
@@ -103,16 +128,17 @@
                 </div>
                 
                 <div class="fighter-slot fighter2{{if and (eq $fight.Status "completed") $fight.WinnerID.Valid}}{{if eq (int64 $fight.WinnerID.Int64) $fight.Fighter2ID}} winner{{else}} loser{{end}}{{end}}">
-                    {{if index $.FighterMap $fight.Fighter2ID}}
-                        <div class="schedule-fighter-avatar">
-                            <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="schedule-avatar-img">
-                        </div>
-                    {{end}}
                     <span class="fighter-name">
                         <a href="/fighter/{{$fight.Fighter2ID}}">{{$fight.Fighter2Name}}</a>
                         {{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}}<span class="mvp-crown">👑</span>{{end}}
                     </span>
                 </div>
+                
+                {{if index $.FighterMap $fight.Fighter2ID}}
+                    <div class="schedule-fighter-avatar avatar-right">
+                        <img src="{{(index $.FighterMap $fight.Fighter2ID).AvatarURL}}" alt="{{$fight.Fighter2Name}}" class="schedule-avatar-img">
+                    </div>
+                {{end}}
             </div>
         </div>
         
