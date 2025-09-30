@@ -134,16 +134,19 @@ header {
     padding: 8px 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    animation: weatherIndicatorPulse 2s ease-in-out infinite;
+    animation: weatherIndicatorPulse 1.2s ease-in-out infinite, indicatorFlicker 4s linear infinite;
     box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
     z-index: 1000;
     display: none; /* Hidden by default, shown when advisory is dismissed */
 }
 /* Chaos Weather Advisory */
 .chaos-weather-advisory {
-    background: linear-gradient(135deg, rgba(255, 68, 68, 0.15), rgba(255, 170, 0, 0.08));
+    background: linear-gradient(135deg, rgba(255, 68, 68, 0.18), rgba(255, 170, 0, 0.12));
     border-bottom: 2px solid #ff4444;
     padding: 12px 0;
+    position: relative;
+    overflow: hidden;
+    animation: advisoryHeartbeat 0.9s ease-in-out infinite;
 }
 
 .chaos-weather-advisory .advisory-content {
@@ -157,6 +160,7 @@ header {
 
 .advisory-icon {
     font-size: 1.5rem;
+    animation: iconBuzz 2.2s steps(2, end) infinite;
 }
 
 .advisory-text {
@@ -170,11 +174,24 @@ header {
     text-transform: uppercase;
     color: #ffaaaa;
     margin-bottom: 4px;
+    text-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+    animation: titleGlitch 3.2s infinite;
 }
 
 .advisory-body {
     color: #ffffff;
+    position: relative;
 }
+.advisory-body::before,
+.advisory-body::after {
+    content: attr(data-echo);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.12;
+}
+.advisory-body::before { transform: translate(1px, 0); color: #ff3b3b; mix-blend-mode: screen; }
+.advisory-body::after { transform: translate(-1px, 0); color: #3b8bff; mix-blend-mode: screen; }
 
 .advisory-dismiss {
     position: relative;
@@ -190,7 +207,8 @@ header {
     border-radius: 50%;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 0 12px rgba(255, 68, 68, 0.4);
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.6), 0 0 32px rgba(255, 0, 0, 0.25) inset;
+    animation: dismissThrob 1.8s ease-in-out infinite;
 }
 
 .advisory-dismiss:hover,
@@ -208,6 +226,62 @@ header {
         gap: 6px;
     }
     .advisory-icon { font-size: 1.25rem; }
+}
+
+/* Rogue/broken overlay lines */
+.chaos-weather-advisory::before,
+.chaos-weather-advisory::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,0,0,0.6), transparent);
+    filter: blur(0.5px);
+    opacity: 0.35;
+    animation: scanline 5s linear infinite;
+}
+.chaos-weather-advisory::after { top: auto; bottom: 0; animation-duration: 6.2s; }
+
+@keyframes advisoryHeartbeat {
+    0%, 100% { transform: translateZ(0) scale(1); box-shadow: inset 0 0 0 rgba(255,0,0,0); }
+    10% { transform: scale(1.018); box-shadow: inset 0 0 20px rgba(255,0,0,0.25); }
+    20% { transform: scale(1.03); box-shadow: inset 0 0 28px rgba(255,0,0,0.35); }
+    30% { transform: scale(1.015); }
+    40% { transform: scale(1.022); }
+    60% { transform: scale(1.006); }
+    80% { transform: scale(1.012); }
+}
+
+@keyframes iconBuzz {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    10% { transform: translate(1px,-1px) rotate(-0.2deg); }
+    20% { transform: translate(-1px,1px) rotate(0.2deg); }
+    30% { transform: translate(0.5px,0) rotate(-0.1deg); }
+    40% { transform: translate(-0.5px,0.5px); }
+    50% { transform: translate(0, -0.5px); }
+}
+
+@keyframes titleGlitch {
+    0%, 100% { letter-spacing: 2px; text-shadow: 0 0 8px rgba(255, 68, 68, 0.6); }
+    4% { transform: skewX(4deg); }
+    5% { transform: skewX(-4deg); }
+    6% { transform: none; }
+    45% { text-shadow: 0 0 14px rgba(255, 68, 68, 0.9); }
+    48% { transform: translateX(1px); }
+    49% { transform: translateX(-1px); }
+}
+
+@keyframes dismissThrob {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.06); }
+    50% { transform: scale(0.98); }
+    75% { transform: scale(1.03); }
+}
+
+@keyframes scanline {
+    0% { top: -2px; }
+    100% { top: calc(100% + 2px); }
 }
 
 .weather-indicator:hover {
@@ -232,14 +306,21 @@ header {
 
 @keyframes weatherIndicatorPulse {
     0% { 
-        box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+        box-shadow: 0 0 15px rgba(255, 68, 68, 0.45);
     }
     50% { 
-        box-shadow: 0 0 20px rgba(255, 68, 68, 0.7);
+        box-shadow: 0 0 28px rgba(255, 68, 68, 0.95);
     }
     100% { 
-        box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+        box-shadow: 0 0 15px rgba(255, 68, 68, 0.45);
     }
+}
+
+@keyframes indicatorFlicker {
+    0%, 96%, 100% { filter: none; }
+    97% { filter: hue-rotate(10deg) saturate(1.4) contrast(1.2); }
+    98% { filter: hue-rotate(-12deg) saturate(1.6) contrast(1.4); }
+    99% { filter: hue-rotate(6deg) saturate(1.3) contrast(1.2); }
 }
 
 /* Mobile responsive for weather indicator */
