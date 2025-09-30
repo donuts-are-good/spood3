@@ -68,7 +68,7 @@ func (rm *RoleManager) UpdateUserRole(user *database.User) error {
 	}
 
 	// Remove old credit roles
-	err = rm.removeAllCreditRoles(user.DiscordID, member)
+	err = rm.removeAllCreditRoles(user.DiscordID)
 	if err != nil {
 		log.Printf("Failed to remove old roles for %s: %v", user.Username, err)
 	}
@@ -185,7 +185,7 @@ func (rm *RoleManager) memberHasRole(member *DiscordMember, roleName string) boo
 }
 
 // removeAllCreditRoles removes all credit-based roles from user
-func (rm *RoleManager) removeAllCreditRoles(discordID string, member *DiscordMember) error {
+func (rm *RoleManager) removeAllCreditRoles(discordID string) error {
 	// Get all guild roles first to find IDs
 	guildRoles, err := rm.getGuildRoles()
 	if err != nil {

@@ -54,7 +54,6 @@ type Engine struct {
 	repo             *database.Repository
 	broadcaster      Broadcaster
 	discordNotifier  *discord.Notifier
-	DiscordEvents    *discord.EventsManager
 	roleManager      *discord.RoleManager
 	liveSimulations  map[int]bool // Track which fights have live simulations running
 	simulationsMutex sync.RWMutex
@@ -78,9 +77,8 @@ func NewEngine(repo *database.Repository) *Engine {
 		fightLogs:       make(map[int]*os.File),
 	}
 
-	// Only initialize Discord Events and Role Manager if not disabled
+	// Only initialize Role Manager if not disabled
 	if !noDiscord {
-		engine.DiscordEvents = discord.NewEventsManager(repo)
 		engine.roleManager = discord.NewRoleManager(repo)
 	}
 
@@ -1067,14 +1065,7 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 
 		// Removed Action channel settlement summary
 
-		// Update the Discord event to mark it as completed
-		if e.DiscordEvents != nil {
-			err = e.DiscordEvents.UpdateEventAsCompleted(fight)
-			if err != nil {
-				log.Printf("Failed to update Discord event for completed fight %d: %v", fight.ID, err)
-				// Continue - don't fail fight completion if event update fails
-			}
-		}
+		// Discord events removed
 	}
 
 	log.Printf("Fight completed successfully, bets and MVP rewards processed")

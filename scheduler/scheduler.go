@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"os"
 	"sort"
 	"spoodblort/database"
 	"spoodblort/fight"
@@ -73,16 +72,6 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 	if now.Weekday() == time.Sunday {
 		log.Printf("Skipping schedule generation - Department closed on Sundays")
 
-		// Clean up any incorrectly created Discord events on Sundays
-		if s.engine.DiscordEvents != nil {
-			go func() {
-				err := s.engine.DiscordEvents.ClearAllFightEvents()
-				if err != nil {
-					log.Printf("Sunday cleanup: Failed to clear Discord events: %v", err)
-				}
-			}()
-		}
-
 		return nil
 	}
 
@@ -120,7 +109,7 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 			return fmt.Errorf("failed to process active fights: %w", err)
 		}
 
-		// Discord events are synced once daily by a dedicated scheduler
+		// Discord events removed
 
 		return nil
 	}
@@ -186,8 +175,6 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 	if err != nil {
 		return fmt.Errorf("failed to process active fights: %w", err)
 	}
-
-	// Discord events are synced once daily by a dedicated scheduler
 
 	return nil
 }
@@ -414,48 +401,7 @@ func (s *Scheduler) MaybeCreateSaturdayPlayoffs(now time.Time) error {
 	return nil
 }
 
-// syncDiscordEvents syncs fight schedule with Discord Events
-func (s *Scheduler) syncDiscordEvents(fights []database.Fight) error {
-	if s.engine.DiscordEvents == nil {
-		return nil // Discord events not configured
-	}
-
-	serverBaseURL := getServerBaseURL()
-	return s.engine.DiscordEvents.SyncFightEvents(fights, serverBaseURL)
-}
-
-// SyncDiscordEventsForToday runs a one-shot Discord events sync for today's fights.
-// Exported for use by main's daily scheduler.
-func (s *Scheduler) SyncDiscordEventsForToday(now time.Time) error {
-	// Skip Sundays
-	if now.Weekday() == time.Sunday {
-		return nil
-	}
-
-	fights, err := s.GetTodaysSchedule(now)
-	if err != nil {
-		return err
-	}
-	return s.syncDiscordEvents(fights)
-}
-
-// getServerBaseURL determines the server's base URL for Discord events
-func getServerBaseURL() string {
-	if url := os.Getenv("SERVER_BASE_URL"); url != "" {
-		return url
-	}
-
-	// Fallback to localhost in development
-	if os.Getenv("ENVIRONMENT") != "production" {
-		port := os.Getenv("PORT")
-		if port == "" {
-			port = "8080"
-		}
-		return fmt.Sprintf("http://localhost:%s", port)
-	}
-
-	return "https://your-domain.com"
-}
+// Discord events removed
 
 func (s *Scheduler) GetTodaysSchedule(now time.Time) ([]database.Fight, error) {
 	tournament, err := s.GetCurrentTournament(now)

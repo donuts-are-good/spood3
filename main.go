@@ -100,53 +100,50 @@ func main() {
 		ticker := time.NewTicker(30 * time.Second) // Check every 30 seconds
 		defer ticker.Stop()
 
-		for {
-			select {
-			case <-ticker.C:
-				centralTime, _ := time.LoadLocation("America/Chicago")
-				now := time.Now().In(centralTime)
+		for range ticker.C {
+			centralTime, _ := time.LoadLocation("America/Chicago")
+			now := time.Now().In(centralTime)
 
-				// Skip all processing on Sundays - Department is closed
-				if now.Weekday() == time.Sunday {
-					continue
-				}
-
-				// Weekly high-roller tithe on Mondays (idempotent)
-				_ = repo.TaxHighRollersIfNeeded(now)
-				// Weekly sacrifice decay (idempotent)
-				_ = repo.DecaySacrificesIfNeeded(now)
-
-				// Ensure today's schedule exists (will create if missing)
-				err := sched.EnsureTodaysSchedule(now)
-				if err != nil {
-					log.Printf("Background scheduler: Error ensuring today's schedule: %v", err)
-					continue
-				}
-
-				// Get current tournament for fight processing
-				tournament, err := sched.GetCurrentTournament(now)
-				if err != nil {
-					log.Printf("Background scheduler: Error getting tournament: %v", err)
-					continue
-				}
-
-				// Activate any fights that should be starting
-				err = repo.ActivateCurrentFights(tournament.ID, now)
-				if err != nil {
-					log.Printf("Background scheduler: Error activating fights: %v", err)
-				}
-
-				// Use the scheduler's existing engine to process active fights
-				engine := sched.GetEngine()
-				engine.SetBroadcaster(server.GetBroadcaster())
-				err = engine.ProcessActiveFights(now)
-				if err != nil {
-					log.Printf("Background scheduler: Error processing active fights: %v", err)
-				}
-
-				// Saturday playoff creation (idempotent)
-				_ = sched.MaybeCreateSaturdayPlayoffs(now)
+			// Skip all processing on Sundays - Department is closed
+			if now.Weekday() == time.Sunday {
+				continue
 			}
+
+			// Weekly high-roller tithe on Mondays (idempotent)
+			_ = repo.TaxHighRollersIfNeeded(now)
+			// Weekly sacrifice decay (idempotent)
+			_ = repo.DecaySacrificesIfNeeded(now)
+
+			// Ensure today's schedule exists (will create if missing)
+			err := sched.EnsureTodaysSchedule(now)
+			if err != nil {
+				log.Printf("Background scheduler: Error ensuring today's schedule: %v", err)
+				continue
+			}
+
+			// Get current tournament for fight processing
+			tournament, err := sched.GetCurrentTournament(now)
+			if err != nil {
+				log.Printf("Background scheduler: Error getting tournament: %v", err)
+				continue
+			}
+
+			// Activate any fights that should be starting
+			err = repo.ActivateCurrentFights(tournament.ID, now)
+			if err != nil {
+				log.Printf("Background scheduler: Error activating fights: %v", err)
+			}
+
+			// Use the scheduler's existing engine to process active fights
+			engine := sched.GetEngine()
+			engine.SetBroadcaster(server.GetBroadcaster())
+			err = engine.ProcessActiveFights(now)
+			if err != nil {
+				log.Printf("Background scheduler: Error processing active fights: %v", err)
+			}
+
+			// Saturday playoff creation (idempotent)
+			_ = sched.MaybeCreateSaturdayPlayoffs(now)
 		}
 	}()
 
@@ -181,9 +178,6 @@ func main() {
 					continue
 				}
 				fights, _ = sched.GetTodaysSchedule(now)
-			}
-			if err := sched.SyncDiscordEventsForToday(now); err != nil {
-				log.Printf("Daily Discord sync: error syncing events: %v", err)
 			}
 		}
 	}()
