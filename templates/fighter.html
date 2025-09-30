@@ -35,73 +35,73 @@
             </div>
         </div>
 
-        <!-- Lore section full width -->
-        <div class="profile-card lore-card">
-            <div class="card-header">
-                <h3>LORE</h3>
-                {{if .IsAdmin}}
-                <button type="button" class="lore-edit-toggle edit-btn" title="Edit lore" aria-expanded="false">✎</button>
-                {{end}}
-            </div>
-            <div class="lore-text">
-                {{if .Fighter.Lore}}{{.Fighter.Lore}}{{else}}...{{end}}
-            </div>
-
-            {{if .IsAdmin}}
-            <div class="lore-edit">
-                <form method="POST" action="/fighter/edit">
-                    <input type="hidden" name="id" value="{{.Fighter.ID}}">
-                    <input type="hidden" name="field" value="lore">
-                    <div class="form-group">
-                        <textarea name="value" rows="6" class="lore-textarea">{{.Fighter.Lore}}</textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="cta">Save</button>
-                        <button type="button" class="cta cta-secondary lore-cancel">Cancel</button>
-                    </div>
-                </form>
-            </div>
-            {{end}}
-        </div>
-
-        <!-- Main content grid: Avatar | Stats -->
-        <div class="fighter-content-grid">
-            <!-- Left sidebar: Avatar -->
-            <div class="fighter-sidebar">
-                <div class="profile-card avatar-card">
-                    <div class="card-header">
-                        <h3>AVATAR</h3>
-                        {{if .IsAdmin}}
-                        <button type="button" class="avatar-edit-toggle edit-btn" title="Manage avatar" aria-expanded="false">✎</button>
-                        {{end}}
-                    </div>
-                    <div class="avatar-display">
-                        <img src="{{.Fighter.AvatarURL}}" alt="{{.Fighter.Name}}" class="fighter-avatar-large">
-                    </div>
-
+        <!-- Avatar and Lore Row: 3-column grid -->
+        <div class="fighter-top-grid">
+            <!-- Column 1: Avatar -->
+            <div class="profile-card avatar-card">
+                <div class="card-header">
+                    <h3>AVATAR</h3>
                     {{if .IsAdmin}}
-                    <div class="avatar-edit">
-                        <form method="POST" action="/fighter/avatar/upload" enctype="multipart/form-data">
-                            <input type="hidden" name="fighter_id" value="{{.Fighter.ID}}">
-                            <div class="form-group">
-                                <label for="avatar-file">Upload new avatar (max 2MB):</label>
-                                <input type="file" id="avatar-file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" required class="file-input">
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" class="cta">Upload</button>
-                                <button type="button" class="cta cta-secondary avatar-cancel">Cancel</button>
-                            </div>
-                        </form>
-                        <form method="POST" action="/fighter/avatar/clear" class="clear-form">
-                            <input type="hidden" name="fighter_id" value="{{.Fighter.ID}}">
-                            <button type="submit" class="cta cta-secondary" onclick="return confirm('Clear avatar and use default?');">Clear Avatar</button>
-                        </form>
-                    </div>
+                    <button type="button" class="avatar-edit-toggle edit-btn" title="Manage avatar" aria-expanded="false">✎</button>
                     {{end}}
                 </div>
+                <div class="avatar-display">
+                    <img src="{{.Fighter.AvatarURL}}" alt="{{.Fighter.Name}}" class="fighter-avatar-large">
+                </div>
+
+                {{if .IsAdmin}}
+                <div class="avatar-edit">
+                    <form method="POST" action="/fighter/avatar/upload" enctype="multipart/form-data">
+                        <input type="hidden" name="fighter_id" value="{{.Fighter.ID}}">
+                        <div class="form-group">
+                            <label for="avatar-file">Upload new avatar (max 2MB):</label>
+                            <input type="file" id="avatar-file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" required class="file-input">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="cta">Upload</button>
+                            <button type="button" class="cta cta-secondary avatar-cancel">Cancel</button>
+                        </div>
+                    </form>
+                    <form method="POST" action="/fighter/avatar/clear" class="clear-form">
+                        <input type="hidden" name="fighter_id" value="{{.Fighter.ID}}">
+                        <button type="submit" class="cta cta-secondary" onclick="return confirm('Clear avatar and use default?');">Clear Avatar</button>
+                    </form>
+                </div>
+                {{end}}
             </div>
 
-            <!-- Right main area: Stats -->
+            <!-- Columns 2-3: Lore -->
+            <div class="profile-card lore-card lore-wide">
+                <div class="card-header">
+                    <h3>LORE</h3>
+                    {{if .IsAdmin}}
+                    <button type="button" class="lore-edit-toggle edit-btn" title="Edit lore" aria-expanded="false">✎</button>
+                    {{end}}
+                </div>
+                <div class="lore-text">
+                    {{if .Fighter.Lore}}{{.Fighter.Lore}}{{else}}...{{end}}
+                </div>
+
+                {{if .IsAdmin}}
+                <div class="lore-edit">
+                    <form method="POST" action="/fighter/edit">
+                        <input type="hidden" name="id" value="{{.Fighter.ID}}">
+                        <input type="hidden" name="field" value="lore">
+                        <div class="form-group">
+                            <textarea name="value" rows="6" class="lore-textarea">{{.Fighter.Lore}}</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="cta">Save</button>
+                            <button type="button" class="cta cta-secondary lore-cancel">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="fighter-content-grid">
             <div class="fighter-main-content">
         
         <div class="stats-container">

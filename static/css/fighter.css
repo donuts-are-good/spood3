@@ -110,18 +110,24 @@
     border: 1px solid #ff4444;
 }
 
-/* Content Grid Layout */
-.fighter-content-grid {
+/* Top Grid: Avatar (col 1) + Lore (col 2-3) */
+.fighter-top-grid {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 300px 1fr 1fr;
     gap: 24px;
     margin-bottom: 24px;
 }
 
-.fighter-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.lore-wide {
+    grid-column: span 2;
+}
+
+/* Stats Grid */
+.fighter-content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
 }
 
 .fighter-main-content {
@@ -198,11 +204,7 @@
     display: block;
 }
 
-/* Lore Card (Full Width) */
-.lore-card {
-    margin-bottom: 24px;
-}
-
+/* Lore Card */
 .lore-text {
     color: #ddd;
     line-height: 1.6;
@@ -267,8 +269,12 @@
 
 /* Responsive */
 @media (max-width: 900px) {
-    .fighter-content-grid {
+    .fighter-top-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .lore-wide {
+        grid-column: span 1;
     }
     
     .fighter-status-row {
