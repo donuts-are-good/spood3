@@ -85,7 +85,7 @@
 							</span>
 						</div>
 						<div class="meter"><i id="idxMeterFill"></i></div>
-						<div style="color:var(--idx-dim)">{{$nextFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter1ID))}} 👑{{end}} vs {{$nextFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter2ID))}} 👑{{end}}</div>
+						<div style="color:var(--idx-dim)"><strong>{{$nextFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter1ID))}} 👑{{end}}</strong> vs <strong>{{$nextFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $nextFight.Fighter2ID))}} 👑{{end}}</strong></div>
 					</div>
 				</aside>
 			{{end}}
