@@ -31,13 +31,17 @@
 	{{/* Prepare fight context */}}
 	{{$nextFight := .NextFight}}
 	{{$activeFight := ""}}
+	{{$lastCompleted := ""}}
 	{{range .Fights}}
 		{{if eq .Status "active"}}
 			{{$activeFight = .}}
 		{{end}}
+		{{if eq .Status "completed"}}
+			{{$lastCompleted = .}}
+		{{end}}
 	{{end}}
 
-	{{if or $nextFight $activeFight}}
+	{{if or $nextFight $activeFight $lastCompleted}}
 		<section class="hero">
 			{{if $activeFight}}
 				<article class="card">
@@ -64,6 +68,33 @@
 							</div>
 						</div>
 						<a class="cta" href="/watch/{{$activeFight.ID}}">⚡ WATCH NOW</a>
+					</div>
+				</article>
+			{{else if $lastCompleted}}
+				<article class="card">
+					<div class="card-header">
+						<h3>Most Recent Fight</h3>
+						<span class="pill completed">COMPLETED</span>
+					</div>
+					<div class="card-body">
+						<div class="live-grid">
+							<div class="fighter">
+								{{if index $.FighterMap $lastCompleted.Fighter1ID}}
+									<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter1ID).AvatarURL}}" alt="{{$lastCompleted.Fighter1Name}}">
+								{{end}}
+								<div class="name">{{$lastCompleted.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $lastCompleted.Fighter1ID))}} 👑{{end}}</div>
+								<div class="record">&nbsp;</div>
+							</div>
+							<div class="vs-chip">VS</div>
+							<div class="fighter" style="text-align:right;">
+								{{if index $.FighterMap $lastCompleted.Fighter2ID}}
+									<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter2ID).AvatarURL}}" alt="{{$lastCompleted.Fighter2Name}}" style="justify-self:end;">
+								{{end}}
+								<div class="name">{{$lastCompleted.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $lastCompleted.Fighter2ID))}} 👑{{end}}</div>
+								<div class="record">&nbsp;</div>
+							</div>
+						</div>
+						<a class="cta" href="/fight/{{$lastCompleted.ID}}">View Fight</a>
 					</div>
 				</article>
 			{{end}}
