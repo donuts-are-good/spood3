@@ -30,12 +30,20 @@ type RoleConfig struct {
 
 // Credit-based role configurations
 var CreditRoles = []RoleConfig{
-	{"💀 Broke", 0, 999, "8B0000"},              // Dark red
-	{"🆕 Newbie", 1000, 9999, "00FF00"},         // Green
-	{"💰 Gambler", 10000, 49999, "FFD700"},      // Gold
-	{"🎰 High Roller", 50000, 99999, "9932CC"},  // Purple
-	{"💎 Whale", 100000, 999999, "00FFFF"},      // Cyan
-	{"🏆 Legend", 1000000, 999999999, "FF69B4"}, // Hot pink
+	{"💀 Broke", 0, 999, "8B0000"},                                             // 0 - 999
+	{"🆕 Newbie", 1000, 9999, "00FF00"},                                        // 1K - 9.9K
+	{"💰 Gambler", 10000, 99999, "FFD700"},                                     // 10K - 99.9K
+	{"🎰 High Roller", 100000, 999999, "9932CC"},                               // 100K - 999.9K
+	{"🏆 Legend", 1000000, 9999999, "FF69B4"},                                  // 1M - 9.9M
+	{"💎 Whale", 10000000, 99999999, "00FFFF"},                                 // 10M - 99.9M
+	{"🌊 Leviathan", 100000000, 999999999, "7FFFD4"},                           // 100M - 999.9M
+	{"🕳️ Void Walker", 1000000000, 9999999999, "4B0082"},                      // 1B - 9.9B
+	{"🌀 Reality Bender", 10000000000, 99999999999, "8A2BE2"},                  // 10B - 99.9B
+	{"👁️ Cosmic Horror", 100000000000, 999999999999, "FF1493"},                // 100B - 999.9B
+	{"🦑 Eldritch Entity", 1000000000000, 9999999999999, "DC143C"},             // 1T - 9.9T
+	{"🌌 Dimension Eater", 10000000000000, 99999999999999, "FF4500"},           // 10T - 99.9T
+	{"⚫ Singularity", 100000000000000, 999999999999999, "000000"},             // 100T - 999.9T
+	{"🪐 Universe Destroyer", 1000000000000000, 9223372036854775807, "8B008B"}, // 1Q - max
 }
 
 func NewRoleManager(repo *database.Repository) *RoleManager {
