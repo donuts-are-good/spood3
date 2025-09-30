@@ -147,6 +147,10 @@ header {
     position: relative;
     overflow: hidden;
     animation: advisoryHeartbeat 0.9s ease-in-out infinite;
+    width: clamp(60%, 72%, 80%);
+    margin-left: auto;
+    margin-right: auto;
+    transform-origin: center center;
 }
 
 .chaos-weather-advisory .advisory-content {
