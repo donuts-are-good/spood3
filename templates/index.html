@@ -53,7 +53,7 @@
 						<div class="live-grid">
 							<div class="fighter">
 								{{if index $.FighterMap $activeFight.Fighter1ID}}
-									<a href="/fighter/{{$activeFight.Fighter1ID}}">
+									<a href="/fighter/{{$activeFight.Fighter1ID}}" style="text-decoration:none; border-bottom:none;">
 										<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter1ID).AvatarURL}}" alt="{{$activeFight.Fighter1Name}}">
 									</a>
 								{{end}}
@@ -63,7 +63,7 @@
 							<div class="vs-chip">VS</div>
 							<div class="fighter" style="text-align:right;">
 								{{if index $.FighterMap $activeFight.Fighter2ID}}
-									<a href="/fighter/{{$activeFight.Fighter2ID}}">
+									<a href="/fighter/{{$activeFight.Fighter2ID}}" style="text-decoration:none; border-bottom:none;">
 										<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter2ID).AvatarURL}}" alt="{{$activeFight.Fighter2Name}}" style="justify-self:end;">
 									</a>
 								{{end}}
@@ -84,7 +84,7 @@
 						<div class="live-grid">
 							<div class="fighter">
 								{{if index $.FighterMap $lastCompleted.Fighter1ID}}
-									<a href="/fighter/{{$lastCompleted.Fighter1ID}}">
+									<a href="/fighter/{{$lastCompleted.Fighter1ID}}" style="text-decoration:none; border-bottom:none;">
 										<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter1ID).AvatarURL}}" alt="{{$lastCompleted.Fighter1Name}}">
 									</a>
 								{{end}}
@@ -94,7 +94,7 @@
 							<div class="vs-chip">VS</div>
 							<div class="fighter" style="text-align:right;">
 								{{if index $.FighterMap $lastCompleted.Fighter2ID}}
-									<a href="/fighter/{{$lastCompleted.Fighter2ID}}">
+									<a href="/fighter/{{$lastCompleted.Fighter2ID}}" style="text-decoration:none; border-bottom:none;">
 										<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter2ID).AvatarURL}}" alt="{{$lastCompleted.Fighter2Name}}" style="justify-self:end;">
 									</a>
 								{{end}}
