@@ -44,12 +44,11 @@
 	{{if or $nextFight $activeFight $lastCompleted}}
 		<section class="hero">
 			{{if $activeFight}}
-				<article class="card live-card effect-card">
+				<article class="card">
 					<div class="card-header">
 						<h3>Live Right Now</h3>
 						<span class="pill live">LIVE</span>
 					</div>
-					<div class="card-subhead">Live right now</div>
 					<div class="card-body">
 						<div class="live-grid">
 							<div class="fighter">
@@ -72,12 +71,11 @@
 					</div>
 				</article>
 			{{else if $lastCompleted}}
-				<article class="card effect-card">
+				<article class="card">
 					<div class="card-header">
 						<h3>Most Recent Fight</h3>
 						<span class="pill completed">COMPLETED</span>
 					</div>
-					<div class="card-subhead">This just went down</div>
 					<div class="card-body">
 						<div class="live-grid">
 							<div class="fighter">
