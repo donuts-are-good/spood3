@@ -41,32 +41,41 @@ document.addEventListener('DOMContentLoaded', function () {
         const fileInput = document.getElementById('avatar-file');
         const avatarImg = document.getElementById('fighter-avatar-img');
         if (avatarEdit && fileInput) {
-            avatarEdit.addEventListener('paste', async function (e) {
+            // Listen at the document level so paste works anywhere while the editor is open
+            document.addEventListener('paste', async function (e) {
+                // Only handle when the avatar editor is open/visible
+                if (!avatarEdit.classList.contains('open')) return;
                 try {
-                    const items = e.clipboardData && e.clipboardData.items ? e.clipboardData.items : [];
+                    const cd = e.clipboardData || window.clipboardData;
+                    if (!cd) return;
+                    const items = cd.items || [];
+                    // Prefer the first image file in clipboard
+                    let blob = null;
                     for (let i = 0; i < items.length; i++) {
                         const it = items[i];
-                        if (it.kind === 'file') {
-                            const blob = it.getAsFile();
-                            if (!blob) continue;
-                            // Only accept images
-                            if (!/^image\//.test(blob.type)) continue;
-                            // Put the blob into the file input using DataTransfer
-                            const dt = new DataTransfer();
-                            const file = new File([blob], 'pasted-image.' + (blob.type.split('/')[1] || 'png'), { type: blob.type });
-                            dt.items.add(file);
-                            fileInput.files = dt.files;
-                            // Preview
-                            if (avatarImg) {
-                                const url = URL.createObjectURL(file);
-                                avatarImg.src = url;
-                            }
-                            // Focus the Upload button for convenience
-                            const submitBtn = avatarEdit.querySelector('button[type="submit"]');
-                            if (submitBtn) submitBtn.focus();
-                            break;
+                        if (it && it.kind === 'file') {
+                            const f = it.getAsFile();
+                            if (f && /^image\//.test(f.type)) { blob = f; break; }
                         }
                     }
+                    // Some browsers expose files directly
+                    if (!blob && cd.files && cd.files.length) {
+                        const f = cd.files[0];
+                        if (f && /^image\//.test(f.type)) blob = f;
+                    }
+                    if (!blob) return;
+                    const dt = new DataTransfer();
+                    const ext = (blob.type.split('/')[1] || 'png');
+                    const file = new File([blob], 'pasted-image.' + ext, { type: blob.type });
+                    dt.items.add(file);
+                    fileInput.files = dt.files;
+                    // Preview
+                    if (avatarImg) {
+                        const url = URL.createObjectURL(file);
+                        avatarImg.src = url;
+                    }
+                    const submitBtn = avatarEdit.querySelector('button[type="submit"]');
+                    if (submitBtn) submitBtn.focus();
                 } catch (err) {
                     console.warn('avatar paste failed', err);
                 }
