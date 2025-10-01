@@ -10,6 +10,7 @@ import (
 	"spoodblort/database"
 	"spoodblort/discord"
 	"spoodblort/utils"
+	"spoodblort/wiki"
 	"sync"
 	"time"
 )
@@ -1067,6 +1068,33 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 
 		// Discord events removed
 	}
+
+	// Wiki sync (non-blocking best-effort)
+	go func() {
+		client, err := wiki.New()
+		if err != nil {
+			log.Printf("wiki: %v", err)
+			return
+		}
+		// Build a single-line summary and append to fight and fighter pages
+		resultText := "draw"
+		if state.WinnerID == fight.Fighter1ID {
+			resultText = fmt.Sprintf("%s def. %s", fight.Fighter1Name, fight.Fighter2Name)
+		} else if state.WinnerID == fight.Fighter2ID {
+			resultText = fmt.Sprintf("%s def. %s", fight.Fighter2Name, fight.Fighter1Name)
+		}
+		dateStr := fight.ScheduledTime.Format("2006-01-02 15:04 MST")
+		fightLine := fmt.Sprintf("\n* %s — %s (%d–%d)", dateStr, resultText, state.Fighter1Health, state.Fighter2Health)
+		// Update fight page
+		_ = client.AppendText(fmt.Sprintf("Fight:%d", fight.ID), fightLine, "Automated fight result update")
+		// Update fighter pages
+		if fighter1 != nil {
+			_ = client.AppendText("Fighter:"+fighter1.Name, fightLine, "Automated result append")
+		}
+		if fighter2 != nil {
+			_ = client.AppendText("Fighter:"+fighter2.Name, fightLine, "Automated result append")
+		}
+	}()
 
 	log.Printf("Fight completed successfully, bets and MVP rewards processed")
 	return nil
