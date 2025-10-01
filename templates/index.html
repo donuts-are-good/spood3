@@ -53,17 +53,21 @@
 						<div class="live-grid">
 							<div class="fighter">
 								{{if index $.FighterMap $activeFight.Fighter1ID}}
-									<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter1ID).AvatarURL}}" alt="{{$activeFight.Fighter1Name}}">
+									<a href="/fighter/{{$activeFight.Fighter1ID}}">
+										<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter1ID).AvatarURL}}" alt="{{$activeFight.Fighter1Name}}">
+									</a>
 								{{end}}
-								<div class="name">{{$activeFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter1ID))}} 👑{{end}}</div>
+								<div class="name"><a href="/fighter/{{$activeFight.Fighter1ID}}">{{$activeFight.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter1ID))}} 👑{{end}}</a></div>
 								<div class="record">&nbsp;</div>
 							</div>
 							<div class="vs-chip">VS</div>
 							<div class="fighter" style="text-align:right;">
 								{{if index $.FighterMap $activeFight.Fighter2ID}}
-									<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter2ID).AvatarURL}}" alt="{{$activeFight.Fighter2Name}}" style="justify-self:end;">
+									<a href="/fighter/{{$activeFight.Fighter2ID}}">
+										<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter2ID).AvatarURL}}" alt="{{$activeFight.Fighter2Name}}" style="justify-self:end;">
+									</a>
 								{{end}}
-								<div class="name">{{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}</div>
+								<div class="name"><a href="/fighter/{{$activeFight.Fighter2ID}}">{{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}</a></div>
 								<div class="record">&nbsp;</div>
 							</div>
 						</div>
@@ -80,17 +84,21 @@
 						<div class="live-grid">
 							<div class="fighter">
 								{{if index $.FighterMap $lastCompleted.Fighter1ID}}
-									<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter1ID).AvatarURL}}" alt="{{$lastCompleted.Fighter1Name}}">
+									<a href="/fighter/{{$lastCompleted.Fighter1ID}}">
+										<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter1ID).AvatarURL}}" alt="{{$lastCompleted.Fighter1Name}}">
+									</a>
 								{{end}}
-								<div class="name">{{$lastCompleted.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $lastCompleted.Fighter1ID))}} 👑{{end}}</div>
+								<div class="name"><a href="/fighter/{{$lastCompleted.Fighter1ID}}">{{$lastCompleted.Fighter1Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $lastCompleted.Fighter1ID))}} 👑{{end}}</a></div>
 								<div class="record">&nbsp;</div>
 							</div>
 							<div class="vs-chip">VS</div>
 							<div class="fighter" style="text-align:right;">
 								{{if index $.FighterMap $lastCompleted.Fighter2ID}}
-									<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter2ID).AvatarURL}}" alt="{{$lastCompleted.Fighter2Name}}" style="justify-self:end;">
+									<a href="/fighter/{{$lastCompleted.Fighter2ID}}">
+										<img class="live-avatar-img" src="{{(index $.FighterMap $lastCompleted.Fighter2ID).AvatarURL}}" alt="{{$lastCompleted.Fighter2Name}}" style="justify-self:end;">
+									</a>
 								{{end}}
-								<div class="name">{{$lastCompleted.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $lastCompleted.Fighter2ID))}} 👑{{end}}</div>
+								<div class="name"><a href="/fighter/{{$lastCompleted.Fighter2ID}}">{{$lastCompleted.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $lastCompleted.Fighter2ID))}} 👑{{end}}</a></div>
 								<div class="record">&nbsp;</div>
 							</div>
 						</div>
