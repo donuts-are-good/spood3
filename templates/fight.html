@@ -167,7 +167,14 @@
                                         data-fighter-name="{{$.Fight.Fighter1Name}}"
                                         data-effect-name="{{.Name}}"
                                         onclick="applyEffectFromButton(this)">
-                                        Apply to {{$.Fight.Fighter1Name}}
+                                        <span class="btn-target">
+                                            {{if $.Fighter1}}
+                                                <img src="{{$.Fighter1.AvatarURL}}" alt="{{$.Fight.Fighter1Name}}" class="btn-avatar-img">
+                                            {{else}}
+                                                <span class="btn-avatar-fallback">🛡️</span>
+                                            {{end}}
+                                        </span>
+                                        <span class="btn-label">Apply to {{$.Fight.Fighter1Name}}</span>
                                     </button>
                                     <button class="effect-button"
                                         data-item-id="{{.ShopItemID}}"
@@ -176,7 +183,14 @@
                                         data-fighter-name="{{$.Fight.Fighter2Name}}"
                                         data-effect-name="{{.Name}}"
                                         onclick="applyEffectFromButton(this)">
-                                        Apply to {{$.Fight.Fighter2Name}}
+                                        <span class="btn-target">
+                                            {{if $.Fighter2}}
+                                                <img src="{{$.Fighter2.AvatarURL}}" alt="{{$.Fight.Fighter2Name}}" class="btn-avatar-img">
+                                            {{else}}
+                                                <span class="btn-avatar-fallback">🗡️</span>
+                                            {{end}}
+                                        </span>
+                                        <span class="btn-label">Apply to {{$.Fight.Fighter2Name}}</span>
                                     </button>
                                 </div>
                             </div>
@@ -204,7 +218,14 @@
                                         data-fighter-name="{{$.Fight.Fighter1Name}}"
                                         data-effect-name="{{.Name}}"
                                         onclick="applyEffectFromButton(this)">
-                                        Apply to {{$.Fight.Fighter1Name}}
+                                        <span class="btn-target">
+                                            {{if $.Fighter1}}
+                                                <img src="{{$.Fighter1.AvatarURL}}" alt="{{$.Fight.Fighter1Name}}" class="btn-avatar-img">
+                                            {{else}}
+                                                <span class="btn-avatar-fallback">🛡️</span>
+                                            {{end}}
+                                        </span>
+                                        <span class="btn-label">Apply to {{$.Fight.Fighter1Name}}</span>
                                     </button>
                                     <button class="effect-button"
                                         data-item-id="{{.ShopItemID}}"
@@ -213,7 +234,14 @@
                                         data-fighter-name="{{$.Fight.Fighter2Name}}"
                                         data-effect-name="{{.Name}}"
                                         onclick="applyEffectFromButton(this)">
-                                        Apply to {{$.Fight.Fighter2Name}}
+                                        <span class="btn-target">
+                                            {{if $.Fighter2}}
+                                                <img src="{{$.Fighter2.AvatarURL}}" alt="{{$.Fight.Fighter2Name}}" class="btn-avatar-img">
+                                            {{else}}
+                                                <span class="btn-avatar-fallback">🗡️</span>
+                                            {{end}}
+                                        </span>
+                                        <span class="btn-label">Apply to {{$.Fight.Fighter2Name}}</span>
                                     </button>
                                 </div>
                             </div>
