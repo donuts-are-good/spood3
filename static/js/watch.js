@@ -11,8 +11,8 @@ let currentRound = 1;
 let isClappingEnabled = false;
 let clapCount = 0;
 let clapResetTime = Date.now();
-let originalFighter1Emoji = '';
-let originalFighter2Emoji = '';
+let originalFighter1AvatarHTML = '';
+let originalFighter2AvatarHTML = '';
 
 function initializeWatchPage(id, fightData) {
     fightID = id;
@@ -46,7 +46,8 @@ function setupClapping() {
     const fighter2Avatar = document.getElementById('fighter2-avatar');
     
     if (fighter1Avatar) {
-        originalFighter1Emoji = fighter1Avatar.textContent;
+        // Preserve the full original avatar markup (could be an <img> or emoji)
+        originalFighter1AvatarHTML = fighter1Avatar.innerHTML;
         fighter1Avatar.addEventListener('click', () => {
             const fighterID = fighter1Avatar.getAttribute('data-fighter-id');
             const fighterName = fighter1Avatar.getAttribute('data-fighter-name');
@@ -55,7 +56,8 @@ function setupClapping() {
     }
     
     if (fighter2Avatar) {
-        originalFighter2Emoji = fighter2Avatar.textContent;
+        // Preserve the full original avatar markup (could be an <img> or emoji)
+        originalFighter2AvatarHTML = fighter2Avatar.innerHTML;
         fighter2Avatar.addEventListener('click', () => {
             const fighterID = fighter2Avatar.getAttribute('data-fighter-id');
             const fighterName = fighter2Avatar.getAttribute('data-fighter-name');
@@ -145,11 +147,11 @@ function updateClappingState(round) {
     if (isClappingEnabled && !wasEnabled) {
         // Enable clapping - change avatars to clap hands
         if (fighter1Avatar) {
-            fighter1Avatar.textContent = '👏';
+            fighter1Avatar.innerHTML = '👏';
             fighter1Avatar.classList.add('clappable');
         }
         if (fighter2Avatar) {
-            fighter2Avatar.textContent = '👏';
+            fighter2Avatar.innerHTML = '👏';
             fighter2Avatar.classList.add('clappable');
         }
         
@@ -164,11 +166,11 @@ function updateClappingState(round) {
     } else if (!isClappingEnabled && wasEnabled) {
         // Disable clapping - restore original avatars
         if (fighter1Avatar) {
-            fighter1Avatar.textContent = originalFighter1Emoji;
+            fighter1Avatar.innerHTML = originalFighter1AvatarHTML;
             fighter1Avatar.classList.remove('clappable');
         }
         if (fighter2Avatar) {
-            fighter2Avatar.textContent = originalFighter2Emoji;
+            fighter2Avatar.innerHTML = originalFighter2AvatarHTML;
             fighter2Avatar.classList.remove('clappable');
         }
     }
