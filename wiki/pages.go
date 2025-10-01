@@ -185,7 +185,7 @@ func BuildFightPageText(f database.Fight, f1 database.Fighter, f2 database.Fight
 	b.WriteString(" ||  || colspan=2 | ")
 	b.WriteString(f2.Name)
 	b.WriteString("\n|-\n")
-	fmt.Fprintf(&b, "| colspan=2 | <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\"> || colspan=2 | <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\">\n", avatar1, avatar2)
+	fmt.Fprintf(&b, "| colspan=2 style=\"background-image:url(%s); background-repeat:no-repeat; background-position:center; background-size:contain; width:160px; height:160px; border-radius:6px;\" |  || colspan=2 style=\"background-image:url(%s); background-repeat:no-repeat; background-position:center; background-size:contain; width:160px; height:160px; border-radius:6px;\" |  \n", avatar1, avatar2)
 	b.WriteString("|-\n")
 	b.WriteString("! Attribute !! Value || || ! Attribute !! Value\n")
 	b.WriteString("|-\n")
