@@ -9,21 +9,7 @@
             </div>
         </div>
 
-        <div class="commentary-section">
-            <div class="commentary-header">
-                <h3>🎙️ VIOLENCE BOOTH COMMENTARY</h3>
-                <div class="commentary-status" id="commentary-status">Waiting for violence...</div>
-            </div>
-            <div class="commentary-feed" id="commentary-feed">
-                <div class="initial-message">
-                    <div class="action-text">Welcome to the Violence Theater! Prepare for maximum carnage!</div>
-                    <div class="announcer-comment">
-                        <span class="announcer-name">Chad Puncherson:</span>
-                        "Ladies and gentlemen, we're about to witness some PREMIUM VIOLENCE!"
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
         <div class="arena-display">
             <div class="fighter-section fighter-left">
@@ -37,14 +23,14 @@
                     </div>
                     <div class="fighter-avatar" id="fighter1-avatar" data-fighter-id="{{.Fight.Fighter1ID}}" data-fighter-name="{{.Fight.Fighter1Name}}">
                         {{if .Fighter1}}<img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="avatar-img">{{else}}💀{{end}}
-                    </div>
-                    <div class="fighter-team">{{if .Fighter1}}{{.Fighter1.Team}}{{end}}</div>
-                    {{if or (gt .Fighter1Blessings 0) (gt .Fighter1Curses 0)}}
-                        <div class="fighter-effects">
+                        {{if or (gt .Fighter1Blessings 0) (gt .Fighter1Curses 0)}}
+                        <div class="fighter-effects overlay">
                             {{if gt .Fighter1Blessings 0}}<span class="blessing-indicator">✨ {{.Fighter1Blessings}}</span>{{end}}
                             {{if gt .Fighter1Curses 0}}<span class="curse-indicator">💀 {{.Fighter1Curses}}</span>{{end}}
                         </div>
-                    {{end}}
+                        {{end}}
+                    </div>
+                    <div class="fighter-team">{{if .Fighter1}}{{.Fighter1.Team}}{{end}}</div>
                 </div>
             </div>
 
@@ -105,107 +91,124 @@
                     </div>
                     <div class="fighter-avatar" id="fighter2-avatar" data-fighter-id="{{.Fight.Fighter2ID}}" data-fighter-name="{{.Fight.Fighter2Name}}">
                         {{if .Fighter2}}<img src="{{.Fighter2.AvatarURL}}" alt="{{.Fight.Fighter2Name}}" class="avatar-img">{{else}}🗡️{{end}}
-                    </div>
-                    <div class="fighter-team">{{if .Fighter2}}{{.Fighter2.Team}}{{end}}</div>
-                    {{if or (gt .Fighter2Blessings 0) (gt .Fighter2Curses 0)}}
-                        <div class="fighter-effects">
+                        {{if or (gt .Fighter2Blessings 0) (gt .Fighter2Curses 0)}}
+                        <div class="fighter-effects overlay">
                             {{if gt .Fighter2Blessings 0}}<span class="blessing-indicator">✨ {{.Fighter2Blessings}}</span>{{end}}
                             {{if gt .Fighter2Curses 0}}<span class="curse-indicator">💀 {{.Fighter2Curses}}</span>{{end}}
                         </div>
-                    {{end}}
+                        {{end}}
+                    </div>
+                    <div class="fighter-team">{{if .Fighter2}}{{.Fighter2.Team}}{{end}}</div>
                 </div>
             </div>
         </div>
 
         <!-- Betting Information Section -->
-        {{if .AllBets}}
-        <div class="betting-section">
-            <h3>💰 DEGENERATE GAMBLING STATUS</h3>
-            {{if .UserBet}}
-                <div class="user-bet-status">
-                    <strong>Your Bet:</strong> {{.UserBet.Amount}} credits on 
-                    {{if eq .UserBet.FighterID .Fight.Fighter1ID}}{{.Fight.Fighter1Name}}{{else}}{{.Fight.Fighter2Name}}{{end}}
-                    {{if eq .UserBet.Status "resolved"}}
-                        {{if .UserBet.Payout.Valid}}
-                            - <span class="win-status">WON {{.UserBet.Payout.Int64}} credits! 🎉</span>
-                        {{else}}
-                            - <span class="loss-status">LOST 💸</span>
-                        {{end}}
-                    {{end}}
+        <div class="watch-lower">
+            <div class="commentary-section">
+                <div class="commentary-header">
+                    <h3>🎙️ VIOLENCE BOOTH COMMENTARY</h3>
+                    <div class="commentary-status" id="commentary-status">Waiting for violence...</div>
                 </div>
-            {{end}}
-            
-            <div class="betting-summary">
-                <div class="bet-count">{{len .AllBets}} degenerates have placed bets</div>
-                {{$fighter1Bets := 0}}
-                {{$fighter2Bets := 0}}
-                {{$totalAmount := 0}}
-                {{range .AllBets}}
-                    {{$totalAmount = add $totalAmount .Amount}}
-                    {{if eq .FighterID $.Fight.Fighter1ID}}
-                        {{$fighter1Bets = add $fighter1Bets 1}}
-                    {{else}}
-                        {{$fighter2Bets = add $fighter2Bets 1}}
-                    {{end}}
-                {{end}}
-                <div class="bet-stats-quick">
-                    <span><strong>{{.Fight.Fighter1Name}}:</strong> {{$fighter1Bets}} bets</span> | 
-                    <span><strong>{{.Fight.Fighter2Name}}:</strong> {{$fighter2Bets}} bets</span> | 
-                    <span><strong>Total Wagered:</strong> {{$totalAmount}} credits</span>
+                <div class="commentary-feed" id="commentary-feed">
+                    <div class="initial-message">
+                        <div class="action-text">Welcome to the Violence Theater! Prepare for maximum carnage!</div>
+                        <div class="announcer-comment">
+                            <span class="announcer-name">Chad Puncherson:</span>
+                            "Ladies and gentlemen, we're about to witness some PREMIUM VIOLENCE!"
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="detailed-bets">
-                <h4>🎭 DEGENERATE ROSTER</h4>
-                <div class="bets-list">
-                    {{range .AllBets}}
-                    <div class="bet-notification {{if eq .UserID $.User.ID}}user-bet{{end}}">
-                        <div class="bet-main-line">
-                            <span class="bettor-name">{{getDisplayName .Username .CustomUsername}}</span>
-                            <span class="bet-info">
-                                {{.Amount}} credits → {{.FighterName}}
-                                {{if eq .Status "resolved"}}
-                                    {{if .Payout.Valid}}
-                                        <span class="win-badge">+{{.Payout.Int64}}</span>
-                                    {{else}}
-                                        <span class="loss-badge">LOST</span>
-                                    {{end}}
-                                {{end}}
-                            </span>
-                        </div>
-                        <!-- Show effects applied by this user as separate notification lines -->
-                        {{$userID := .UserID}}
-                        {{range $.UserEffectsOnFight}}
-                            {{if eq .UserID $userID}}
-                            <div class="effect-notification {{if or (eq .EffectType "strength_blessing") (eq .EffectType "speed_blessing") (eq .EffectType "endurance_blessing") (eq .EffectType "technique_blessing")}}blessing-notif{{else}}curse-notif{{end}}">
-                                {{if eq .EffectType "strength_blessing"}}
-                                    ✨ Applied strength blessing to {{.TargetName}}
-                                {{else if eq .EffectType "speed_blessing"}}
-                                    ✨ Applied speed blessing to {{.TargetName}}
-                                {{else if eq .EffectType "endurance_blessing"}}
-                                    ✨ Applied endurance blessing to {{.TargetName}}
-                                {{else if eq .EffectType "technique_blessing"}}
-                                    ✨ Applied technique blessing to {{.TargetName}}
-                                {{else if eq .EffectType "strength_curse"}}
-                                    💀 Applied strength curse to {{.TargetName}}
-                                {{else if eq .EffectType "speed_curse"}}
-                                    💀 Applied speed curse to {{.TargetName}}
-                                {{else if eq .EffectType "endurance_curse"}}
-                                    💀 Applied endurance curse to {{.TargetName}}
-                                {{else if eq .EffectType "technique_curse"}}
-                                    💀 Applied technique curse to {{.TargetName}}
-                                {{else}}
-                                    ⚡ Applied {{.EffectType}} to {{.TargetName}}
-                                {{end}}
-                            </div>
+            {{if .AllBets}}
+            <div class="betting-section">
+                <h3>💰 DEGENERATE GAMBLING STATUS</h3>
+                {{if .UserBet}}
+                    <div class="user-bet-status">
+                        <strong>Your Bet:</strong> {{.UserBet.Amount}} credits on 
+                        {{if eq .UserBet.FighterID .Fight.Fighter1ID}}{{.Fight.Fighter1Name}}{{else}}{{.Fight.Fighter2Name}}{{end}}
+                        {{if eq .UserBet.Status "resolved"}}
+                            {{if .UserBet.Payout.Valid}}
+                                - <span class="win-status">WON {{.UserBet.Payout.Int64}} credits! 🎉</span>
+                            {{else}}
+                                - <span class="loss-status">LOST 💸</span>
                             {{end}}
                         {{end}}
                     </div>
+                {{end}}
+                
+                <div class="betting-summary">
+                    <div class="bet-count">{{len .AllBets}} degenerates have placed bets</div>
+                    {{$fighter1Bets := 0}}
+                    {{$fighter2Bets := 0}}
+                    {{$totalAmount := 0}}
+                    {{range .AllBets}}
+                        {{$totalAmount = add $totalAmount .Amount}}
+                        {{if eq .FighterID $.Fight.Fighter1ID}}
+                            {{$fighter1Bets = add $fighter1Bets 1}}
+                        {{else}}
+                            {{$fighter2Bets = add $fighter2Bets 1}}
+                        {{end}}
                     {{end}}
+                    <div class="bet-stats-quick">
+                        <span><strong>{{.Fight.Fighter1Name}}:</strong> {{$fighter1Bets}} bets</span> | 
+                        <span><strong>{{.Fight.Fighter2Name}}:</strong> {{$fighter2Bets}} bets</span> | 
+                        <span><strong>Total Wagered:</strong> {{$totalAmount}} credits</span>
+                    </div>
+                </div>
+
+                <div class="detailed-bets">
+                    <h4>🎭 DEGENERATE ROSTER</h4>
+                    <div class="bets-list">
+                        {{range .AllBets}}
+                        <div class="bet-notification {{if eq .UserID $.User.ID}}user-bet{{end}}">
+                            <div class="bet-main-line">
+                                <span class="bettor-name">{{getDisplayName .Username .CustomUsername}}</span>
+                                <span class="bet-info">
+                                    {{.Amount}} credits → {{.FighterName}}
+                                    {{if eq .Status "resolved"}}
+                                        {{if .Payout.Valid}}
+                                            <span class="win-badge">+{{.Payout.Int64}}</span>
+                                        {{else}}
+                                            <span class="loss-badge">LOST</span>
+                                        {{end}}
+                                    {{end}}
+                                </span>
+                            </div>
+                            {{$userID := .UserID}}
+                            {{range $.UserEffectsOnFight}}
+                                {{if eq .UserID $userID}}
+                                <div class="effect-notification {{if or (eq .EffectType "strength_blessing") (eq .EffectType "speed_blessing") (eq .EffectType "endurance_blessing") (eq .EffectType "technique_blessing")}}blessing-notif{{else}}curse-notif{{end}}">
+                                    {{if eq .EffectType "strength_blessing"}}
+                                        ✨ Applied strength blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "speed_blessing"}}
+                                        ✨ Applied speed blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "endurance_blessing"}}
+                                        ✨ Applied endurance blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "technique_blessing"}}
+                                        ✨ Applied technique blessing to {{.TargetName}}
+                                    {{else if eq .EffectType "strength_curse"}}
+                                        💀 Applied strength curse to {{.TargetName}}
+                                    {{else if eq .EffectType "speed_curse"}}
+                                        💀 Applied speed curse to {{.TargetName}}
+                                    {{else if eq .EffectType "endurance_curse"}}
+                                        💀 Applied endurance curse to {{.TargetName}}
+                                    {{else if eq .EffectType "technique_curse"}}
+                                        💀 Applied technique curse to {{.TargetName}}
+                                    {{else}}
+                                        ⚡ Applied {{.EffectType}} to {{.TargetName}}
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            {{end}}
+                        </div>
+                        {{end}}
+                    </div>
                 </div>
             </div>
+            {{end}}
         </div>
-        {{end}}
 
         <div class="watch-controls">
             <a href="/fight/{{.Fight.ID}}" class="control-button">← Fight Details</a>

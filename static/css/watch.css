@@ -87,6 +87,7 @@
     height: clamp(120px, 22vw, 220px);
     display: grid;
     place-items: center;
+    position: relative;
 }
 
 .fighter-avatar .avatar-img {
@@ -247,6 +248,14 @@
     box-shadow: 0 10px 24px rgba(0,0,0,.4);
 }
 
+/* Lower row layout: commentary (left) and betting (right) */
+.watch-lower {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin: 20px 0;
+}
+
 .commentary-header {
     padding: 20px;
     border-bottom: 1px solid #333;
@@ -399,6 +408,10 @@
         flex-direction: column;
         align-items: center;
     }
+
+    .watch-lower {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Special effects */
@@ -437,6 +450,14 @@
     display: flex;
     gap: 8px;
     justify-content: center;
+}
+
+.fighter-effects.overlay {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    margin-top: 0;
+    justify-content: flex-start;
 }
 
 .blessing-indicator {
