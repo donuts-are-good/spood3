@@ -155,3 +155,30 @@ func (c *Client) AppendText(title, text, summary string) error {
 	}
 	return nil
 }
+
+// SetText replaces a page's content (creates if missing) with an edit summary.
+func (c *Client) SetText(title, text, summary string) error {
+	if !c.isEnabled() {
+		return nil
+	}
+	if err := c.EnsureLogin(); err != nil {
+		return err
+	}
+	form := url.Values{
+		"action":  {"edit"},
+		"title":   {title},
+		"text":    {text},
+		"summary": {summary},
+		"token":   {c.csrfToken},
+		"format":  {"json"},
+	}
+	resp, err := c.http.PostForm(c.baseAPI, form)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("wiki edit failed: %s", resp.Status)
+	}
+	return nil
+}

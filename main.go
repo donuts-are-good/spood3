@@ -8,6 +8,7 @@ import (
 	"spoodblort/database"
 	"spoodblort/scheduler"
 	"spoodblort/web"
+	"spoodblort/wiki"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -146,6 +147,11 @@ func main() {
 			_ = sched.MaybeCreateSaturdayPlayoffs(now)
 		}
 	}()
+
+	// Start wiki backfill worker (1 item/min). Queues are plain text files with one ID per line.
+	// Files: ./wiki_backfill_fights.queue and ./wiki_backfill_fighters.queue
+	// Safe to leave empty. Progress will be logged for the debugger.
+	wiki.NewBackfillWorker(repo, "", "").Start()
 
 	// Daily Discord event sync at 4:00 AM Central
 	go func() {
