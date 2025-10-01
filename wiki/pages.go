@@ -10,6 +10,8 @@ import (
 
 var nonTitleChars = regexp.MustCompile(`[^A-Za-z0-9 _-]`)
 
+const wikiFilesBase = "http://files.spoodblort.com"
+
 func fighterDisplayTitle(f database.Fighter) string {
 	return fmt.Sprintf("Roster #%03d %s", f.ID, f.Name)
 }
@@ -19,6 +21,28 @@ func sanitizeName(name string) string {
 	name = strings.TrimSpace(name)
 	name = strings.ReplaceAll(name, " ", "_")
 	return name
+}
+
+// wikiAvatarURLFrom converts app avatar paths to absolute wiki-hosted URLs.
+// Rules:
+// - If empty or default, use files base default image.
+// - If already http(s), return as-is.
+// - If looks like "/img-cdn/<filename>", map to "http://files.spoodblort.com/fighters/<filename>".
+// - Otherwise, treat as a filename and prepend fighters folder.
+func wikiAvatarURLFrom(f database.Fighter) string {
+	path := strings.TrimSpace(f.AvatarURL)
+	if path == "" || path == database.DefaultFighterAvatarPath {
+		return wikiFilesBase + "/fighters/default.png"
+	}
+	lower := strings.ToLower(path)
+	if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") {
+		return path
+	}
+	filename := strings.TrimPrefix(path, "/")
+	if strings.HasPrefix(filename, "img-cdn/") {
+		filename = strings.TrimPrefix(filename, "img-cdn/")
+	}
+	return wikiFilesBase + "/fighters/" + filename
 }
 
 // FighterPageTitle returns the canonical page title used by the legacy scripts
@@ -143,14 +167,8 @@ func BuildFightPageText(f database.Fight, f1 database.Fighter, f2 database.Fight
 	}
 
 	// External avatars (rendered via HTML to support external URLs)
-	avatar1 := strings.TrimSpace(f1.AvatarURL)
-	if avatar1 == "" {
-		avatar1 = database.DefaultFighterAvatarPath
-	}
-	avatar2 := strings.TrimSpace(f2.AvatarURL)
-	if avatar2 == "" {
-		avatar2 = database.DefaultFighterAvatarPath
-	}
+	avatar1 := wikiAvatarURLFrom(f1)
+	avatar2 := wikiAvatarURLFrom(f2)
 
 	var b strings.Builder
 	fmt.Fprintf(&b, "{{DISPLAYTITLE:%s}}\n", display)
@@ -163,13 +181,13 @@ func BuildFightPageText(f database.Fight, f1 database.Fighter, f2 database.Fight
 	fmt.Fprintf(&b, "This bout is scheduled under the '''%s''' card.\n\n", tournamentName)
 
 	b.WriteString("== Tale of the Tape ==\n")
-	b.WriteString("{| class=\"wikitable\" style=\"width:100%;; text-align:center;\"\n")
+	b.WriteString("{| class=\"wikitable\" style=\"width:100%; text-align:center;\"\n")
 	b.WriteString("! colspan=2 | ")
 	b.WriteString(f1.Name)
 	b.WriteString(" ||  || colspan=2 | ")
 	b.WriteString(f2.Name)
-	b.WriteString("\n| -\n")
-	fmt.Fprintf(&b, "| <html><img src=\"%s\" style=\"max-width:140px; border-radius:6px;\"></html> || || <html><img src=\"%s\" style=\"max-width:140px; border-radius:6px;\"></html>\n", avatar1, avatar2)
+	b.WriteString("\n|-\n")
+	fmt.Fprintf(&b, "| <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\"> || || <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\">\n", avatar1, avatar2)
 	b.WriteString("|-\n")
 	b.WriteString("! Attribute !! Value || || ! Attribute !! Value\n")
 	b.WriteString("|-\n")
