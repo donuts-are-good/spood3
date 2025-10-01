@@ -89,6 +89,24 @@
     display: block;
 }
 
+/* Bouncing clap emoji */
+.bouncing-clap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(0, 0);
+    will-change: transform, opacity;
+    z-index: 9999;
+    user-select: none;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+    transition: opacity 0.6s ease;
+}
+
+.bouncing-clap.fade-out {
+    opacity: 0;
+}
+
 .fighter-name {
     font-size: 1.3rem;
     font-weight: bold;

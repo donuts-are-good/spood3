@@ -14,6 +14,136 @@ let clapResetTime = Date.now();
 let originalFighter1AvatarHTML = '';
 let originalFighter2AvatarHTML = '';
 
+// Bouncing clap system
+let bouncingClaps = [];
+let clapAnimationRAF = null;
+let lastClapAnimTime = 0;
+
+function spawnBouncingClap(avatarElement) {
+    const clap = document.createElement('div');
+    clap.className = 'bouncing-clap';
+    clap.textContent = '👏';
+    // Randomize size slightly for variety
+    const sizePx = 22 + Math.floor(Math.random() * 14); // 22–36px
+    clap.style.fontSize = sizePx + 'px';
+    clap.style.opacity = '1';
+    document.body.appendChild(clap);
+
+    // Starting position: center of avatar
+    const avatarRect = avatarElement.getBoundingClientRect();
+    const clapRect = clap.getBoundingClientRect();
+    let x = avatarRect.left + avatarRect.width / 2 - clapRect.width / 2;
+    let y = avatarRect.top + avatarRect.height / 2 - clapRect.height / 2;
+
+    // Initial velocity like DVD logo
+    const speed = 140 + Math.random() * 120; // px/sec
+    // Pick a random direction that's not too axis-aligned
+    let angle = Math.random() * Math.PI * 2;
+    const minSinCos = 0.2;
+    let vx = Math.cos(angle);
+    let vy = Math.sin(angle);
+    if (Math.abs(vx) < minSinCos) vx = Math.sign(vx || 1) * minSinCos;
+    if (Math.abs(vy) < minSinCos) vy = Math.sign(vy || 1) * minSinCos;
+    // Normalize
+    const mag = Math.hypot(vx, vy) || 1;
+    vx = (vx / mag) * speed;
+    vy = (vy / mag) * speed;
+
+    // Sync initial transform
+    clap.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+
+    const item = {
+        el: clap,
+        x,
+        y,
+        vx,
+        vy,
+        w: clapRect.width,
+        h: clapRect.height,
+        fading: false,
+        removeTimeoutId: null
+    };
+    bouncingClaps.push(item);
+
+    // Start animation loop if not running
+    if (clapAnimationRAF === null) {
+        lastClapAnimTime = performance.now();
+        clapAnimationRAF = requestAnimationFrame(animateBouncingClaps);
+    }
+}
+
+function animateBouncingClaps(now) {
+    const dtMs = Math.min(50, now - lastClapAnimTime); // cap to avoid huge jumps
+    const dt = dtMs / 1000;
+    lastClapAnimTime = now;
+
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+
+    for (let i = 0; i < bouncingClaps.length; i++) {
+        const c = bouncingClaps[i];
+        if (!c || c.fading) continue;
+
+        c.x += c.vx * dt;
+        c.y += c.vy * dt;
+
+        // Bounce on edges
+        if (c.x <= 0) {
+            c.x = 0;
+            c.vx = Math.abs(c.vx);
+        } else if (c.x + c.w >= viewportW) {
+            c.x = viewportW - c.w;
+            c.vx = -Math.abs(c.vx);
+        }
+
+        if (c.y <= 0) {
+            c.y = 0;
+            c.vy = Math.abs(c.vy);
+        } else if (c.y + c.h >= viewportH) {
+            c.y = viewportH - c.h;
+            c.vy = -Math.abs(c.vy);
+        }
+
+        c.el.style.transform = `translate(${Math.round(c.x)}px, ${Math.round(c.y)}px)`;
+    }
+
+    // Cull removed entries
+    if (bouncingClaps.length > 0) {
+        clapAnimationRAF = requestAnimationFrame(animateBouncingClaps);
+    } else {
+        clapAnimationRAF = null;
+    }
+}
+
+function fadeOutAllBouncingClaps() {
+    for (let i = 0; i < bouncingClaps.length; i++) {
+        const c = bouncingClaps[i];
+        if (!c || c.fading) continue;
+        c.fading = true;
+        c.el.classList.add('fade-out');
+        // Remove after transition
+        c.removeTimeoutId = setTimeout(() => {
+            if (c.el && c.el.parentNode) {
+                c.el.parentNode.removeChild(c.el);
+            }
+            // Mark for removal by filtering
+        }, 650);
+    }
+    // Periodically clean up array
+    setTimeout(() => {
+        bouncingClaps = bouncingClaps.filter(c => c && c.fading && c.el && document.body.contains(c.el));
+        // After another tick, clear completely
+        setTimeout(() => {
+            for (let i = 0; i < bouncingClaps.length; i++) {
+                const c = bouncingClaps[i];
+                if (c.el && c.el.parentNode) c.el.parentNode.removeChild(c.el);
+                if (c.removeTimeoutId) clearTimeout(c.removeTimeoutId);
+            }
+            bouncingClaps = [];
+        }, 300);
+    }, 200);
+}
+
 function initializeWatchPage(id, fightData) {
     fightID = id;
     connectionAttempts = 0;
@@ -111,6 +241,9 @@ function handleClap(fighterID, fighterName, avatarElement) {
         setTimeout(() => {
             avatarElement.classList.remove('clap-burst');
         }, 300);
+
+        // Spawn a bouncing clap emoji
+        spawnBouncingClap(avatarElement);
     }
 }
 
@@ -173,6 +306,9 @@ function updateClappingState(round) {
             fighter2Avatar.innerHTML = originalFighter2AvatarHTML;
             fighter2Avatar.classList.remove('clappable');
         }
+
+        // Fade out any active bouncing claps
+        fadeOutAllBouncingClaps();
     }
 }
 
