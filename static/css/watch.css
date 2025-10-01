@@ -497,6 +497,9 @@
     padding: 20px;
     margin: 20px 0;
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* allow internal scroll area to size */
 }
 
 .betting-section h3 {
@@ -563,13 +566,18 @@
 
 .detailed-bets {
     margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .bets-list {
-    max-height: 300px;
     overflow-y: auto;
     border: 1px solid #333;
     border-radius: 5px;
+    flex: 1;
+    min-height: 0;
 }
 
 .bet-notification {
