@@ -261,6 +261,11 @@
     height: 50vh;
 }
 
+/* When there are no bets, expand commentary across the full width */
+.watch-lower.no-bets {
+    grid-template-columns: 1fr;
+}
+
 .commentary-header {
     padding: 20px;
     border-bottom: 1px solid #333;
