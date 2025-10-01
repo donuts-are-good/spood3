@@ -42,9 +42,26 @@
 			<div class="fight-section-card">
 			<div class="tale-of-tape">
 				<div class="tot-col left">
-					<div class="tot-fighter-avatar">
-						<img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="tot-avatar-img">
-					</div>
+                    <div class="tot-fighter-avatar">
+                        <img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="tot-avatar-img">
+                        {{if and .User .UserBet}}
+                            {{if eq .UserBet.FighterID .Fight.Fighter1ID}}
+                            <div class="bet-stamp" title="Your bet">
+                                <div class="bet-stamp-text">
+                                    {{if ge .UserBet.Amount 1000000000}}
+                                        {{div .UserBet.Amount 1000000000}}B
+                                    {{else if ge .UserBet.Amount 1000000}}
+                                        {{div .UserBet.Amount 1000000}}M
+                                    {{else if ge .UserBet.Amount 1000}}
+                                        {{div .UserBet.Amount 1000}}k
+                                    {{else}}
+                                        {{.UserBet.Amount}}
+                                    {{end}}
+                                </div>
+                            </div>
+                            {{end}}
+                        {{end}}
+                    </div>
                     <h4 class="fighter-name" style="margin-bottom:8px;">
                         <a href="/fighter/{{.Fight.Fighter1ID}}">{{.Fight.Fighter1Name}}</a>
                     </h4>
@@ -63,11 +80,6 @@
                                     {{end}}
                                 </form>
                             </div>
-                        {{else if eq .UserBet.FighterID .Fight.Fighter1ID}}
-                            <div class="fighter-bet-placed">
-                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
-                                <div class="bet-label">YOUR BET</div>
-                            </div>
                         {{end}}
                     {{end}}
 					<div class="tot-row"><span class="label">Strength</span><span id="tot-f1-strength" class="value {{if gt .Fighter1.Strength .Fighter2.Strength}}win{{end}}">{{.Fighter1.Strength}}</span></div>
@@ -84,9 +96,26 @@
 					<div class="tot-faceoff">{{.Fight.Fighter1Name}} <span class="vs-dot">VS</span> {{.Fight.Fighter2Name}}</div>
 				</div>
 				<div class="tot-col right">
-					<div class="tot-fighter-avatar">
-						<img src="{{.Fighter2.AvatarURL}}" alt="{{.Fight.Fighter2Name}}" class="tot-avatar-img">
-					</div>
+                    <div class="tot-fighter-avatar">
+                        <img src="{{.Fighter2.AvatarURL}}" alt="{{.Fight.Fighter2Name}}" class="tot-avatar-img">
+                        {{if and .User .UserBet}}
+                            {{if eq .UserBet.FighterID .Fight.Fighter2ID}}
+                            <div class="bet-stamp" title="Your bet">
+                                <div class="bet-stamp-text">
+                                    {{if ge .UserBet.Amount 1000000000}}
+                                        {{div .UserBet.Amount 1000000000}}B
+                                    {{else if ge .UserBet.Amount 1000000}}
+                                        {{div .UserBet.Amount 1000000}}M
+                                    {{else if ge .UserBet.Amount 1000}}
+                                        {{div .UserBet.Amount 1000}}k
+                                    {{else}}
+                                        {{.UserBet.Amount}}
+                                    {{end}}
+                                </div>
+                            </div>
+                            {{end}}
+                        {{end}}
+                    </div>
                     <h4 class="fighter-name" style="margin-bottom:8px;">
                         <a href="/fighter/{{.Fight.Fighter2ID}}">{{.Fight.Fighter2Name}}</a>
                     </h4>
@@ -104,11 +133,6 @@
                                     <div class="mvp-hint">👑 Betting on your MVP pays 10x if they win</div>
                                     {{end}}
                                 </form>
-                            </div>
-                        {{else if eq .UserBet.FighterID .Fight.Fighter2ID}}
-                            <div class="fighter-bet-placed">
-                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
-                                <div class="bet-label">YOUR BET</div>
                             </div>
                         {{end}}
                     {{end}}

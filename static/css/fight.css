@@ -189,6 +189,7 @@
     margin-bottom: 15px;
     text-transform: uppercase;
     letter-spacing: 2px;
+    text-align: center;
 }
 
 .fighter-name a {
@@ -896,6 +897,7 @@
 .tot-fighter-avatar {
     margin-bottom: 12px;
     text-align: center;
+    position: relative;
 }
 
 .tot-fighter-avatar .tot-avatar-img {
@@ -910,6 +912,24 @@
     display: block;
     margin: 0 auto;
 }
+
+/* Bet stamp overlay (like BLESSED) */
+.bet-stamp{
+    position:absolute;
+    top:-12px;
+    right:-16px;
+    width:84px;
+    height:84px;
+    border:3px solid #ffaa00;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,170,0,0.18);
+    transform:rotate(12deg);
+    opacity:.9;
+    box-shadow:0 0 14px rgba(255,170,0,.35);
+    pointer-events:none;
+}
+.bet-stamp-text{ font-weight:900; color:#ffaa00; letter-spacing:1px; }
 
 .tot-fighter-name {
     color: #ccc;
