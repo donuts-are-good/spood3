@@ -10,7 +10,7 @@ import (
 
 var nonTitleChars = regexp.MustCompile(`[^A-Za-z0-9 _-]`)
 
-const wikiFilesBase = "http://files.spoodblort.com"
+const wikiFilesBase = "https://spoodblort.com"
 
 func fighterDisplayTitle(f database.Fighter) string {
 	return fmt.Sprintf("Roster #%03d %s", f.ID, f.Name)
@@ -23,26 +23,24 @@ func sanitizeName(name string) string {
 	return name
 }
 
-// wikiAvatarURLFrom converts app avatar paths to absolute wiki-hosted URLs.
+// wikiAvatarURLFrom converts app avatar paths to absolute public URLs.
 // Rules:
-// - If empty or default, use files base default image.
+// - If empty or default, use site default image.
 // - If already http(s), return as-is.
-// - If looks like "/img-cdn/<filename>", map to "http://files.spoodblort.com/fighters/<filename>".
-// - Otherwise, treat as a filename and prepend fighters folder.
+// - If looks like "/img-cdn/<filename>", map to "https://spoodblort.com/img-cdn/<filename>".
+// - Otherwise, treat as a filename and prepend img-cdn folder.
 func wikiAvatarURLFrom(f database.Fighter) string {
 	path := strings.TrimSpace(f.AvatarURL)
 	if path == "" || path == database.DefaultFighterAvatarPath {
-		return wikiFilesBase + "/fighters/default.png"
+		return wikiFilesBase + "/img-cdn/default.png"
 	}
 	lower := strings.ToLower(path)
 	if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") {
 		return path
 	}
 	filename := strings.TrimPrefix(path, "/")
-	if strings.HasPrefix(filename, "img-cdn/") {
-		filename = strings.TrimPrefix(filename, "img-cdn/")
-	}
-	return wikiFilesBase + "/fighters/" + filename
+	filename = strings.TrimPrefix(filename, "img-cdn/")
+	return wikiFilesBase + "/img-cdn/" + filename
 }
 
 // FighterPageTitle returns the canonical page title used by the legacy scripts
@@ -187,7 +185,7 @@ func BuildFightPageText(f database.Fight, f1 database.Fighter, f2 database.Fight
 	b.WriteString(" ||  || colspan=2 | ")
 	b.WriteString(f2.Name)
 	b.WriteString("\n|-\n")
-	fmt.Fprintf(&b, "| <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\"> || || <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\">\n", avatar1, avatar2)
+	fmt.Fprintf(&b, "| colspan=2 | <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\"> || colspan=2 | <img src=\"%s\" style=\"max-width:140px; border-radius:6px;\">\n", avatar1, avatar2)
 	b.WriteString("|-\n")
 	b.WriteString("! Attribute !! Value || || ! Attribute !! Value\n")
 	b.WriteString("|-\n")
