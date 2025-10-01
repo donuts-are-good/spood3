@@ -139,12 +139,12 @@
                 </div>
                 
                 <div class="vs-section">
-                    <div class="vs-text">VS</div>
-                    <div class="fight-status-badge status-{{.Fight.Status}}">
-                        {{if eq .Fight.Status "active"}}LIVE
-                        {{else if eq .Fight.Status "completed"}}DONE
-                        {{else if eq .Fight.Status "voided"}}VOID
-                        {{else}}SOON{{end}}
+                    <div class="vs-chip">VS</div>
+                    <div class="status-display">
+                        {{if eq .Fight.Status "scheduled"}}<span class="pill next">UPCOMING</span>
+                        {{else if eq .Fight.Status "active"}}<span class="pill live">LIVE</span>
+                        {{else if eq .Fight.Status "completed"}}<span class="pill completed">COMPLETED</span>
+                        {{else}}<span class="pill voided">VOIDED</span>{{end}}
                     </div>
                 </div>
                 
