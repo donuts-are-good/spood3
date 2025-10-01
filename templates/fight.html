@@ -129,17 +129,6 @@
 			</div>
 			{{end}}
             <!-- Removed redundant lower matchup grid -->
-
-
-			{{/* Available credits info */}}
-			{{if and .User (eq .Fight.Status "scheduled") (not .UserBet)}}
-				<div class="betting-info-bar">
-					Available credits: {{commas .User.Credits}} | 1:1 odds (bet 100, win 200 total)
-					{{if and .CurrentMVP (or (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter1ID)) (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter2ID)))}}
-						<span class="mvp-hint-inline">| 👑 MVP bonus: 10x payout if your MVP wins</span>
-					{{end}}
-				</div>
-			{{end}}
 		</div>
 
         {{/* Bless/Curse Section */}}
