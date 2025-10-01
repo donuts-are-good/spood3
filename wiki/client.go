@@ -1,9 +1,12 @@
 package wiki
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -154,6 +157,122 @@ func (c *Client) AppendText(title, text, summary string) error {
 		return fmt.Errorf("wiki edit failed: %s", resp.Status)
 	}
 	return nil
+}
+
+// FileExists checks if File:filename exists on the wiki.
+func (c *Client) FileExists(filename string) (bool, error) {
+	if !c.isEnabled() {
+		return true, nil
+	}
+	if err := c.EnsureLogin(); err != nil {
+		return false, err
+	}
+	q := url.Values{
+		"action": {"query"},
+		"titles": {"File:" + filename},
+		"format": {"json"},
+		"prop":   {"imageinfo"},
+	}
+	resp, err := c.http.Get(c.baseAPI + "?" + q.Encode())
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+	var out struct {
+		Query struct {
+			Pages map[string]struct {
+				Missing interface{} `json:"missing"`
+			} `json:"pages"`
+		} `json:"query"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return false, err
+	}
+	for _, p := range out.Query.Pages {
+		// If "missing" key is present, the file doesn't exist
+		if p.Missing != nil {
+			return false, nil
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+// EnsureFileFromURL uploads if the given file does not already exist.
+func (c *Client) EnsureFileFromURL(filename, srcURL, comment string) error {
+	exists, err := c.FileExists(filename)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+	return c.UploadFromURL(filename, srcURL, comment)
+}
+
+// UploadFile uploads a file to the wiki (create or update) using the MediaWiki upload API.
+func (c *Client) UploadFile(filename string, data []byte, comment string) error {
+	if !c.isEnabled() {
+		return nil
+	}
+	if err := c.EnsureLogin(); err != nil {
+		return err
+	}
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	_ = writer.WriteField("action", "upload")
+	_ = writer.WriteField("filename", filename)
+	_ = writer.WriteField("ignorewarnings", "1")
+	_ = writer.WriteField("comment", comment)
+	_ = writer.WriteField("token", c.csrfToken)
+	_ = writer.WriteField("format", "json")
+	filePart, err := writer.CreateFormFile("file", filename)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(filePart, bytes.NewReader(data)); err != nil {
+		return err
+	}
+	if err := writer.Close(); err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", c.baseAPI, &body)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("wiki upload failed: %s", resp.Status)
+	}
+	return nil
+}
+
+// UploadFromURL downloads a file from a URL and uploads it to the wiki with the given filename.
+func (c *Client) UploadFromURL(filename, srcURL, comment string) error {
+	if !c.isEnabled() {
+		return nil
+	}
+	if err := c.EnsureLogin(); err != nil {
+		return err
+	}
+	resp, err := c.http.Get(srcURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("download failed: %s", resp.Status)
+	}
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	return c.UploadFile(filename, data, comment)
 }
 
 // SetText replaces a page's content (creates if missing) with an edit summary.

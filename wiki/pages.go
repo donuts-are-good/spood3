@@ -185,7 +185,7 @@ func BuildFightPageText(f database.Fight, f1 database.Fighter, f2 database.Fight
 	b.WriteString(" ||  || colspan=2 | ")
 	b.WriteString(f2.Name)
 	b.WriteString("\n|-\n")
-	fmt.Fprintf(&b, "| colspan=2 style=\"background-image:url(%s); background-repeat:no-repeat; background-position:center; background-size:contain; width:160px; height:160px; border-radius:6px;\" |  || colspan=2 style=\"background-image:url(%s); background-repeat:no-repeat; background-position:center; background-size:contain; width:160px; height:160px; border-radius:6px;\" |  \n", avatar1, avatar2)
+	fmt.Fprintf(&b, "| colspan=2 | [[File:%s|160px|link=|alt=]] || colspan=2 | [[File:%s|160px|link=|alt=]]\n", avatar1, avatar2)
 	b.WriteString("|-\n")
 	b.WriteString("! Attribute !! Value || || ! Attribute !! Value\n")
 	b.WriteString("|-\n")
@@ -216,7 +216,92 @@ func BuildFightPageText(f database.Fight, f1 database.Fighter, f2 database.Fight
 
 // UpsertFightPage writes the full fight page content to the wiki.
 func (c *Client) UpsertFightPage(f database.Fight, f1 database.Fighter, f2 database.Fighter, tournamentName string) error {
+	// Ensure files exist on the wiki
+	f1File := sanitizeName(fmt.Sprintf("%d-%s", f1.ID, f1.Name))
+	f1File += fileExtensionFromURL(wikiAvatarURLFrom(f1))
+	f2File := sanitizeName(fmt.Sprintf("%d-%s", f2.ID, f2.Name))
+	f2File += fileExtensionFromURL(wikiAvatarURLFrom(f2))
+
+	_ = c.EnsureFileFromURL(f1File, wikiAvatarURLFrom(f1), "Upload fighter avatar")
+	_ = c.EnsureFileFromURL(f2File, wikiAvatarURLFrom(f2), "Upload fighter avatar")
+
+	// Build page referencing uploaded files
+	f1Display := f1File
+	f2Display := f2File
 	title := FightPageTitle(f)
-	text := BuildFightPageText(f, f1, f2, tournamentName)
+	text := BuildFightPageTextWithFiles(f, f1, f2, tournamentName, f1Display, f2Display)
 	return c.SetText(title, text, "Sync fight page from game DB")
+}
+
+// BuildFightPageTextWithFiles is like BuildFightPageText but uses wiki File: names.
+func BuildFightPageTextWithFiles(f database.Fight, f1 database.Fighter, f2 database.Fighter, tournamentName, f1File, f2File string) string {
+	// Temporarily swap avatar URL helpers by passing file names into the template spots.
+	// We reuse all other sections.
+	// Winner logic reused
+	winner := ""
+	if f.WinnerID.Valid {
+		if int(f.WinnerID.Int64) == f.Fighter1ID {
+			winner = f1.Name
+		} else if int(f.WinnerID.Int64) == f.Fighter2ID {
+			winner = f2.Name
+		}
+	}
+	resultSection := "To be determined."
+	if winner != "" {
+		if f.FinalScore1.Valid && f.FinalScore2.Valid {
+			resultSection = fmt.Sprintf("Winner: %s — Final Score %d-%d.", winner, f.FinalScore1.Int64, f.FinalScore2.Int64)
+		} else {
+			resultSection = fmt.Sprintf("Winner: %s.", winner)
+		}
+	}
+
+	var b strings.Builder
+	display := fightDisplayTitle(f)
+	fmt.Fprintf(&b, "{{DISPLAYTITLE:%s}}\n", display)
+	fmt.Fprintf(&b, "{{Fight\n|tournament=%s\n|scheduled=%s\n|fighter1=%s\n|fighter2=%s\n|status=%s\n|winner=%s\n}}\n\n",
+		tournamentName, f.ScheduledTime.Format("2006-01-02 15:04:05-07:00"), f.Fighter1Name, f.Fighter2Name, f.Status, winner)
+	fmt.Fprintf(&b, "'''%s'''\n\n", display)
+	b.WriteString("== Overview ==\n")
+	fmt.Fprintf(&b, "This bout is scheduled under the '''%s''' card.\n\n", tournamentName)
+	b.WriteString("== Tale of the Tape ==\n")
+	b.WriteString("{| class=\"wikitable\" style=\"width:100%; text-align:center;\"\n")
+	b.WriteString("! colspan=2 | ")
+	b.WriteString(f1.Name)
+	b.WriteString(" ||  || colspan=2 | ")
+	b.WriteString(f2.Name)
+	b.WriteString("\n|-\n")
+	fmt.Fprintf(&b, "| colspan=2 | [[File:%s|160px|link=|alt=]] || colspan=2 | [[File:%s|160px|link=|alt=]]\n", f1File, f2File)
+	b.WriteString("|-\n")
+	b.WriteString("! Attribute !! Value || || ! Attribute !! Value\n")
+	b.WriteString("|-\n")
+	fmt.Fprintf(&b, "| Strength || %d || || Strength || %d\n", f1.Strength, f2.Strength)
+	b.WriteString("|-\n")
+	fmt.Fprintf(&b, "| Speed || %d || || Speed || %d\n", f1.Speed, f2.Speed)
+	b.WriteString("|-\n")
+	fmt.Fprintf(&b, "| Endurance || %d || || Endurance || %d\n", f1.Endurance, f2.Endurance)
+	b.WriteString("|-\n")
+	fmt.Fprintf(&b, "| Technique || %d || || Technique || %d\n", f1.Technique, f2.Technique)
+	b.WriteString("|}\n\n")
+	b.WriteString("== Result ==\n")
+	b.WriteString(resultSection + "\n\n")
+	if f.FinalScore1.Valid && f.FinalScore2.Valid {
+		b.WriteString("=== Final Health ===\n")
+		b.WriteString("{| class=\"wikitable\"\n")
+		b.WriteString("! Fighter !! Health\n|-\n")
+		fmt.Fprintf(&b, "| %s || %d\n|-\n", f1.Name, f.FinalScore1.Int64)
+		fmt.Fprintf(&b, "| %s || %d\n", f2.Name, f.FinalScore2.Int64)
+		b.WriteString("|}\n\n")
+	}
+	b.WriteString("[[Category:Fights]]\n")
+	return b.String()
+}
+
+func fileExtensionFromURL(u string) string {
+	lower := strings.ToLower(u)
+	for _, ext := range []string{".png", ".jpg", ".jpeg", ".gif", ".webp"} {
+		if strings.Contains(lower, ext) {
+			return ext
+		}
+	}
+	return ".png"
 }
