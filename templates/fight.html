@@ -45,7 +45,31 @@
 					<div class="tot-fighter-avatar">
 						<img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="tot-avatar-img">
 					</div>
-					<div class="tot-fighter-name">{{.Fight.Fighter1Name}}</div>
+                    <h4 class="fighter-name" style="margin-bottom:8px;">
+                        <a href="/fighter/{{.Fight.Fighter1ID}}">{{.Fight.Fighter1Name}}</a>
+                    </h4>
+                    {{if and .User (eq .Fight.Status "scheduled")}}
+                        {{if not .UserBet}}
+                            <div class="fighter-betting">
+                                <form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter1Name}}')">
+                                    <input type="hidden" name="fighter_id" value="{{.Fight.Fighter1ID}}">
+                                    <div class="bet-controls">
+                                        <input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
+                                        <button type="button" class="bet-max-button" title="Set to max">MAX</button>
+                                        <button type="submit" class="bet-button">BET</button>
+                                    </div>
+                                    {{if and .CurrentMVP (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter1ID))}}
+                                    <div class="mvp-hint">👑 Betting on your MVP pays 10x if they win</div>
+                                    {{end}}
+                                </form>
+                            </div>
+                        {{else if eq .UserBet.FighterID .Fight.Fighter1ID}}
+                            <div class="fighter-bet-placed">
+                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
+                                <div class="bet-label">YOUR BET</div>
+                            </div>
+                        {{end}}
+                    {{end}}
 					<div class="tot-row"><span class="label">Strength</span><span id="tot-f1-strength" class="value {{if gt .Fighter1.Strength .Fighter2.Strength}}win{{end}}">{{.Fighter1.Strength}}</span></div>
 					<div class="tot-row"><span class="label">Speed</span><span id="tot-f1-speed" class="value {{if gt .Fighter1.Speed .Fighter2.Speed}}win{{end}}">{{.Fighter1.Speed}}</span></div>
 					<div class="tot-row"><span class="label">Endurance</span><span id="tot-f1-endurance" class="value {{if gt .Fighter1.Endurance .Fighter2.Endurance}}win{{end}}">{{.Fighter1.Endurance}}</span></div>
@@ -63,7 +87,31 @@
 					<div class="tot-fighter-avatar">
 						<img src="{{.Fighter2.AvatarURL}}" alt="{{.Fight.Fighter2Name}}" class="tot-avatar-img">
 					</div>
-					<div class="tot-fighter-name">{{.Fight.Fighter2Name}}</div>
+                    <h4 class="fighter-name" style="margin-bottom:8px;">
+                        <a href="/fighter/{{.Fight.Fighter2ID}}">{{.Fight.Fighter2Name}}</a>
+                    </h4>
+                    {{if and .User (eq .Fight.Status "scheduled")}}
+                        {{if not .UserBet}}
+                            <div class="fighter-betting">
+                                <form action="/user/fight/{{.Fight.ID}}/bet" method="POST" class="bet-form" onsubmit="return confirmBet(event, '{{.Fight.Fighter2Name}}')">
+                                    <input type="hidden" name="fighter_id" value="{{.Fight.Fighter2ID}}">
+                                    <div class="bet-controls">
+                                        <input type="number" name="amount" min="1" max="{{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}" placeholder="Credits" class="bet-input" required title="Max bet: {{if gt .FightBetMax 0}}{{min .FightBetMax .User.Credits}}{{else}}{{.User.Credits}}{{end}}">
+                                        <button type="button" class="bet-max-button" title="Set to max">MAX</button>
+                                        <button type="submit" class="bet-button">BET</button>
+                                    </div>
+                                    {{if and .CurrentMVP (eq .CurrentMVP.SettingValue (printf "%d" .Fight.Fighter2ID))}}
+                                    <div class="mvp-hint">👑 Betting on your MVP pays 10x if they win</div>
+                                    {{end}}
+                                </form>
+                            </div>
+                        {{else if eq .UserBet.FighterID .Fight.Fighter2ID}}
+                            <div class="fighter-bet-placed">
+                                <div class="bet-amount">{{commas .UserBet.Amount}} credits</div>
+                                <div class="bet-label">YOUR BET</div>
+                            </div>
+                        {{end}}
+                    {{end}}
 					<div class="tot-row"><span id="tot-f2-strength" class="value {{if gt .Fighter2.Strength .Fighter1.Strength}}win{{end}}">{{.Fighter2.Strength}}</span><span class="label">Strength</span></div>
 					<div class="tot-row"><span id="tot-f2-speed" class="value {{if gt .Fighter2.Speed .Fighter1.Speed}}win{{end}}">{{.Fighter2.Speed}}</span><span class="label">Speed</span></div>
 					<div class="tot-row"><span id="tot-f2-endurance" class="value {{if gt .Fighter2.Endurance .Fighter1.Endurance}}win{{end}}">{{.Fighter2.Endurance}}</span><span class="label">Endurance</span></div>
@@ -76,8 +124,8 @@
 			</div>
 			</div>
 			{{end}}
-			<div class="fight-section-card">
-			<div class="matchup-grid">
+            <div class="fight-section-card">
+            <div class="matchup-grid">
                 <div class="fighter-card">
                     <h4 class="fighter-name">
                         <a href="/fighter/{{.Fight.Fighter1ID}}">{{.Fight.Fighter1Name}}</a>
