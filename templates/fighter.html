@@ -46,16 +46,17 @@
                     {{end}}
                 </div>
                 <div class="avatar-display">
-                    <img src="{{.Fighter.AvatarURL}}" alt="{{.Fighter.Name}}" class="fighter-avatar-large">
+                    <img id="fighter-avatar-img" src="{{.Fighter.AvatarURL}}" alt="{{.Fighter.Name}}" class="fighter-avatar-large">
                 </div>
 
                 {{if .IsAdmin}}
-                <div class="avatar-edit">
+                <div class="avatar-edit" data-fighter-id="{{.Fighter.ID}}">
                     <form method="POST" action="/fighter/avatar/upload" enctype="multipart/form-data">
                         <input type="hidden" name="fighter_id" value="{{.Fighter.ID}}">
                         <div class="form-group">
                             <label for="avatar-file">Upload new avatar (max 2MB):</label>
                             <input type="file" id="avatar-file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" required class="file-input">
+                            <div id="avatar-paste-hint" class="small-hint">Tip: with the editor open, paste an image (Cmd/Ctrl+V)</div>
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="cta">Upload</button>

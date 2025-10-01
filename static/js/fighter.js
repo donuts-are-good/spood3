@@ -35,6 +35,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         }
+
+        // Paste-to-upload for avatar
+        const avatarEdit = document.querySelector('.avatar-edit');
+        const fileInput = document.getElementById('avatar-file');
+        const avatarImg = document.getElementById('fighter-avatar-img');
+        if (avatarEdit && fileInput) {
+            avatarEdit.addEventListener('paste', async function (e) {
+                try {
+                    const items = e.clipboardData && e.clipboardData.items ? e.clipboardData.items : [];
+                    for (let i = 0; i < items.length; i++) {
+                        const it = items[i];
+                        if (it.kind === 'file') {
+                            const blob = it.getAsFile();
+                            if (!blob) continue;
+                            // Only accept images
+                            if (!/^image\//.test(blob.type)) continue;
+                            // Put the blob into the file input using DataTransfer
+                            const dt = new DataTransfer();
+                            const file = new File([blob], 'pasted-image.' + (blob.type.split('/')[1] || 'png'), { type: blob.type });
+                            dt.items.add(file);
+                            fileInput.files = dt.files;
+                            // Preview
+                            if (avatarImg) {
+                                const url = URL.createObjectURL(file);
+                                avatarImg.src = url;
+                            }
+                            // Focus the Upload button for convenience
+                            const submitBtn = avatarEdit.querySelector('button[type="submit"]');
+                            if (submitBtn) submitBtn.focus();
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('avatar paste failed', err);
+                }
+            });
+        }
     } catch (e) {
         console.warn('fighter.js init error', e);
     }
