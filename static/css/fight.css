@@ -416,6 +416,9 @@
     overflow: hidden;
 }
 
+.effects-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.effects-col .col-title{ color:#ccc; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; text-align:center; }
+
 .effects-section::before {
     content: "⚡ REALITY MANIPULATION ⚡";
     position: absolute;
@@ -561,6 +564,7 @@
         flex-wrap: wrap;
         gap: 10px;
     }
+    .effects-row{ grid-template-columns:1fr; }
 }
 
 /* Betting Section */

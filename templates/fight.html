@@ -146,9 +146,12 @@
         {{if and .User (eq .Fight.Status "scheduled") .UserInventory}}
             <div class="effects-section">
                 <h4>🔮 MANIPULATE THE CHAOS 🔮</h4>
-                <div class="effects-grid">
-                    {{range .UserInventory}}
-                        {{if or (eq .ItemType "fighter_curse") (eq .ItemType "fighter_blessing")}}
+                <div class="effects-row">
+                    <div class="effects-col blessings">
+                        <div class="col-title">✨ Fighter Blessing</div>
+                        <div class="effects-grid">
+                        {{range .UserInventory}}
+                            {{if eq .ItemType "fighter_blessing"}}
                             <div class="effect-item">
                                 <div class="effect-header">
                                     <span class="effect-emoji">{{.Emoji}}</span>
@@ -177,8 +180,47 @@
                                     </button>
                                 </div>
                             </div>
+                            {{end}}
                         {{end}}
-                    {{end}}
+                        </div>
+                    </div>
+                    <div class="effects-col curses">
+                        <div class="col-title">💀 Fighter Curse</div>
+                        <div class="effects-grid">
+                        {{range .UserInventory}}
+                            {{if eq .ItemType "fighter_curse"}}
+                            <div class="effect-item">
+                                <div class="effect-header">
+                                    <span class="effect-emoji">{{.Emoji}}</span>
+                                    <span class="effect-name">{{.Name}}</span>
+                                    <span class="effect-quantity">×{{.Quantity}}</span>
+                                </div>
+                                <div class="effect-description">{{.Description}}</div>
+                                <div class="effect-targets">
+                                    <button class="effect-button" 
+                                        data-item-id="{{.ShopItemID}}"
+                                        data-fight-id="{{$.Fight.ID}}"
+                                        data-fighter-id="{{$.Fight.Fighter1ID}}"
+                                        data-fighter-name="{{$.Fight.Fighter1Name}}"
+                                        data-effect-name="{{.Name}}"
+                                        onclick="applyEffectFromButton(this)">
+                                        Apply to {{$.Fight.Fighter1Name}}
+                                    </button>
+                                    <button class="effect-button"
+                                        data-item-id="{{.ShopItemID}}"
+                                        data-fight-id="{{$.Fight.ID}}"
+                                        data-fighter-id="{{$.Fight.Fighter2ID}}"
+                                        data-fighter-name="{{$.Fight.Fighter2Name}}"
+                                        data-effect-name="{{.Name}}"
+                                        onclick="applyEffectFromButton(this)">
+                                        Apply to {{$.Fight.Fighter2Name}}
+                                    </button>
+                                </div>
+                            </div>
+                            {{end}}
+                        {{end}}
+                        </div>
+                    </div>
                 </div>
             </div>
         {{end}}
