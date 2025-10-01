@@ -47,17 +47,7 @@
                         {{if and .User .UserBet}}
                             {{if eq .UserBet.FighterID .Fight.Fighter1ID}}
                             <div class="bet-stamp" title="Your bet">
-                                <div class="bet-stamp-text">
-                                    {{if ge .UserBet.Amount 1000000000}}
-                                        {{div .UserBet.Amount 1000000000}}B
-                                    {{else if ge .UserBet.Amount 1000000}}
-                                        {{div .UserBet.Amount 1000000}}M
-                                    {{else if ge .UserBet.Amount 1000}}
-                                        {{div .UserBet.Amount 1000}}k
-                                    {{else}}
-                                        {{.UserBet.Amount}}
-                                    {{end}}
-                                </div>
+                                <div class="bet-stamp-text" data-amount="{{.UserBet.Amount}}">{{commas .UserBet.Amount}}</div>
                             </div>
                             {{end}}
                         {{end}}
@@ -101,17 +91,7 @@
                         {{if and .User .UserBet}}
                             {{if eq .UserBet.FighterID .Fight.Fighter2ID}}
                             <div class="bet-stamp" title="Your bet">
-                                <div class="bet-stamp-text">
-                                    {{if ge .UserBet.Amount 1000000000}}
-                                        {{div .UserBet.Amount 1000000000}}B
-                                    {{else if ge .UserBet.Amount 1000000}}
-                                        {{div .UserBet.Amount 1000000}}M
-                                    {{else if ge .UserBet.Amount 1000}}
-                                        {{div .UserBet.Amount 1000}}k
-                                    {{else}}
-                                        {{.UserBet.Amount}}
-                                    {{end}}
-                                </div>
+                                <div class="bet-stamp-text" data-amount="{{.UserBet.Amount}}">{{commas .UserBet.Amount}}</div>
                             </div>
                             {{end}}
                         {{end}}

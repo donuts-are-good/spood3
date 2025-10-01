@@ -1,3 +1,21 @@
+// Format numbers like 1200 -> 1.2k, 1500000 -> 1.5M
+function formatShort(n) {
+    const num = typeof n === 'number' ? n : parseInt(n, 10);
+    if (isNaN(num)) return '';
+    if (num >= 1e9) return (num / 1e9).toFixed(num % 1e9 === 0 ? 0 : 1) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(num % 1e6 === 0 ? 0 : 1) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(num % 1e3 === 0 ? 0 : 1) + 'k';
+    return String(num);
+}
+
+// Initialize bet stamps on load
+document.addEventListener('DOMContentLoaded', function() {
+    const stamps = document.querySelectorAll('.bet-stamp-text[data-amount]');
+    stamps.forEach(el => {
+        const amount = el.getAttribute('data-amount');
+        el.textContent = formatShort(amount);
+    });
+});
 // Apply effect (bless/curse) to a fighter
 function applyEffect(itemId, fightId, fighterId, fighterName, effectName) {
     // Send effect application request directly without confirmation
