@@ -28,10 +28,16 @@
         <div class="arena-display">
             <div class="fighter-section fighter-left">
                 <div class="fighter-portrait">
+                    <div class="health-bar-container">
+                        <div class="health-label">{{.Fight.Fighter1Name}}</div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="health1" style="width: 100%"></div>
+                            <div class="health-text" id="health1-text">100,000</div>
+                        </div>
+                    </div>
                     <div class="fighter-avatar" id="fighter1-avatar" data-fighter-id="{{.Fight.Fighter1ID}}" data-fighter-name="{{.Fight.Fighter1Name}}">
                         {{if .Fighter1}}<img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="avatar-img">{{else}}💀{{end}}
                     </div>
-                    <div class="fighter-name">{{.Fight.Fighter1Name}}</div>
                     <div class="fighter-team">{{if .Fighter1}}{{.Fighter1.Team}}{{end}}</div>
                     {{if or (gt .Fighter1Blessings 0) (gt .Fighter1Curses 0)}}
                         <div class="fighter-effects">
@@ -39,13 +45,6 @@
                             {{if gt .Fighter1Curses 0}}<span class="curse-indicator">💀 {{.Fighter1Curses}}</span>{{end}}
                         </div>
                     {{end}}
-                </div>
-                <div class="health-bar-container">
-                    <div class="health-label">HEALTH</div>
-                    <div class="health-bar">
-                        <div class="health-fill" id="health1" style="width: 100%"></div>
-                        <div class="health-text" id="health1-text">100,000</div>
-                    </div>
                 </div>
             </div>
 
@@ -97,10 +96,16 @@
 
             <div class="fighter-section fighter-right">
                 <div class="fighter-portrait">
+                    <div class="health-bar-container">
+                        <div class="health-label">{{.Fight.Fighter2Name}}</div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="health2" style="width: 100%"></div>
+                            <div class="health-text" id="health2-text">100,000</div>
+                        </div>
+                    </div>
                     <div class="fighter-avatar" id="fighter2-avatar" data-fighter-id="{{.Fight.Fighter2ID}}" data-fighter-name="{{.Fight.Fighter2Name}}">
                         {{if .Fighter2}}<img src="{{.Fighter2.AvatarURL}}" alt="{{.Fight.Fighter2Name}}" class="avatar-img">{{else}}🗡️{{end}}
                     </div>
-                    <div class="fighter-name">{{.Fight.Fighter2Name}}</div>
                     <div class="fighter-team">{{if .Fighter2}}{{.Fighter2.Team}}{{end}}</div>
                     {{if or (gt .Fighter2Blessings 0) (gt .Fighter2Curses 0)}}
                         <div class="fighter-effects">
@@ -108,13 +113,6 @@
                             {{if gt .Fighter2Curses 0}}<span class="curse-indicator">💀 {{.Fighter2Curses}}</span>{{end}}
                         </div>
                     {{end}}
-                </div>
-                <div class="health-bar-container">
-                    <div class="health-label">HEALTH</div>
-                    <div class="health-bar">
-                        <div class="health-fill" id="health2" style="width: 100%"></div>
-                        <div class="health-text" id="health2-text">100,000</div>
-                    </div>
                 </div>
             </div>
         </div>
