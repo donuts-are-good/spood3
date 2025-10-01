@@ -21,7 +21,8 @@
 .pill.next{ border-color:var(--idx-accent); color:var(--idx-accent); }
 .live-grid{ display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; }
 .fighter{ display:grid; gap:8px; }
-.fighter .name{ font-family:'Mozilla Headline',sans-serif; font-size:1.4rem; letter-spacing:1px; }
+/* Normalize name block height so left/right columns align even if one wraps */
+.fighter .name{ font-family:'Mozilla Headline',sans-serif; font-size:1.4rem; letter-spacing:1px; min-height:3.2rem; display:flex; align-items:center; }
 .fighter .record{ color:var(--idx-dim); font-size:.95rem; }
 .live-avatar-img,.countdown-avatar-img{ width:84px; height:84px; border-radius:50%; border:2px solid #242424; object-fit:cover; }
 .vs-chip{ font-family:'Mozilla Headline',sans-serif; font-size:1.1rem; color:var(--idx-dim); letter-spacing:4px; padding:6px 14px; border:1px dashed #242424; border-radius:999px; }
