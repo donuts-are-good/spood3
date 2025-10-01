@@ -246,6 +246,8 @@
     padding: 20px;
     margin: 20px 0;
     box-shadow: 0 10px 24px rgba(0,0,0,.4);
+    display: flex;
+    flex-direction: column;
 }
 
 /* Lower row layout: commentary (left) and betting (right) */
@@ -275,7 +277,8 @@
 }
 
 .commentary-feed {
-    height: 300px;
+    flex: 1;
+    min-height: 0; /* allow child to shrink within flex container */
     overflow-y: auto;
     padding: 20px;
 }
