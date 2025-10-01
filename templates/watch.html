@@ -56,11 +56,43 @@
                     <div class="round-number" id="round-number">1</div>
                 </div>
                 <div class="status-display" id="fight-status">
-                    {{if eq .Fight.Status "scheduled"}}⏱️ VIOLENCE PENDING
-                    {{else if eq .Fight.Status "active"}}🔴 LIVE VIOLENCE
-                    {{else if eq .Fight.Status "completed"}}✅ VIOLENCE COMPLETE
-                    {{else}}❌ VOIDED{{end}}
+                    {{if eq .Fight.Status "scheduled"}}<span class="pill next">UPCOMING</span>
+                    {{else if eq .Fight.Status "active"}}<span class="pill live">LIVE</span>
+                    {{else if eq .Fight.Status "completed"}}<span class="pill completed">COMPLETED</span>
+                    {{else}}<span class="pill voided">VOIDED</span>{{end}}
                 </div>
+                {{if .AllBets}}
+                {{$f1 := 0}}
+                {{$f2 := 0}}
+                {{$totalAmt := 0}}
+                {{range .AllBets}}
+                    {{$totalAmt = add $totalAmt .Amount}}
+                    {{if eq .FighterID $.Fight.Fighter1ID}}
+                        {{$f1 = add $f1 1}}
+                    {{else}}
+                        {{$f2 = add $f2 1}}
+                    {{end}}
+                {{end}}
+                {{$tBets := add $f1 $f2}}
+                <div class="bet-summary" id="bet-summary"
+                     data-f1-bets="{{$f1}}"
+                     data-f2-bets="{{$f2}}"
+                     data-total-amount="{{$totalAmt}}"
+                     data-total-bets="{{$tBets}}">
+                    <div class="bet-title">💰 Degenerate Betting Summary</div>
+                    <div class="bet-quick">Total Wagered: <strong>{{$totalAmt}}</strong> credits • Bets: <strong>{{$tBets}}</strong></div>
+                    <div class="bet-row">
+                        <div class="bet-name">{{.Fight.Fighter1Name}}</div>
+                        <div class="bet-bar"><div class="bet-fill-1" id="bet-fill-1" style="width: 0%"></div></div>
+                        <div class="bet-num" id="bet-p1">0%</div>
+                    </div>
+                    <div class="bet-row">
+                        <div class="bet-name">{{.Fight.Fighter2Name}}</div>
+                        <div class="bet-bar"><div class="bet-fill-2" id="bet-fill-2" style="width: 0%"></div></div>
+                        <div class="bet-num" id="bet-p2">0%</div>
+                    </div>
+                </div>
+                {{end}}
             </div>
 
             <div class="fighter-section fighter-right">

@@ -167,6 +167,13 @@ function initializeWatchPage(id, fightData) {
         setupClapping();
     }
     
+    // Initialize betting summary meter if present
+    try {
+        initializeBetSummary();
+    } catch (e) {
+        // no-op
+    }
+
     // Always try to connect for live updates (if any)
     connectWebSocket();
 }
@@ -519,6 +526,25 @@ function handleInitialState(data) {
             feed.appendChild(messageDiv);
         }
     }
+}
+
+// Update center-column betting summary based on existing bet counts if present
+function initializeBetSummary() {
+    const container = document.getElementById('bet-summary');
+    if (!container) return;
+    const f1 = parseInt(container.getAttribute('data-f1-bets') || '0', 10);
+    const f2 = parseInt(container.getAttribute('data-f2-bets') || '0', 10);
+    const total = Math.max(0, f1 + f2);
+    const p1 = total > 0 ? Math.round((f1 / total) * 100) : 50;
+    const p2 = 100 - p1;
+    const fill1 = document.getElementById('bet-fill-1');
+    const fill2 = document.getElementById('bet-fill-2');
+    const p1El = document.getElementById('bet-p1');
+    const p2El = document.getElementById('bet-p2');
+    if (fill1) fill1.style.width = p1 + '%';
+    if (fill2) fill2.style.width = p2 + '%';
+    if (p1El) p1El.textContent = p1 + '%';
+    if (p2El) p2El.textContent = p2 + '%';
 }
 
 function handleLiveAction(action) {
