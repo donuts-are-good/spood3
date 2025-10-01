@@ -21,6 +21,7 @@ type BackfillWorker struct {
 	fightsQueuePath   string
 	fightersQueuePath string
 	ticker            *time.Ticker
+	seededMarkerPath  string
 }
 
 // NewBackfillWorker creates a worker. Paths default to project root files if empty.
@@ -36,6 +37,7 @@ func NewBackfillWorker(repo *database.Repository, fightsQueuePath, fightersQueue
 		fightsQueuePath:   fightsQueuePath,
 		fightersQueuePath: fightersQueuePath,
 		ticker:            time.NewTicker(1 * time.Minute),
+		seededMarkerPath:  "./wiki_backfill.seeded",
 	}
 }
 
@@ -43,6 +45,13 @@ func NewBackfillWorker(repo *database.Repository, fightsQueuePath, fightersQueue
 // in the remote debugger that streams application logs.
 func (w *BackfillWorker) Start() {
 	go func() {
+		// Ensure queue files exist so operators can tail -f immediately
+		_ = ensureFile(w.fightsQueuePath)
+		_ = ensureFile(w.fightersQueuePath)
+		// Seed both queues once on first boot if empty
+		if err := w.seedIfEmptyOnce(); err != nil {
+			log.Printf("[Backfill] seeding error: %v", err)
+		}
 		log.Printf("[Backfill] Worker started; fights=%s fighters=%s", abs(w.fightsQueuePath), abs(w.fightersQueuePath))
 		defer w.ticker.Stop()
 		for range w.ticker.C {
@@ -175,4 +184,91 @@ func abs(p string) string {
 		return p
 	}
 	return a
+}
+
+// ensureFile creates an empty file if it doesn't exist.
+func ensureFile(path string) error {
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	return f.Close()
+}
+
+// seedIfEmptyOnce fills both queues with all DB entries a single time (idempotent).
+func (w *BackfillWorker) seedIfEmptyOnce() error {
+	if _, err := os.Stat(w.seededMarkerPath); err == nil {
+		return nil // already seeded once
+	}
+	emptyFights, err := isFileEmpty(w.fightsQueuePath)
+	if err != nil {
+		return err
+	}
+	emptyFighters, err := isFileEmpty(w.fightersQueuePath)
+	if err != nil {
+		return err
+	}
+	if !emptyFights && !emptyFighters {
+		return os.WriteFile(w.seededMarkerPath, []byte(time.Now().Format(time.RFC3339)), 0o644)
+	}
+
+	fights, err := w.repo.GetAllFights()
+	if err != nil {
+		return err
+	}
+	fighters, err := w.repo.GetAllFightersByRecord()
+	if err != nil {
+		return err
+	}
+
+	if emptyFights {
+		var lines []string
+		for _, f := range fights {
+			lines = append(lines, fmt.Sprintf("%d", f.ID))
+		}
+		if err := writeLines(w.fightsQueuePath, lines); err != nil {
+			return err
+		}
+		log.Printf("[Backfill] seeded fights queue with %d fights", len(lines))
+	}
+	if emptyFighters {
+		var lines []string
+		for _, ft := range fighters {
+			lines = append(lines, fmt.Sprintf("%d", ft.ID))
+		}
+		if err := writeLines(w.fightersQueuePath, lines); err != nil {
+			return err
+		}
+		log.Printf("[Backfill] seeded fighters queue with %d fighters", len(lines))
+	}
+
+	return os.WriteFile(w.seededMarkerPath, []byte(time.Now().Format(time.RFC3339)), 0o644)
+}
+
+func isFileEmpty(path string) (bool, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return true, nil
+		}
+		return false, err
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		if strings.TrimSpace(scanner.Text()) != "" {
+			return false, nil
+		}
+	}
+	return true, scanner.Err()
+}
+
+func writeLines(path string, lines []string) error {
+	content := strings.Join(lines, "\n")
+	return os.WriteFile(path, []byte(content), 0o644)
 }
