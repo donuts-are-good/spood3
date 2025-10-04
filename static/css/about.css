@@ -79,6 +79,64 @@
 .disclaimer p { margin-bottom: 15px; color: #cccccc; line-height: 1.5; font-size: 0.9rem; }
 .disclaimer p:last-child { margin-bottom: 0; color: #888888; font-size: 0.8rem; }
 
+/* Feature Creep ornate card */
+.feature-creep-card {
+    position: relative;
+    border: 1px solid transparent;
+    background: linear-gradient(#111111, #111111) padding-box,
+                radial-gradient(circle at 10% 10%, #a86b00, transparent 30%),
+                radial-gradient(circle at 90% 90%, #ffd36b, transparent 35%),
+                linear-gradient(135deg, #ffcc33, #ff9900) border-box;
+    border-radius: 10px;
+    border: 2px solid transparent;
+}
+
+.feature-creep-card::before,
+.feature-creep-card::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 204, 51, 0.5);
+    pointer-events: none;
+}
+
+.feature-creep-card::after {
+    inset: 10px;
+    border: 1px dashed rgba(255, 204, 51, 0.35);
+}
+
+.feature-creep-card .signature-name {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.5px;
+    color: #ffe08a;
+    text-shadow: 0 0 8px rgba(255, 170, 0, 0.25);
+}
+
+.feature-creep-card .signature-title {
+    color: #dcbf6b;
+}
+
+.feature-creep-card .signature-date {
+    color: #cfae55;
+}
+
+/* corner filigree */
+.feature-creep-card .filigree {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: radial-gradient(circle at 30% 30%, #ffcc66 0 35%, transparent 36%),
+                conic-gradient(from 0deg, #ffcc66 0 25%, transparent 26% 50%, #ffcc66 51% 75%, transparent 76%);
+    opacity: 0.7;
+    filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.3));
+}
+
+.feature-creep-card .filigree.tl { top: 8px; left: 8px; transform: rotate(45deg); }
+.feature-creep-card .filigree.tr { top: 8px; right: 8px; transform: rotate(135deg); }
+.feature-creep-card .filigree.bl { bottom: 8px; left: 8px; transform: rotate(-45deg); }
+.feature-creep-card .filigree.br { bottom: 8px; right: 8px; transform: rotate(-135deg); }
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .about-container { padding: 15px; }
