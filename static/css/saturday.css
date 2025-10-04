@@ -198,6 +198,32 @@
 .regalia-stamp {margin-left:auto; border-radius:50%; border:2px solid rgba(255,68,68,0.5); color:rgba(255,68,68,0.8); padding:10px 16px; font-size:0.7rem; letter-spacing:3px; text-transform:uppercase; transform:rotate(-12deg); background:rgba(255,68,68,0.1); box-shadow:0 8px 20px rgba(255,68,68,0.25);}
 .regalia-footer {margin-top:18px; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.6);}
 
+/* Program Director card */
+.program-director-card {
+  margin:16px 0 0;
+  align-self:flex-end;
+  max-width:460px;
+  background:#0d0a12;
+  border-radius:14px;
+  border:2px solid transparent;
+  background:
+    linear-gradient(#0d0a12, #0d0a12) padding-box,
+    linear-gradient(135deg, #ffcc66, #e09b2d) border-box;
+  padding:18px 20px 24px;
+  position:relative;
+  box-shadow:0 18px 40px rgba(255,204,102,0.15);
+}
+.program-director-card::before {content:""; position:absolute; inset:8px; border-radius:10px; border:1px solid rgba(255,204,102,0.45); pointer-events:none;}
+.pd-title {font-family:'Cinzel', serif; letter-spacing:3px; text-transform:uppercase; font-size:0.8rem; color:#d9b45a;}
+.pd-name {font-family:'Cinzel', serif; font-weight:700; font-size:1.1rem; color:#ffe2a1; margin-top:6px;}
+.pd-sub {font-size:0.8rem; color:#cfae55; margin-top:4px; text-transform:uppercase; letter-spacing:2px;}
+.pd-date {font-size:0.75rem; color:#a48a4a; margin-top:8px; font-style:italic;}
+.pd-fil {position:absolute; width:20px; height:20px; opacity:0.7; background: radial-gradient(circle at 30% 30%, #ffcc66 0 40%, transparent 41%), conic-gradient(from 0deg, #ffcc66 0 25%, transparent 26% 50%, #ffcc66 51% 75%, transparent 76%); filter: drop-shadow(0 0 4px rgba(255,204,102,0.3));}
+.pd-fil.tl {top:10px; left:10px; transform:rotate(45deg);} 
+.pd-fil.tr {top:10px; right:10px; transform:rotate(135deg);} 
+.pd-fil.bl {bottom:10px; left:10px; transform:rotate(-45deg);} 
+.pd-fil.br {bottom:10px; right:10px; transform:rotate(-135deg);} 
+
 @media (max-width: 1024px) {
   .saturday-shell {padding:28px 24px 60px;}
   .group-grid {grid-template-columns:1fr;}
