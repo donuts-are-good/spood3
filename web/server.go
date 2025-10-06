@@ -187,7 +187,8 @@ func (s *Server) setupRoutes() {
 	public.HandleFunc("/auth/discord/callback", s.authH.HandleCallback).Methods("GET")
 	public.HandleFunc("/logout", s.authH.HandleLogout).Methods("POST")
 	public.HandleFunc("/about", s.handleAbout).Methods("GET")
-	public.HandleFunc("/blog", s.handleBlog).Methods("GET")
+	public.HandleFunc("/blog", s.handleBlogIndex).Methods("GET")
+	public.HandleFunc("/blog/posts/{slug}", s.handleBlogPost).Methods("GET")
 	public.HandleFunc("/fighters", s.handleFighters).Methods("GET")
 	public.HandleFunc("/fighter/{id}", s.handleFighter).Methods("GET")
 	public.HandleFunc("/fight/{id}", s.handleFight).Methods("GET")
@@ -265,7 +266,7 @@ func (s *Server) setupRoutes() {
 }
 
 // handleBlog renders the proclamations blog page
-func (s *Server) handleBlog(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleBlogIndex(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	data := PageData{
 		User:        user,
@@ -278,6 +279,25 @@ func (s *Server) handleBlog(w http.ResponseWriter, r *http.Request) {
 		data.SecondaryColor = secondaryColor
 	}
 	s.renderTemplate(w, "blog.html", data)
+}
+
+func (s *Server) handleBlogPost(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	vars := mux.Vars(r)
+	slug := vars["slug"]
+	// Map slug -> template file under templates/blog/posts
+	tmpl := "blog/posts/" + slug + ".html"
+	data := PageData{
+		User:        user,
+		Title:       "Proclamation",
+		RequiredCSS: []string{"blog.css"},
+	}
+	if user != nil {
+		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
+		data.PrimaryColor = primaryColor
+		data.SecondaryColor = secondaryColor
+	}
+	s.renderTemplate(w, tmpl, data)
 }
 
 // isAdmin checks if a user is an admin based on allowed Discord IDs from env
