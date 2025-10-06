@@ -112,8 +112,8 @@
 }
 
 /* Quarantine ledger styles */
-.quarantine-ledger { margin-top: 10px; padding: 10px 12px; }
-.quarantine-ledger .ledger-title { font-family: var(--font-heading); letter-spacing: 1px; color: #fca5a5; margin-bottom: 6px; }
+.quarantine-ledger { margin-top: 10px; padding: 10px 12px; border-color: #a78bfa !important; box-shadow: 0 0 0 2px rgba(167,139,250,0.05) inset; }
+.quarantine-ledger .ledger-title { font-family: var(--font-heading); letter-spacing: 1px; color: #c4b5fd; margin-bottom: 6px; }
 .quarantine-ledger .ledger-list p { margin: 2px 0; }
 .badge-twice {
   display: inline-block;
@@ -124,6 +124,23 @@
   border-radius: 999px;
   font-size: 0.72rem;
   letter-spacing: 0.5px;
+}
+
+/* Quarantine badges (purple theme) */
+.badge-quarantine {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border: 1px solid #a78bfa;
+  color: #d6bcfa;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.6px;
+}
+.badge-quarantine-serious {
+  border-color: #a855f7;
+  color: #e9d5ff;
+  box-shadow: 0 0 12px rgba(168,85,247,0.25);
 }
 
 .royal-divider { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px 0; }
