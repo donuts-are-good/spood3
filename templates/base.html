@@ -40,6 +40,24 @@
 </head>
 <body>
     <header>
+        <div class="header-actions">
+            <a href="/about" aria-label="Help" title="Help">
+                <img src="/static/svg/help.svg" alt="Help">
+            </a>
+            <form method="POST" action="/logout" class="logout-form">
+                <button type="submit" aria-label="Logout" title="Logout">
+                    <img src="/static/svg/power.svg" alt="Logout">
+                </button>
+            </form>
+        </div>
+        <div class="social-icons">
+            <a href="https://discord.gg/qq8442wS6B" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord">
+                <img src="/static/svg/discord.svg" alt="Discord">
+            </a>
+            <a href="https://www.youtube.com/@SPOODBLORTOfficialNews" target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube">
+                <img src="/static/svg/youtube.svg" alt="YouTube">
+            </a>
+        </div>
         <h1><a href="/" style="font-size: 3rem;">🥊 SPOODBLORT</a></h1>
         <div id="weatherIndicator" class="weather-indicator" onclick="if (window.restoreWeatherAdvisory) { restoreWeatherAdvisory(); } else { try { localStorage.removeItem('weatherAdvisoryDismissed'); } catch(e){} window.location.href='/' }">
             <span class="weather-emoji">⛈️</span>
@@ -48,8 +66,6 @@
         
         
         <nav>
-            <a style="color: #7289da;" href="https://discord.gg/qq8442wS6B">Discord</a>
-            <a style="color: #FF0000;" href="https://www.youtube.com/@SPOODBLORTOfficialNews">YouTube(NEW!)</a>
             <!-- <a href="/">Schedule</a> -->
             <a href="/fighters">Fighters</a>
             <a href="/blog">Blog</a>
@@ -64,10 +80,6 @@
                     <span class="color-indicator" style="background-color: #{{.SecondaryColor}};"></span>
                 </span>
                 <a href="/user/settings">Settings</a>
-                <a href="/about">❔</a>
-                <form method="POST" action="/logout" style="display:inline;">
-                    <button type="submit" class="logout-link">Exit</button>
-                </form>
 
             {{else}}
                 <a href="/auth">Login</a>

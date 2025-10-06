@@ -123,6 +123,79 @@ header {
     position: relative;
 }
 
+/* Top-right header actions (Help, Logout) */
+.header-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1100;
+}
+
+.header-actions a,
+.header-actions button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+}
+
+.header-actions .logout-form {
+    margin: 0;
+}
+
+.header-actions img {
+    width: 28px;
+    height: 28px;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .header-actions {
+        top: 6px;
+        right: 6px;
+        gap: 8px;
+    }
+    .header-actions img {
+        width: 24px;
+        height: 24px;
+    }
+}
+/* Top-left social icons (Discord, YouTube) */
+.social-icons {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1100;
+}
+
+.social-icons a {
+    border: none;
+}
+
+.social-icons img {
+    width: 28px;
+    height: 28px;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .social-icons {
+        top: 6px;
+        left: 6px;
+        gap: 8px;
+    }
+    .social-icons img {
+        width: 24px;
+        height: 24px;
+    }
+}
+
 /* Weather Advisory Indicator */
 .weather-indicator {
     position: absolute;
