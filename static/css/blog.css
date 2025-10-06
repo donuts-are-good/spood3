@@ -4,6 +4,26 @@
   padding: 10px 16px 20px 16px;
 }
 
+/* Ornate certificate frame */
+.certificate {
+  border: 2px solid rgba(255, 215, 0, 0.35);
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.08) inset, 0 0 24px rgba(0,0,0,0.7);
+  position: relative;
+}
+.certificate::before,
+.certificate::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(255, 215, 0, 0.25);
+  pointer-events: none;
+}
+.certificate::after {
+  inset: 6px;
+  border-style: solid;
+  border-color: rgba(255, 215, 0, 0.15);
+}
+
 .blog-hero h2 {
   margin: 8px 0 4px 0;
 }
@@ -36,6 +56,23 @@
   margin: 12px 0 8px 0;
   text-transform: uppercase;
 }
+.parchment {
+  background: radial-gradient(ellipse at top left, rgba(255, 245, 210, 0.06), rgba(0,0,0,0)), radial-gradient(ellipse at bottom right, rgba(255, 225, 160, 0.06), rgba(0,0,0,0));
+}
+.lede { position: relative; overflow: hidden; }
+.drop-cap {
+  float: left;
+  font-family: var(--font-heading);
+  font-size: 3.1rem;
+  line-height: 0.9;
+  padding: 6px 10px 0 0;
+  color: #ffd38a;
+}
+
+.royal-divider { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px 0; }
+.royal-divider i, .royal-divider b { display: block; height: 2px; background: linear-gradient(90deg, transparent, #ffd38a, transparent); }
+.royal-divider i { flex: 1; opacity: 0.6; }
+.royal-divider b { width: 120px; box-shadow: 0 0 12px rgba(255,211,138,0.6); }
 
 .proc-lede {
   color: var(--dim);
@@ -186,5 +223,35 @@
   margin-top: 12px;
   color: var(--dim);
   font-size: 0.95rem;
+}
+
+/* Wax seal */
+.wax-seal {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff6b6b, #b30000);
+  border: 2px solid #7a0000;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6), inset 0 2px 6px rgba(255,255,255,0.25);
+  margin: 14px auto 6px auto;
+  display: grid;
+  place-items: center;
+  transform: rotate(-7deg);
+}
+.wax-seal span {
+  font-family: var(--font-heading);
+  color: #190000;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+  font-weight: 700;
+}
+
+/* Print styles */
+@media print {
+  body { background: #fff; color: #000; }
+  header, nav, .weather-indicator { display: none !important; }
+  .certificate { box-shadow: none; border-color: #000; }
+  .regalia-header, .signatory-card, .rule-box { background: #fff; border-color: #000; }
+  .wax-seal { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
