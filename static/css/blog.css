@@ -164,6 +164,48 @@
   border-radius: 999px;
 }
 .legend-pill-gold { border-color: #fbbf24; color: #fde68a; }
+
+/* Serum Protocol modal */
+.serum-link { color: #93c5fd; border-bottom: 1px dashed #93c5fd; }
+.serum-link:hover { color: #bfdbfe; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal-overlay:target { display: flex; }
+.modal-card {
+  width: min(820px, 92%);
+  border: 1px solid #a78bfa;
+  border-radius: 10px;
+  box-shadow: 0 0 0 3px rgba(167,139,250,0.08) inset, 0 16px 40px rgba(0,0,0,0.6);
+  background: radial-gradient(circle at 15% 0%, rgba(124,58,237,0.12), transparent), #0a0612;
+  padding: 16px 18px 18px 18px;
+}
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  color: #c4b5fd;
+  font-size: 24px;
+  text-decoration: none;
+}
+.modal-header { font-family: var(--font-heading); color: #c4b5fd; font-size: 1.4rem; text-align: center; }
+.modal-sub { text-align: center; color: #d6d3fb; margin-bottom: 8px; }
+.modal-body { color: #e5e7eb; }
+.modal-list { margin: 6px 0 10px 18px; }
+.modal-redacted { color: #fecaca; margin-bottom: 10px; }
+.ticker-board { border: 1px solid #60a5fa; border-radius: 8px; padding: 10px 12px; background: rgba(59,130,246,0.06); margin: 10px 0; }
+.ticker-title { color: #93c5fd; margin-bottom: 6px; font-family: var(--font-heading); }
+.ticker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.tick { border: 1px solid #93c5fd; border-radius: 999px; padding: 6px 10px; display: flex; justify-content: space-between; }
+.tick span { color: #a7f3d0; margin-left: 8px; }
+.ticker-foot { color: #9ca3af; margin-top: 6px; font-size: 0.85rem; }
 .badge-twice {
   display: inline-block;
   margin-left: 6px;
