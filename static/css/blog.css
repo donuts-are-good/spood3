@@ -208,9 +208,9 @@
 .modal-close-cta:hover { background: rgba(167,139,250,0.12); }
 .ticker-board { border: 1px solid #60a5fa; border-radius: 8px; padding: 10px 12px; background: rgba(59,130,246,0.06); margin: 10px 0; }
 .ticker-title { color: #93c5fd; margin-bottom: 6px; font-family: var(--font-heading); }
-.ticker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-.tick { border: 1px solid #93c5fd; border-radius: 999px; padding: 6px 10px; display: flex; justify-content: space-between; }
-.tick span { color: #a7f3d0; margin-left: 8px; }
+.ticker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.tick { border: 1px solid #93c5fd; border-radius: 999px; padding: 8px 12px; display: flex; justify-content: space-between; min-width: 0; }
+.tick span { color: #a7f3d0; margin-left: 8px; white-space: nowrap; }
 .ticker-foot { color: #9ca3af; margin-top: 6px; font-size: 0.85rem; }
 
 /* Dossier sections */
