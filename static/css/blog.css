@@ -42,9 +42,21 @@
   margin: 0 0 12px 0;
 }
 
+.proc-list {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
 .proc-list p {
   margin: 2px 0;
+  text-align: center;
+  font-family: var(--font-body);
 }
+.proc-list p:nth-child(odd) { color: #ffd38a; }
+.proc-list p:nth-child(even) { color: #ffffff; opacity: 0.9; }
+.proc-list p strong { color: #fff; }
+.proc-list p em { color: #ffb347; font-style: normal; }
 
 /* Official document box */
 .rule-box {
@@ -63,6 +75,7 @@
   padding: 10px 12px;
   border: 1px solid var(--border);
   background: rgba(255,255,255,0.02);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.05) inset;
 }
 .regalia-title { font-weight: 600; }
 .regalia-stamp {
@@ -87,7 +100,35 @@
   padding: 12px;
   background: rgba(255,255,255,0.02);
   position: relative;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.05) inset, 0 0 18px rgba(0,0,0,0.6);
+  border-radius: 6px;
 }
+.program-director-card .pd-name {
+  position: relative;
+}
+.program-director-card .pd-name::before,
+.program-director-card .pd-name::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  top: -6px;
+}
+.program-director-card .pd-name::before { left: -6px; border-right: none; border-bottom: none; }
+.program-director-card .pd-name::after { right: -6px; border-left: none; border-bottom: none; }
+
+.program-director-card::before,
+.program-director-card::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  bottom: -6px;
+}
+.program-director-card::before { left: 6px; border-right: none; border-top: none; }
+.program-director-card::after { right: 6px; border-left: none; border-top: none; }
 
 .sig-header .sig-dept {
   font-size: 0.9rem;
