@@ -1,0 +1,1068 @@
+{
+  "startedAt": "2025-10-02T21:20:00.002Z",
+  "tickerSeconds": 60,
+  "startTimeLocal": "2025-10-02T16:20",
+  "teams": [
+    {
+      "name": "Napster",
+      "before": 1,
+      "picks": [
+        {
+          "order": 1,
+          "id": 66,
+          "name": "Chuck Norris"
+        },
+        {
+          "order": 2,
+          "id": 89,
+          "name": "Gordon Ramsay"
+        },
+        {
+          "order": 6,
+          "id": 63,
+          "name": "The Rock Johnson"
+        },
+        {
+          "order": 16,
+          "id": 315,
+          "name": "Porkbun Pete"
+        },
+        {
+          "order": 32,
+          "id": 53,
+          "name": "Pangolin Ruiz"
+        },
+        {
+          "order": 63,
+          "id": 343,
+          "name": "The Intern"
+        },
+        {
+          "order": 98,
+          "id": 86,
+          "name": "Paul McCartney"
+        },
+        {
+          "order": 138,
+          "id": 332,
+          "name": "Uncle Kick Salad"
+        }
+      ]
+    },
+    {
+      "name": "The Final Boss Energy",
+      "before": 2,
+      "picks": [
+        {
+          "order": 3,
+          "id": 91,
+          "name": "Steve Irwin"
+        },
+        {
+          "order": 7,
+          "id": 83,
+          "name": "Kirk Hammett"
+        },
+        {
+          "order": 17,
+          "id": 310,
+          "name": "Slobby Joe Jr."
+        },
+        {
+          "order": 33,
+          "id": 354,
+          "name": "The Implied"
+        },
+        {
+          "order": 64,
+          "id": 45,
+          "name": "Cell Longarms"
+        },
+        {
+          "order": 99,
+          "id": 46,
+          "name": "Comfort Septemberish"
+        },
+        {
+          "order": 139,
+          "id": 206,
+          "name": "VIOLENCE PENDING"
+        }
+      ]
+    },
+    {
+      "name": "The DMV Destroyers",
+      "before": 2,
+      "picks": [
+        {
+          "order": 4,
+          "id": 62,
+          "name": "Stone Cold Steve Austin"
+        },
+        {
+          "order": 8,
+          "id": 203,
+          "name": "Empyrean Angel"
+        },
+        {
+          "order": 18,
+          "id": 226,
+          "name": "Gas Berger"
+        },
+        {
+          "order": 34,
+          "id": 326,
+          "name": "Nancy From HR"
+        },
+        {
+          "order": 65,
+          "id": 229,
+          "name": "Count Dankula"
+        },
+        {
+          "order": 100,
+          "id": 364,
+          "name": "Autocorrect"
+        },
+        {
+          "order": 140,
+          "id": 216,
+          "name": "The Rope Jeff Didn't Hang Himself With"
+        }
+      ]
+    },
+    {
+      "name": "The Glitch in the Matrix",
+      "before": 2,
+      "picks": [
+        {
+          "order": 5,
+          "id": 67,
+          "name": "Jean-Claude Van Damme"
+        },
+        {
+          "order": 9,
+          "id": 362,
+          "name": "The Buffer"
+        },
+        {
+          "order": 19,
+          "id": 335,
+          "name": "Thighmaster Flex"
+        },
+        {
+          "order": 35,
+          "id": 65,
+          "name": "Arnold Schwarzenegger"
+        },
+        {
+          "order": 66,
+          "id": 60,
+          "name": "Yurts Buttercup"
+        },
+        {
+          "order": 101,
+          "id": 90,
+          "name": "Bob Ross"
+        },
+        {
+          "order": 141,
+          "id": 305,
+          "name": "Live Leaked"
+        }
+      ]
+    },
+    {
+      "name": "Midnight Society",
+      "before": 3,
+      "picks": [
+        {
+          "order": 10,
+          "id": 220,
+          "name": "Swisher Sweet"
+        },
+        {
+          "order": 20,
+          "id": 212,
+          "name": "Baiten Switch"
+        },
+        {
+          "order": 36,
+          "id": 327,
+          "name": "Babyface Guillotine"
+        },
+        {
+          "order": 67,
+          "id": 12,
+          "name": "Glizzy Goblin"
+        },
+        {
+          "order": 102,
+          "id": 201,
+          "name": "Sol Slug"
+        },
+        {
+          "order": 142,
+          "id": 321,
+          "name": "Toaster Bath"
+        }
+      ]
+    },
+    {
+      "name": "Needle Exchange",
+      "before": 3,
+      "picks": [
+        {
+          "order": 11,
+          "id": 210,
+          "name": "First Sunday"
+        },
+        {
+          "order": 21,
+          "id": 348,
+          "name": "Serif"
+        },
+        {
+          "order": 37,
+          "id": 318,
+          "name": "Cabbage Jenkins"
+        },
+        {
+          "order": 68,
+          "id": 308,
+          "name": "Nesticle"
+        },
+        {
+          "order": 103,
+          "id": 337,
+          "name": "Captain Yawnpunch"
+        },
+        {
+          "order": 143,
+          "id": 71,
+          "name": "Nick Carter"
+        }
+      ]
+    },
+    {
+      "name": "The Conspiracy Theorists",
+      "before": 3,
+      "picks": [
+        {
+          "order": 12,
+          "id": 323,
+          "name": "Moist Carl"
+        },
+        {
+          "order": 22,
+          "id": 87,
+          "name": "George Harrison"
+        },
+        {
+          "order": 38,
+          "id": 70,
+          "name": "Marilyn Manson"
+        },
+        {
+          "order": 69,
+          "id": 346,
+          "name": "Captain Hindsight"
+        },
+        {
+          "order": 104,
+          "id": 50,
+          "name": "Jelly Burgertoes"
+        },
+        {
+          "order": 144,
+          "id": 221,
+          "name": "SwizzleSchtick"
+        }
+      ]
+    },
+    {
+      "name": "The Forgotten Passwords",
+      "before": 3,
+      "picks": [
+        {
+          "order": 13,
+          "id": 49,
+          "name": "Grollis Zephyr"
+        },
+        {
+          "order": 23,
+          "id": 344,
+          "name": "Mx. Noodle"
+        },
+        {
+          "order": 39,
+          "id": 347,
+          "name": "The Misnomer"
+        },
+        {
+          "order": 70,
+          "id": 233,
+          "name": "Thilly Gooth"
+        },
+        {
+          "order": 105,
+          "id": 340,
+          "name": "Reverb"
+        },
+        {
+          "order": 145,
+          "id": 351,
+          "name": "The Footnote"
+        }
+      ]
+    },
+    {
+      "name": "The Zoom Call Zombies",
+      "before": 3,
+      "picks": [
+        {
+          "order": 14,
+          "id": 349,
+          "name": "Background Radiation"
+        },
+        {
+          "order": 24,
+          "id": 353,
+          "name": "The Pending Update"
+        },
+        {
+          "order": 40,
+          "id": 64,
+          "name": "Mike Tyson"
+        },
+        {
+          "order": 71,
+          "id": 363,
+          "name": "Square Root"
+        },
+        {
+          "order": 106,
+          "id": 54,
+          "name": "Sixpack Santiago"
+        },
+        {
+          "order": 146,
+          "id": 304,
+          "name": "Don Vito"
+        }
+      ]
+    },
+    {
+      "name": "Bodily Horrors United",
+      "before": 3,
+      "picks": [
+        {
+          "order": 15,
+          "id": 47,
+          "name": "Engine Eberhardt"
+        },
+        {
+          "order": 25,
+          "id": 211,
+          "name": "Fist Sundaze"
+        },
+        {
+          "order": 41,
+          "id": 361,
+          "name": "Deja Vu"
+        },
+        {
+          "order": 72,
+          "id": 368,
+          "name": "Borrowed Time"
+        },
+        {
+          "order": 107,
+          "id": 342,
+          "name": "Granite Sinclair"
+        },
+        {
+          "order": 147,
+          "id": 208,
+          "name": "Trash Expander"
+        }
+      ]
+    },
+    {
+      "name": "The Meat Sweats",
+      "before": 4,
+      "picks": [
+        {
+          "order": 26,
+          "id": 42,
+          "name": "Beans McBlase"
+        },
+        {
+          "order": 42,
+          "id": 366,
+          "name": "Phantom Vibration"
+        },
+        {
+          "order": 73,
+          "id": 324,
+          "name": "Banana Hammurabi"
+        },
+        {
+          "order": 108,
+          "id": 77,
+          "name": "JC Chasez"
+        },
+        {
+          "order": 148,
+          "id": 88,
+          "name": "Ringo Starr"
+        }
+      ]
+    },
+    {
+      "name": "The Gas Station Gladiators",
+      "before": 4,
+      "picks": [
+        {
+          "order": 27,
+          "id": 81,
+          "name": "James Hetfield"
+        },
+        {
+          "order": 43,
+          "id": 58,
+          "name": "Tahini Poinsettia"
+        },
+        {
+          "order": 74,
+          "id": 333,
+          "name": "Yogurt the Destroyer"
+        },
+        {
+          "order": 109,
+          "id": 228,
+          "name": "Darryl Blueberry"
+        },
+        {
+          "order": 149,
+          "id": 325,
+          "name": "The Unlicensed Magician"
+        }
+      ]
+    },
+    {
+      "name": "Emotional Support Animals",
+      "before": 4,
+      "picks": [
+        {
+          "order": 28,
+          "id": 309,
+          "name": "Donut Handler"
+        },
+        {
+          "order": 44,
+          "id": 204,
+          "name": "Tucan Shakur"
+        },
+        {
+          "order": 75,
+          "id": 95,
+          "name": "Nicolas Cage"
+        },
+        {
+          "order": 110,
+          "id": 73,
+          "name": "AJ McLean"
+        },
+        {
+          "order": 150,
+          "id": 41,
+          "name": "Chorby Short"
+        }
+      ]
+    },
+    {
+      "name": "The MLM Martyrs",
+      "before": 4,
+      "picks": [
+        {
+          "order": 29,
+          "id": 230,
+          "name": "Mookie Sanders"
+        },
+        {
+          "order": 45,
+          "id": 356,
+          "name": "The Margin Note"
+        },
+        {
+          "order": 76,
+          "id": 338,
+          "name": "The Honorable Judge Fistmas"
+        },
+        {
+          "order": 111,
+          "id": 52,
+          "name": "Millipede Aqualuft"
+        },
+        {
+          "order": 151,
+          "id": 329,
+          "name": "Lawnmower Jesus"
+        }
+      ]
+    },
+    {
+      "name": "Blood & Breakfast",
+      "before": 4,
+      "picks": [
+        {
+          "order": 30,
+          "id": 222,
+          "name": "Skunkhand Jenkins"
+        },
+        {
+          "order": 46,
+          "id": 11,
+          "name": "The Finger Counter"
+        },
+        {
+          "order": 77,
+          "id": 322,
+          "name": "Chairman Meow"
+        },
+        {
+          "order": 112,
+          "id": 59,
+          "name": "Xandra Pancakes"
+        },
+        {
+          "order": 152,
+          "id": 80,
+          "name": "Lance Bass"
+        }
+      ]
+    },
+    {
+      "name": "Medical Billing Mafia",
+      "before": 4,
+      "picks": [
+        {
+          "order": 31,
+          "id": 96,
+          "name": "Keanu Reeves"
+        },
+        {
+          "order": 47,
+          "id": 330,
+          "name": "Chairman of the Floor"
+        },
+        {
+          "order": 78,
+          "id": 97,
+          "name": "Betty White"
+        },
+        {
+          "order": 113,
+          "id": 76,
+          "name": "Justin Timberlake"
+        },
+        {
+          "order": 153,
+          "id": 93,
+          "name": "Danny DeVito"
+        }
+      ]
+    },
+    {
+      "name": "The Dupont Mutants",
+      "before": 5,
+      "picks": [
+        {
+          "order": 48,
+          "id": 225,
+          "name": "Nick Fuentes"
+        },
+        {
+          "order": 79,
+          "id": 336,
+          "name": "Moth With a Knife"
+        },
+        {
+          "order": 114,
+          "id": 312,
+          "name": "Home Depot Manager"
+        },
+        {
+          "order": 154,
+          "id": 331,
+          "name": "Fists McExistential"
+        }
+      ]
+    },
+    {
+      "name": "The Corporate Overlords",
+      "before": 5,
+      "picks": [
+        {
+          "order": 49,
+          "id": 213,
+          "name": "Average Joe"
+        },
+        {
+          "order": 80,
+          "id": 320,
+          "name": "Miss Demeanor"
+        },
+        {
+          "order": 115,
+          "id": 209,
+          "name": "---"
+        },
+        {
+          "order": 155,
+          "id": 98,
+          "name": "Gilbert Gottfried"
+        }
+      ]
+    },
+    {
+      "name": "The Tide Pods",
+      "before": 5,
+      "picks": [
+        {
+          "order": 50,
+          "id": 85,
+          "name": "John Lennon"
+        },
+        {
+          "order": 81,
+          "id": 370,
+          "name": "wilson"
+        },
+        {
+          "order": 116,
+          "id": 350,
+          "name": "Monday Morning"
+        },
+        {
+          "order": 156,
+          "id": 68,
+          "name": "Steven Seagal"
+        }
+      ]
+    },
+    {
+      "name": "Garbage Pail Kids",
+      "before": 5,
+      "picks": [
+        {
+          "order": 51,
+          "id": 358,
+          "name": "Elevator Music"
+        },
+        {
+          "order": 82,
+          "id": 207,
+          "name": "Punchin Bag"
+        },
+        {
+          "order": 117,
+          "id": 345,
+          "name": "Probability Jane"
+        },
+        {
+          "order": 157,
+          "id": 43,
+          "name": "Baby Triumphant"
+        }
+      ]
+    },
+    {
+      "name": "Entropy United",
+      "before": 5,
+      "picks": [
+        {
+          "order": 52,
+          "id": 69,
+          "name": "John Cena"
+        },
+        {
+          "order": 83,
+          "id": 355,
+          "name": "Ctrl+Z"
+        },
+        {
+          "order": 118,
+          "id": 316,
+          "name": "TV Remote"
+        },
+        {
+          "order": 158,
+          "id": 74,
+          "name": "Howie Dorough"
+        }
+      ]
+    },
+    {
+      "name": "The Academic Assassins",
+      "before": 5,
+      "picks": [
+        {
+          "order": 53,
+          "id": 55,
+          "name": "Slosh Gulp"
+        },
+        {
+          "order": 84,
+          "id": 311,
+          "name": "Loch Ness Monster"
+        },
+        {
+          "order": 119,
+          "id": 369,
+          "name": "Cracked iPhone Screen"
+        },
+        {
+          "order": 159,
+          "id": 94,
+          "name": "Shrek"
+        }
+      ]
+    },
+    {
+      "name": "The Social Media Influencers",
+      "before": 5,
+      "picks": [
+        {
+          "order": 54,
+          "id": 313,
+          "name": "Sandy Britches"
+        },
+        {
+          "order": 85,
+          "id": 360,
+          "name": "Passive Voice"
+        },
+        {
+          "order": 120,
+          "id": 231,
+          "name": "John Jimmy"
+        },
+        {
+          "order": 160,
+          "id": 232,
+          "name": "Jerkoff Sysadmin Manager"
+        }
+      ]
+    },
+    {
+      "name": "Suburban Nightmares",
+      "before": 5,
+      "picks": [
+        {
+          "order": 55,
+          "id": 10,
+          "name": "Professor Punches"
+        },
+        {
+          "order": 86,
+          "id": 307,
+          "name": "Derek Moneyberg"
+        },
+        {
+          "order": 121,
+          "id": 101,
+          "name": "Hornswoggle"
+        },
+        {
+          "order": 161,
+          "id": 51,
+          "name": "Kennedy Loser"
+        }
+      ]
+    },
+    {
+      "name": "The Food Service Warriors",
+      "before": 5,
+      "picks": [
+        {
+          "order": 56,
+          "id": 202,
+          "name": "Dank Dill"
+        },
+        {
+          "order": 87,
+          "id": 84,
+          "name": "Robert Trujillo"
+        },
+        {
+          "order": 122,
+          "id": 48,
+          "name": "Fish Summer"
+        }
+      ]
+    },
+    {
+      "name": "The Existential Crisis Club",
+      "before": 5,
+      "picks": [
+        {
+          "order": 57,
+          "id": 92,
+          "name": "Mr. Rogers"
+        },
+        {
+          "order": 88,
+          "id": 215,
+          "name": "Boiling Singularity Vapors"
+        },
+        {
+          "order": 123,
+          "id": 79,
+          "name": "Joey Fatone"
+        }
+      ]
+    },
+    {
+      "name": "The Retirement Home Raiders",
+      "before": 5,
+      "picks": [
+        {
+          "order": 58,
+          "id": 359,
+          "name": "The Ellipsis"
+        },
+        {
+          "order": 89,
+          "id": 57,
+          "name": "Stu Trololol"
+        },
+        {
+          "order": 124,
+          "id": 223,
+          "name": "ChoKING on LeeSUN"
+        }
+      ]
+    },
+    {
+      "name": "Discount Apocalypse",
+      "before": 5,
+      "picks": [
+        {
+          "order": 59,
+          "id": 217,
+          "name": "YOUTUBE 1vUvJz0SikY"
+        },
+        {
+          "order": 90,
+          "id": 317,
+          "name": "Walter Scrimshaw-Owens Jr."
+        },
+        {
+          "order": 125,
+          "id": 75,
+          "name": "Kevin Richardson"
+        }
+      ]
+    },
+    {
+      "name": "Suburban Nightmares 2.0",
+      "before": 5,
+      "picks": [
+        {
+          "order": 60,
+          "id": 72,
+          "name": "Brian Littrell"
+        },
+        {
+          "order": 91,
+          "id": 214,
+          "name": "The Rubber Stamp"
+        },
+        {
+          "order": 126,
+          "id": 328,
+          "name": "Just Greg"
+        }
+      ]
+    },
+    {
+      "name": "Weird Gothic / Midnight Society Energy",
+      "before": 5,
+      "picks": [
+        {
+          "order": 61,
+          "id": 314,
+          "name": "Double Cup Dwayne"
+        },
+        {
+          "order": 92,
+          "id": 56,
+          "name": "Stretch Filigree"
+        },
+        {
+          "order": 127,
+          "id": 99,
+          "name": "Verne Troyer"
+        }
+      ]
+    },
+    {
+      "name": "Cleaning Crew Carnage",
+      "before": 5,
+      "picks": [
+        {
+          "order": 62,
+          "id": 367,
+          "name": "The Terms of Service"
+        },
+        {
+          "order": 93,
+          "id": 334,
+          "name": "Tony the Concept"
+        },
+        {
+          "order": 128,
+          "id": 205,
+          "name": "BO BAX JR FACT"
+        }
+      ]
+    },
+    {
+      "name": "Pasta La Vista",
+      "before": 6,
+      "picks": [
+        {
+          "order": 94,
+          "id": 319,
+          "name": "Elbow Pope"
+        },
+        {
+          "order": 129,
+          "id": 227,
+          "name": "Scootie"
+        }
+      ]
+    },
+    {
+      "name": "The Retail Apocalypse",
+      "before": 6,
+      "picks": [
+        {
+          "order": 95,
+          "id": 341,
+          "name": "Lunch Break"
+        },
+        {
+          "order": 130,
+          "id": 44,
+          "name": "Brisket Friendo"
+        }
+      ]
+    },
+    {
+      "name": "Existential Crisis Club Expansion",
+      "before": 6,
+      "picks": [
+        {
+          "order": 96,
+          "id": 306,
+          "name": "The First Prime Number"
+        },
+        {
+          "order": 131,
+          "id": 365,
+          "name": "The Unsubscribe Link"
+        }
+      ]
+    },
+    {
+      "name": "The Sadness Merchants",
+      "before": 6,
+      "picks": [
+        {
+          "order": 97,
+          "id": 61,
+          "name": "War Machine"
+        },
+        {
+          "order": 132,
+          "id": 224,
+          "name": "nft.altruist"
+        }
+      ]
+    },
+    {
+      "name": "The Healthcare Heroes",
+      "before": 7,
+      "picks": [
+        {
+          "order": 133,
+          "id": 352,
+          "name": "Splinter Testimony"
+        }
+      ]
+    },
+    {
+      "name": "The Time Wasters",
+      "before": 7,
+      "picks": [
+        {
+          "order": 134,
+          "id": 339,
+          "name": "Dr. Membrane PhD"
+        }
+      ]
+    },
+    {
+      "name": "Grime Time All-Stars",
+      "before": 7,
+      "picks": [
+        {
+          "order": 135,
+          "id": 78,
+          "name": "Chris Kirkpatrick"
+        }
+      ]
+    },
+    {
+      "name": "Food-Based Furies",
+      "before": 7,
+      "picks": [
+        {
+          "order": 136,
+          "id": 357,
+          "name": "Static Cling"
+        }
+      ]
+    },
+    {
+      "name": "Internet & Tech Terror",
+      "before": 7,
+      "picks": [
+        {
+          "order": 137,
+          "id": 100,
+          "name": "Warwick Davis"
+        }
+      ]
+    },
+    {
+      "name": "The Internet Comment Section",
+      "before": 8,
+      "picks": []
+    },
+    {
+      "name": "Corporate & Office Mayhem",
+      "before": 8,
+      "picks": []
+    },
+    {
+      "name": "The Participation Trophies",
+      "before": 10,
+      "picks": []
+    }
+  ],
+  "completedAt": "2025-10-03T00:01:01.856Z"
+}

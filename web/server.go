@@ -187,6 +187,7 @@ func (s *Server) setupRoutes() {
 	public.HandleFunc("/auth/discord/callback", s.authH.HandleCallback).Methods("GET")
 	public.HandleFunc("/logout", s.authH.HandleLogout).Methods("POST")
 	public.HandleFunc("/about", s.handleAbout).Methods("GET")
+	public.HandleFunc("/blog", s.handleBlog).Methods("GET")
 	public.HandleFunc("/fighters", s.handleFighters).Methods("GET")
 	public.HandleFunc("/fighter/{id}", s.handleFighter).Methods("GET")
 	public.HandleFunc("/fight/{id}", s.handleFight).Methods("GET")
@@ -261,6 +262,22 @@ func (s *Server) setupRoutes() {
 	protectedGeneral.HandleFunc("/fighter/edit", s.handleFighterEdit).Methods("POST")
 	protectedGeneral.HandleFunc("/fighter/avatar/upload", s.handleFighterAvatarUpload).Methods("POST")
 	protectedGeneral.HandleFunc("/fighter/avatar/clear", s.handleFighterAvatarClear).Methods("POST")
+}
+
+// handleBlog renders the proclamations blog page
+func (s *Server) handleBlog(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	data := PageData{
+		User:        user,
+		Title:       "Proclamations",
+		RequiredCSS: []string{"blog.css"},
+	}
+	if user != nil {
+		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
+		data.PrimaryColor = primaryColor
+		data.SecondaryColor = secondaryColor
+	}
+	s.renderTemplate(w, "blog.html", data)
 }
 
 // isAdmin checks if a user is an admin based on allowed Discord IDs from env
