@@ -281,6 +281,15 @@
 .proc-list p em { color: #ffb347; font-style: normal; }
 .proc-list p .team-colored { text-shadow: 0 0 12px rgba(255,255,255,0.15); font-weight: 700; }
 
+/* Blog index sizing */
+.blog-index { max-width: 1000px; margin-left: auto; margin-right: auto; }
+.blog-index-item { font-size: 1.15rem; margin: 6px 0; }
+.blog-index-item a { display: inline-block; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.02); }
+.blog-index-item a:hover { background: rgba(255,255,255,0.06); }
+.idx-date { color: #c4b5fd; font-family: var(--font-heading); }
+.idx-sep { color: #666; margin: 0 6px; }
+.small-note a { border-color: #93c5fd; }
+
 /* Deaths list accents */
 .proc-list.deaths p { color: #ffb4b4; }
 .proc-list.deaths p .date { color: #fca5a5; font-size: 0.9em; margin-left: 6px; }
