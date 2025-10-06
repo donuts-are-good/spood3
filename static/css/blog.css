@@ -94,6 +94,7 @@
 .proc-list p:nth-child(even) { color: #ffffff; opacity: 0.9; }
 .proc-list p strong { color: #fff; }
 .proc-list p em { color: #ffb347; font-style: normal; }
+.proc-list p .team-colored { text-shadow: 0 0 12px rgba(255,255,255,0.15); font-weight: 700; }
 
 /* Official document box */
 .rule-box {

@@ -266,3 +266,59 @@
 
 {{end}}
 
+{{/* Inline enhancement: color-code team names by team identity */}}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var colors = {
+    'Napster':'#8be9fd',
+    'The Final Boss Energy':'#ff79c6',
+    'The DMV Destroyers':'#50fa7b',
+    'The Glitch in the Matrix':'#bd93f9',
+    'Midnight Society':'#a78bfa',
+    'Needle Exchange':'#22d3ee',
+    'The Conspiracy Theorists':'#fbbf24',
+    'The Forgotten Passwords':'#94a3b8',
+    'The Zoom Call Zombies':'#f87171',
+    'Bodily Horrors United':'#e879f9',
+    'The Meat Sweats':'#fb923c',
+    'The Gas Station Gladiators':'#34d399',
+    'Emotional Support Animals':'#f59e0b',
+    'The MLM Martyrs':'#f472b6',
+    'Blood & Breakfast':'#ef4444',
+    'Medical Billing Mafia':'#60a5fa',
+    'The Dupont Mutants':'#a3e635',
+    'The Corporate Overlords':'#93c5fd',
+    'The Tide Pods':'#38bdf8',
+    'Garbage Pail Kids':'#22c55e',
+    'Entropy United':'#d946ef',
+    'The Academic Assassins':'#fde047',
+    'The Social Media Influencers':'#9ca3af',
+    'Suburban Nightmares':'#f43f5e',
+    'The Food Service Warriors':'#84cc16',
+    'The Existential Crisis Club':'#facc15',
+    'The Retirement Home Raiders':'#a3a3a3',
+    'Discount Apocalypse':'#fb7185',
+    'Suburban Nightmares 2.0':'#e11d48',
+    'Weird Gothic / Midnight Society Energy':'#7c3aed',
+    'Cleaning Crew Carnage':'#14b8a6',
+    'Pasta La Vista':'#fbbf24',
+    'The Retail Apocalypse':'#f87171',
+    'Existential Crisis Club Expansion':'#eab308',
+    'The Sadness Merchants':'#64748b',
+    'The Healthcare Heroes':'#10b981',
+    'The Time Wasters':'#60a5fa',
+    'Grime Time All-Stars':'#22d3ee',
+    'Food-Based Furies':'#eab308',
+    'Internet & Tech Terror':'#38bdf8'
+  };
+  document.querySelectorAll('.proc-list p strong em').forEach(function(em){
+    var team = (em.textContent||'').trim();
+    if (colors[team]) {
+      em.classList.add('team-colored');
+      em.style.color = colors[team];
+      em.style.fontStyle = 'normal';
+    }
+  });
+});
+</script>
+
