@@ -9,6 +9,8 @@
   border: 2px solid rgba(255, 215, 0, 0.35);
   box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.08) inset, 0 0 24px rgba(0,0,0,0.7);
   position: relative;
+  margin: 18px auto; /* create breathing room between articles */
+  padding-bottom: 12px;
 }
 .certificate::before,
 .certificate::after {
@@ -23,6 +25,10 @@
   border-style: solid;
   border-color: rgba(255, 215, 0, 0.15);
 }
+
+/* Add top/bottom article separators for readability */
+.proclamation + .proclamation { margin-top: 28px; }
+.proclamation .regalia-footer { margin-bottom: 8px; }
 
 .blog-hero h2 {
   margin: 8px 0 4px 0;
