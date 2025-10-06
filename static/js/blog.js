@@ -29,6 +29,26 @@
   window.addEventListener('DOMContentLoaded', function(){
     enableOutsideClickClose();
     drift();
+    // Highlight Hissy Scale row nearest the pointer
+    var scale = document.querySelector('.scale-table');
+    if (scale){
+      scale.addEventListener('mousemove', function(e){
+        var rows = scale.querySelectorAll('.row');
+        var best = null; var bestDist = Infinity;
+        rows.forEach(function(r){
+          var rect = r.getBoundingClientRect();
+          var cy = rect.top + rect.height/2; var cx = rect.left + rect.width/2;
+          var dx = (e.clientX - cx); var dy = (e.clientY - cy);
+          var d = dx*dx + dy*dy;
+          if (d < bestDist){ bestDist = d; best = r; }
+          r.classList.remove('active');
+        });
+        if (best) best.classList.add('active');
+      });
+      scale.addEventListener('mouseleave', function(){
+        scale.querySelectorAll('.row').forEach(function(r){ r.classList.remove('active'); });
+      });
+    }
   });
 })();
 

@@ -212,6 +212,20 @@
 .tick { border: 1px solid #93c5fd; border-radius: 999px; padding: 6px 10px; display: flex; justify-content: space-between; }
 .tick span { color: #a7f3d0; margin-left: 8px; }
 .ticker-foot { color: #9ca3af; margin-top: 6px; font-size: 0.85rem; }
+
+/* Dossier sections */
+.modal-section { margin: 12px 0; }
+.sec-title { font-family: var(--font-heading); color: #c4b5fd; margin-bottom: 6px; letter-spacing: 1px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.kpi { border: 1px solid #93c5fd; border-radius: 6px; padding: 8px 10px; display:flex; justify-content: space-between; }
+.kpi-label { color: #dbeafe; }
+.kpi-val { color: #a7f3d0; font-weight: 700; }
+.scale-table .row { display: grid; grid-template-columns: 80px 1fr; gap: 8px; border: 1px solid rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; margin-bottom: 6px; transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+.scale-table .row:hover { background: rgba(124,58,237,0.08); border-color: rgba(167,139,250,0.5); }
+.scale-table .row.active { background: rgba(124,58,237,0.12); border-color: #a78bfa; box-shadow: 0 0 14px rgba(167,139,250,0.25); }
+.scale-table .cell.head { color: #c4b5fd; font-weight: 700; }
+.protocol-code { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; color: #e5e7eb; overflow:auto; }
+.note { color: #d6d3fb; font-style: italic; }
 .badge-twice {
   display: inline-block;
   margin-left: 6px;
