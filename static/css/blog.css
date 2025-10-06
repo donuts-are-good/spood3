@@ -75,6 +75,25 @@
   color: #ffd38a;
 }
 
+/* Zombie callout - floats right with body text wrap */
+.callout-zombie {
+  float: right;
+  width: min(360px, 45%);
+  margin: 6px 0 6px 12px;
+  padding: 10px 12px;
+  border: 1px solid #4ade80; /* green accents */
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.02));
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.05) inset, 0 6px 18px rgba(0,0,0,0.35);
+  border-radius: 6px;
+  color: #d1fae5; /* mint */
+}
+.callout-zombie p { margin: 0; font-size: 0.95rem; }
+.callout-zombie .redacted { border-color: rgba(220,38,38,0.4); background: linear-gradient(0deg, rgba(220,38,38,0.18), rgba(220,38,38,0.18)), #000; }
+
+@media (max-width: 720px) {
+  .callout-zombie { float: none; width: 100%; margin: 8px 0; }
+}
+
 .royal-divider { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px 0; }
 .royal-divider i, .royal-divider b { display: block; height: 2px; background: linear-gradient(90deg, transparent, #ffd38a, transparent); }
 .royal-divider i { flex: 1; opacity: 0.6; }
