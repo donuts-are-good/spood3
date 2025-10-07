@@ -126,7 +126,7 @@
 			<section class="grid">
 				{{/* Daily ad in first position, if available */}}
 				{{if gt (len .ShopItems) 0}}
-					{{ $todayIndex := mod (add (.Now.YearDay) (.Now.Year)) (len .ShopItems) }}
+					{{ $todayIndex := mod (int64 (add (.Now.YearDay) (.Now.Year))) (len .ShopItems) }}
 					{{ $ad := index .ShopItems $todayIndex }}
 					{{ $owned := false }}
 					{{if .UserInventory}}
