@@ -732,6 +732,13 @@ func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error)
 	return worked, nil
 }
 
+// CountFighterKills returns number of kills credited to a fighter
+func (r *Repository) CountFighterKills(fighterID int) (int, error) {
+	var n int
+	err := r.db.Get(&n, `SELECT COUNT(1) FROM fighter_kills WHERE killer_fighter_id = ?`, fighterID)
+	return n, err
+}
+
 func (r *Repository) UseInventoryItem(userID, itemID int, quantity int) error {
 	_, err := r.db.Exec(`
 		UPDATE user_inventory 

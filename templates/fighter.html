@@ -25,6 +25,11 @@
                         <span class="draws-num">{{.Fighter.Draws}}D</span>
                     </span>
                 </div>
+                {{if gt .FighterKillCount 0}}
+                <div class="killmarks" title="Confirmed kills">
+                    {{range $i, $_ := (until .FighterKillCount)}}<span class="kill-skull">☠️</span>{{end}}
+                </div>
+                {{end}}
                 <div class="status-display">
                     {{if .Fighter.IsUndead}}
                         <span class="status-badge undead">🧟 UNDEAD</span>

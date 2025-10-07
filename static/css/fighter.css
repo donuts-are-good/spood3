@@ -90,6 +90,9 @@
 .losses-num { color: #ff4444; }
 .draws-num { color: #ffaa00; }
 
+.killmarks { display:flex; align-items:center; gap:6px; margin-left:12px; }
+.kill-skull { filter: drop-shadow(0 0 6px rgba(255,255,255,0.15)); }
+
 .status-badge {
     padding: 6px 16px;
     border-radius: 4px;
