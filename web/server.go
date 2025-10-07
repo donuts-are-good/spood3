@@ -579,12 +579,32 @@ func (s *Server) handleSerumApply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Announce attempt in Discord general
+	if fighter, ferr := s.repo.GetFighter(req.FighterID); ferr == nil {
+		if s.scheduler != nil {
+			if eng := s.scheduler.GetEngine(); eng != nil {
+				eng.AnnounceReanimationAttempt(user, *fighter)
+			}
+		}
+	}
+
 	worked, err := s.repo.ApplySerum(user.ID, req.ShopItemID, req.FighterID)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
 		return
+	}
+
+	// On success, announce necromancer and assign role
+	if worked {
+		if fighter, ferr := s.repo.GetFighter(req.FighterID); ferr == nil {
+			if s.scheduler != nil {
+				if eng := s.scheduler.GetEngine(); eng != nil {
+					eng.AnnounceNecromancerSuccess(user, *fighter)
+				}
+			}
+		}
 	}
 
 	// Return updated balance and inventory item if available

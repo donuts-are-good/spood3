@@ -96,6 +96,27 @@ func (e *Engine) GetRoleManager() *discord.RoleManager {
 	return e.roleManager
 }
 
+// AnnounceReanimationAttempt posts to Discord general when a user attempts to reanimate
+func (e *Engine) AnnounceReanimationAttempt(user *database.User, fighter database.Fighter) {
+	if e.discordNotifier == nil || user == nil {
+		return
+	}
+	_ = e.discordNotifier.AnnounceReanimationAttempt(user, fighter)
+}
+
+// AnnounceNecromancerSuccess posts success and assigns Necromancer role
+func (e *Engine) AnnounceNecromancerSuccess(user *database.User, fighter database.Fighter) {
+	if user == nil {
+		return
+	}
+	if e.discordNotifier != nil {
+		_ = e.discordNotifier.AnnounceNecromancer(user, fighter)
+	}
+	if e.roleManager != nil {
+		_ = e.roleManager.AssignNecromancerRole(user)
+	}
+}
+
 // initFightLog creates a log file for the fight and writes the header
 func (e *Engine) initFightLog(fight database.Fight, fighter1, fighter2 database.Fighter) error {
 	e.fightLogMutex.Lock()

@@ -417,6 +417,32 @@ func (n *Notifier) sendTextViaBot(channelID, content string) error {
 	return nil
 }
 
+// AnnounceReanimationAttempt posts a message to general chat when a user attempts to reanimate a fighter
+func (n *Notifier) AnnounceReanimationAttempt(user *database.User, fighter database.Fighter) error {
+	if n.botToken == "" || n.generalChannelID == "" {
+		return nil
+	}
+	display := user.CustomUsername
+	if strings.TrimSpace(display) == "" {
+		display = user.Username
+	}
+	content := fmt.Sprintf("%s is attempting to reanimate %s...", display, fighter.Name)
+	return n.sendTextViaBot(n.generalChannelID, content)
+}
+
+// AnnounceNecromancer posts a success message when a user successfully reanimates a fighter
+func (n *Notifier) AnnounceNecromancer(user *database.User, fighter database.Fighter) error {
+	if n.botToken == "" || n.generalChannelID == "" {
+		return nil
+	}
+	display := user.CustomUsername
+	if strings.TrimSpace(display) == "" {
+		display = user.Username
+	}
+	content := fmt.Sprintf("🧟 %s has become a NECROMANCER by reanimating %s!", display, fighter.Name)
+	return n.sendTextViaBot(n.generalChannelID, content)
+}
+
 // NotifyActionSummary posts a terse, plaintext settlement summary to the action channel
 // Only called for fights that had wagers and a decisive result (non-draw)
 func (n *Notifier) NotifyActionSummary(fightData database.Fight, winnerID int) error {

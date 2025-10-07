@@ -92,6 +92,23 @@ func (rm *RoleManager) UpdateUserRole(user *database.User) error {
 	return nil
 }
 
+// AssignNecromancerRole assigns a special "🧟 Necromancer" role to a user after a successful reanimation
+func (rm *RoleManager) AssignNecromancerRole(user *database.User) error {
+	if rm.botToken == "" || rm.guildID == "" {
+		return nil
+	}
+	// Ensure membership
+	if _, err := rm.getGuildMember(user.DiscordID); err != nil {
+		return nil
+	}
+	roleName := "🧟 Necromancer"
+	if err := rm.addRoleToUser(user.DiscordID, roleName); err != nil {
+		return fmt.Errorf("failed to assign necromancer role: %w", err)
+	}
+	log.Printf("Assigned Necromancer role to %s", user.Username)
+	return nil
+}
+
 // SyncAllUserRoles updates roles for all users (run periodically)
 func (rm *RoleManager) SyncAllUserRoles() error {
 	if rm.botToken == "" || rm.guildID == "" {
