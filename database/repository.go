@@ -8,6 +8,8 @@ import (
 
 	"database/sql"
 
+	"spoodblort/utils"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -666,15 +668,24 @@ func (r *Repository) GetDeadEligibleFighters() ([]Fighter, error) {
 	return fighters, err
 }
 
-// HasUsedSerumToday checks whether the user has already used a serum today (UTC day)
+// HasUsedSerumToday checks whether the user has already used a serum today according to Central Time.
+// We store timestamps in UTC, so we compute Central day bounds and compare against UTC range.
 func (r *Repository) HasUsedSerumToday(userID int) (bool, error) {
+	// Determine Central Time day window and convert to UTC for comparison
+	central, _ := time.LoadLocation("America/Chicago")
+	nowCentral := time.Now().In(central)
+	startCentral, endCentral := utils.GetDayBounds(nowCentral)
+	startUTC := startCentral.UTC().Format("2006-01-02 15:04:05")
+	endUTC := endCentral.UTC().Format("2006-01-02 15:04:05")
+
 	var count int
-	// Compare by date on UTC timestamps stored in applied_effects
 	err := r.db.Get(&count, `
-        SELECT COUNT(1) FROM applied_effects 
-        WHERE user_id = ? AND effect_type = 'serum_use' 
-          AND date(created_at) = date('now')
-    `, userID)
+        SELECT COUNT(1)
+        FROM applied_effects 
+        WHERE user_id = ? 
+          AND effect_type = 'serum_use' 
+          AND created_at >= ? AND created_at < ?
+    `, userID, startUTC, endUTC)
 	if err != nil {
 		return false, err
 	}
@@ -707,9 +718,21 @@ func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error)
 		return false, fmt.Errorf("no serum in inventory")
 	}
 
-	// Enforce one serum per user per day
+	// Enforce one serum per user per day based on Central Time day window
+	central, _ := time.LoadLocation("America/Chicago")
+	nowCentral := time.Now().In(central)
+	startCentral, endCentral := utils.GetDayBounds(nowCentral)
+	startUTC := startCentral.UTC().Format("2006-01-02 15:04:05")
+	endUTC := endCentral.UTC().Format("2006-01-02 15:04:05")
+
 	var usedToday int
-	if err := tx.QueryRow(`SELECT COUNT(1) FROM applied_effects WHERE user_id = ? AND effect_type = 'serum_use' AND date(created_at) = date('now')`, userID).Scan(&usedToday); err != nil {
+	if err := tx.QueryRow(`
+        SELECT COUNT(1)
+        FROM applied_effects 
+        WHERE user_id = ? 
+          AND effect_type = 'serum_use' 
+          AND created_at >= ? AND created_at < ?
+    `, userID, startUTC, endUTC).Scan(&usedToday); err != nil {
 		return false, err
 	}
 	if usedToday > 0 {
