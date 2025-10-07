@@ -2,7 +2,7 @@
 .ad-card::before{ content:""; position:absolute; inset:-1px; border:2px double rgba(255,200,40,.25); pointer-events:none; filter:drop-shadow(0 0 18px rgba(255,180,0,.08)); }
 .ad-left{ font-size:28px; line-height:1; padding:4px 8px; }
 .ad-emoji{ filter:drop-shadow(0 0 6px rgba(255,200,0,.25)); }
-.ad-body{ display:grid; gap:4px; }
+.ad-body{ display:grid; gap:4px; position:relative; }
 .ad-title{ font-family:'Mozilla Headline',sans-serif; letter-spacing:1px; color:#ffd24d; text-transform:uppercase; font-weight:900; text-shadow:0 0 18px rgba(255,200,0,.15); }
 .ad-sub{ color:#caa; font-size:.9rem; }
 .ad-cta{ display:flex; align-items:center; position:absolute; right:12px; bottom:12px; }
