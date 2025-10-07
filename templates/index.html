@@ -124,6 +124,29 @@
 		</div>
 		{{if .Fights}}
 			<section class="grid">
+				{{/* Daily ad in first position, if available */}}
+				{{if gt (len .ShopItems) 0}}
+					{{ $todayIndex := mod (add (.Now.YearDay) (.Now.Year)) (len .ShopItems) }}
+					{{ $ad := index .ShopItems $todayIndex }}
+					{{ $owned := false }}
+					{{if .UserInventory}}
+						{{range .UserInventory}}
+							{{if and (eq .ShopItemID $ad.ID) (gt .Quantity 0)}}
+								{{ $owned = true }}
+							{{end}}
+						{{end}}
+					{{end}}
+					<div class="fight-card ad-card" onclick="event.stopPropagation()">
+						<div class="ad-left"><span class="ad-emoji">{{$ad.Emoji}}</span></div>
+						<div class="ad-body">
+							<div class="ad-title">{{$ad.Name}}</div>
+							<div class="ad-sub">Lengthen your aura. Ingredients: pulverized robot horn, ghost pepper oil, 0.01% mystery goo.</div>
+						</div>
+						<div class="ad-cta">
+							<button class="ad-buy {{if $owned}}disabled{{end}}" data-item-id="{{$ad.ID}}" data-item-name="{{$ad.Name}}" {{if $owned}}disabled aria-disabled="true"{{end}}>{{if $owned}}OWNED{{else}}TRY • {{printf "%s" (print (div $ad.Price 1000000) "M")}}{{end}}</button>
+						</div>
+					</div>
+				{{end}}
 				{{range $i, $fight := .Fights}}
 					{{if or (eq $fight.Status "scheduled") (eq $fight.Status "active")}}
 						<div class="fight-card status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
@@ -137,6 +160,21 @@
 							</div>
 							<div class="status {{if eq $fight.Status "active"}}live{{else}}upcoming{{end}}">{{if eq $fight.Status "active"}}LIVE{{else}}UPCOMING{{end}}</div>
 						</div>
+
+						{{if and (gt (len $.SerumAds) 0) (eq (mod (add $i 1) 3) 0)}}
+							{{ $ads := $.SerumAds }}
+							{{ $pick := index $ads (mod $i (len $ads)) }}
+							<div class="fight-card ad-card" onclick="event.stopPropagation()">
+								<div class="ad-left"><span class="ad-emoji">{{ $pick.Emoji }}</span></div>
+								<div class="ad-body">
+									<div class="ad-title">GC‑161 Youth Cream</div>
+									<div class="ad-sub">Lengthen your aura. Ingredients: pulverized robot horn, ghost pepper oil, 0.01% mystery goo.</div>
+								</div>
+								<div class="ad-cta">
+									<button class="ad-buy" data-item-id="{{$pick.ID}}" data-item-name="GC‑161 Youth Cream">TRY • 1M</button>
+								</div>
+							</div>
+						{{end}}
 					{{end}}
 				{{end}}
 			</section>
@@ -167,6 +205,7 @@
 	</div>
 
 	<script src="/static/js/index.js"></script>
+	<script src="/static/js/ad.js"></script>
 	<script>
 		// Lightweight progress meter tied to the next fight's target time
 		(function(){

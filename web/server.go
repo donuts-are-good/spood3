@@ -221,6 +221,9 @@ func (s *Server) setupRoutes() {
 	protected.Use(s.authMW.RequireAuth)
 
 	protected.HandleFunc("/dashboard", s.handleUserDashboard).Methods("GET")
+	// Drugs (serum) routes
+	protected.HandleFunc("/drugs/eligible", s.handleSerumEligible).Methods("GET")
+	protected.HandleFunc("/drugs/apply", s.handleSerumApply).Methods("POST")
 	protected.HandleFunc("/settings", s.handleUserSettings).Methods("GET")
 	protected.HandleFunc("/settings", s.handleUserSettingsPost).Methods("POST")
 	protected.HandleFunc("/settings/mvp", s.handleUpdateMVP).Methods("POST")
@@ -526,6 +529,70 @@ func (s *Server) handleSaturday(w http.ResponseWriter, r *http.Request) {
 	s.renderTemplate(w, "saturday.html", data)
 }
 
+// handleSerumEligible returns dead, non-undead fighters for selection
+func (s *Server) handleSerumEligible(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	fighters, err := s.repo.GetDeadEligibleFighters()
+	if err != nil {
+		http.Error(w, "Failed", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "fighters": fighters})
+}
+
+// handleSerumApply consumes one serum and sets a target fighter to undead, enforcing limits
+func (s *Server) handleSerumApply(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	var req struct {
+		FighterID  int `json:"fighter_id"`
+		ShopItemID int `json:"shop_item_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+	if req.FighterID <= 0 || req.ShopItemID <= 0 {
+		http.Error(w, "Invalid", http.StatusBadRequest)
+		return
+	}
+
+	// Enforce one per day
+	if used, err := s.repo.HasUsedSerumToday(user.ID); err != nil {
+		http.Error(w, "Failed", http.StatusInternalServerError)
+		return
+	} else if used {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Daily serum limit reached"})
+		return
+	}
+
+	if err := s.repo.ApplySerum(user.ID, req.ShopItemID, req.FighterID); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
+		return
+	}
+
+	// Return updated balance and inventory item if available
+	updatedUser, _ := s.repo.GetUser(user.ID)
+	newBalance := 0
+	if updatedUser != nil {
+		newBalance = updatedUser.Credits
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "new_balance": newBalance})
+}
+
 // userHasSacrificeExemption returns true if the user has at least 1000 sacrifices
 func (s *Server) userHasSacrificeExemption(userID int) bool {
 	inv, err := s.repo.GetUserInventory(userID)
@@ -648,6 +715,11 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := GetUserFromContext(r.Context())
+	// Fetch serum items for ad injection (hidden from shop UI)
+	var serumAds []database.ShopItem
+	if ads, err := s.repo.GetShopItemsByType("serum"); err == nil {
+		serumAds = ads
+	}
 	data := PageData{
 		User:            user,
 		Title:           "Fight Schedule",
@@ -657,8 +729,10 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Now:             now,
 		MetaDescription: "Spoodblort is a timewaster game to play at work. Bets, bribes, and violence await.",
 		MetaType:        "website",
-		RequiredCSS:     []string{"index-demo1.css"},
+		RequiredCSS:     []string{"index-demo1.css", "ad.css"},
 		FighterMap:      fighterMap,
+		// Reuse ShopItems optional field to pass ads if needed in templates
+		ShopItems: serumAds,
 	}
 
 	if user != nil {
@@ -682,6 +756,11 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			data.UserBetFightIDs = betFightIDs
+		}
+
+		// Load user inventory so we can disable ads if already owned
+		if inv, invErr := s.repo.GetUserInventory(user.ID); invErr == nil {
+			data.UserInventory = inv
 		}
 	}
 

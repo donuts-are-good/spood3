@@ -540,7 +540,7 @@ func (r *Repository) GetUserBettingStats(userID int) (*BettingStats, error) {
 // Shop methods
 func (r *Repository) GetAllShopItems() ([]ShopItem, error) {
 	var items []ShopItem
-	err := r.db.Select(&items, "SELECT * FROM shop_items ORDER BY price ASC, name ASC")
+	err := r.db.Select(&items, "SELECT * FROM shop_items WHERE item_type <> 'serum' ORDER BY price ASC, name ASC")
 	return items, err
 }
 
@@ -548,6 +548,13 @@ func (r *Repository) GetShopItem(itemID int) (*ShopItem, error) {
 	var item ShopItem
 	err := r.db.Get(&item, "SELECT * FROM shop_items WHERE id = ?", itemID)
 	return &item, err
+}
+
+// GetShopItemsByType returns all shop items of the specified type, including hidden types
+func (r *Repository) GetShopItemsByType(itemType string) ([]ShopItem, error) {
+	var items []ShopItem
+	err := r.db.Select(&items, "SELECT * FROM shop_items WHERE item_type = ? ORDER BY price ASC, name ASC", itemType)
+	return items, err
 }
 
 func (r *Repository) PurchaseItem(userID, itemID, quantity int, totalCost int) error {
@@ -635,6 +642,85 @@ func (r *Repository) GetUserInventory(userID int) ([]UserInventoryItem, error) {
 		ORDER BY si.item_type, si.name`,
 		userID)
 	return items, err
+}
+
+// GetDeadEligibleFighters returns fighters that are dead and not yet undead
+func (r *Repository) GetDeadEligibleFighters() ([]Fighter, error) {
+	var fighters []Fighter
+	err := r.db.Select(&fighters, `
+        SELECT * FROM fighters 
+        WHERE is_dead = 1 AND is_undead = 0
+        ORDER BY name ASC`)
+	return fighters, err
+}
+
+// HasUsedSerumToday checks whether the user has already used a serum today (UTC day)
+func (r *Repository) HasUsedSerumToday(userID int) (bool, error) {
+	var count int
+	// Compare by date on UTC timestamps stored in applied_effects
+	err := r.db.Get(&count, `
+        SELECT COUNT(1) FROM applied_effects 
+        WHERE user_id = ? AND effect_type = 'serum_use' 
+          AND date(created_at) = date('now')
+    `, userID)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// ApplySerum marks a fighter undead and consumes one serum from inventory with validations
+func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Validate fighter status
+	var dead, undead int
+	if err := tx.QueryRow(`SELECT is_dead, is_undead FROM fighters WHERE id = ?`, fighterID).Scan(&dead, &undead); err != nil {
+		return err
+	}
+	if dead == 0 || undead != 0 {
+		return fmt.Errorf("fighter not eligible")
+	}
+
+	// Validate inventory
+	var qty int
+	if err := tx.QueryRow(`SELECT quantity FROM user_inventory WHERE user_id = ? AND shop_item_id = ?`, userID, shopItemID).Scan(&qty); err != nil {
+		return err
+	}
+	if qty <= 0 {
+		return fmt.Errorf("no serum in inventory")
+	}
+
+	// Enforce one serum per user per day
+	var usedToday int
+	if err := tx.QueryRow(`SELECT COUNT(1) FROM applied_effects WHERE user_id = ? AND effect_type = 'serum_use' AND date(created_at) = date('now')`, userID).Scan(&usedToday); err != nil {
+		return err
+	}
+	if usedToday > 0 {
+		return fmt.Errorf("daily serum limit reached")
+	}
+
+	// Decrement inventory
+	if _, err := tx.Exec(`UPDATE user_inventory SET quantity = quantity - 1 WHERE user_id = ? AND shop_item_id = ? AND quantity > 0`, userID, shopItemID); err != nil {
+		return err
+	}
+
+	// Update fighter to undead
+	if _, err := tx.Exec(`UPDATE fighters SET is_undead = 1, updated_at = datetime('now') WHERE id = ?`, fighterID); err != nil {
+		return err
+	}
+
+	// Log usage in applied_effects
+	nowStr := time.Now().UTC().Format("2006-01-02 15:04:05")
+	if _, err := tx.Exec(`INSERT INTO applied_effects (user_id, target_type, target_id, effect_type, effect_value, created_at) VALUES (?, 'fighter', ?, 'serum_use', 1, ?)`, userID, fighterID, nowStr); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (r *Repository) UseInventoryItem(userID, itemID int, quantity int) error {

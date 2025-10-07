@@ -156,8 +156,9 @@
                     <h3>🎒 YOUR CHAOS INVENTORY</h3>
                     <div class="inventory-grid">
                         {{range .UserInventory}}
-                        <div class="inventory-item {{if eq .ItemType "fighter_creation"}}clickable-license{{end}}" 
-                             {{if eq .ItemType "fighter_creation"}}onclick="window.location.href='/user/create-fighter'"{{end}}>
+                        <div class="inventory-item {{if eq .ItemType "fighter_creation"}}clickable-license{{end}} {{if eq .ItemType "serum"}}clickable-serum{{end}}" 
+                             {{if eq .ItemType "fighter_creation"}}onclick="window.location.href='/user/create-fighter'"{{end}}
+                             {{if eq .ItemType "serum"}}data-shop-item-id="{{.ShopItemID}}" onclick="openSerumModal({{.ShopItemID}}, '{{.Name}}')"{{end}}>
                             <div class="inventory-emoji">{{.Emoji}}</div>
                             <div class="inventory-name">{{.Name}}</div>
                             <div class="inventory-quantity">×{{.Quantity}}</div>
@@ -245,6 +246,65 @@
         </div>
     {{end}}
 </div>
+
+<!-- Serum (Drugs) Modal -->
+<div id="serumModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeSerumModal()"></div>
+    <div class="modal-card">
+        <div class="modal-header">
+            <h4 id="serumModalTitle">Select a Deceased Fighter</h4>
+            <button class="modal-close" onclick="closeSerumModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div id="serumEligibleList" class="eligible-list">Loading...</div>
+        </div>
+        <div class="modal-footer">
+            <button class="action-button secondary" onclick="closeSerumModal()">Cancel</button>
+        </div>
+    </div>
+  </div>
+
+<script>
+function openSerumModal(shopItemId, name){
+  try { if (window.toast && window.toast.info) window.toast.info('Loading morgue...', 1200); } catch(_){}
+  const modal = document.getElementById('serumModal');
+  const title = document.getElementById('serumModalTitle');
+  const list = document.getElementById('serumEligibleList');
+  title.textContent = name + ' — Apply to deceased';
+  list.innerHTML = 'Loading...';
+  fetch('/user/drugs/eligible').then(r=>r.json()).then(d=>{
+    if (!d || !d.success){ list.innerHTML = 'Failed to load.'; return; }
+    if (!d.fighters || d.fighters.length === 0){ list.innerHTML = '<div class="empty">No eligible corpses. Check back later.</div>'; return; }
+    list.innerHTML = '';
+    d.fighters.forEach(function(f){
+      var row = document.createElement('div');
+      row.className = 'eligible-row';
+      row.innerHTML = '<div class="f-name">' + f.name + '</div>' +
+                      '<button class="action-button" data-fid="'+f.id+'">Reanimate</button>';
+      row.querySelector('button').addEventListener('click', function(){
+        applySerum(shopItemId, f.id, name);
+      });
+      list.appendChild(row);
+    });
+  }).catch(function(){ list.innerHTML = 'Network error.'; });
+  modal.classList.remove('hidden');
+}
+function closeSerumModal(){ document.getElementById('serumModal').classList.add('hidden'); }
+function applySerum(shopItemId, fighterId, itemName){
+  fetch('/user/drugs/apply', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ shop_item_id: shopItemId, fighter_id: fighterId }) })
+    .then(r=>r.json())
+    .then(function(d){
+      if (d && d.success){
+        try { if (window.toast && window.toast.success) window.toast.success('Reanimation protocol successful.', 4500); } catch(_){}
+        closeSerumModal();
+      } else {
+        var msg = (d && d.error) ? d.error : 'Failed to apply';
+        try { if (window.toast && window.toast.error) window.toast.error(msg, 4500); } catch(_){}
+      }
+    })
+    .catch(function(){ try { if (window.toast && window.toast.error) window.toast.error('Network error', 4000); } catch(_){} });
+}
+</script>
 
 <script>
 function copyProfileLink() {
