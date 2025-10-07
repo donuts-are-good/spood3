@@ -14,7 +14,7 @@
         .then(r=>r.json())
         .then(function(data){
             if (data && data.success){
-                try { if (window.toast && window.toast.success) window.toast.success('Purchased ' + itemName + '. Check inventory.', 4000); } catch(_){}
+                try { if (window.toast && window.toast.success) window.toast.success('Purchased ' + itemName + '. Check inventory.', 4000); } catch(_){ }
                 if (typeof data.new_balance === 'number' && window.updateGlobalCreditsDisplay) {
                     window.updateGlobalCreditsDisplay(data.new_balance);
                 }
@@ -24,7 +24,8 @@
                 btn.textContent = 'OWNED';
             } else {
                 var msg = (data && data.error) ? data.error : 'Purchase failed';
-                try { if (window.toast && window.toast.error) window.toast.error(msg, 5000); } catch(_){}
+                try { if (window.toast && window.toast.error) window.toast.error(msg, 5000); } catch(_){ }
+                if (/Daily serum usage/i.test(String(msg||''))){ btn.classList.add('disabled'); btn.setAttribute('disabled','disabled'); }
             }
         })
         .catch(function(){ try { if (window.toast && window.toast.error) window.toast.error('Network error', 4000); } catch(_){} });

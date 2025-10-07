@@ -309,6 +309,30 @@ function applySerum(shopItemId, fighterId, itemName){
         if (d.worked){ anim.classList.add('success'); try { if (window.toast && window.toast.success) window.toast.success('Reanimation successful. Subject is now UNDEAD.', 5000); } catch(_){ } }
         else { anim.classList.add('failure'); try { if (window.toast && window.toast.warning) window.toast.warning('Serum failed to bind. Subject remains deceased.', 5000); } catch(_){ } }
         closeSerumModal();
+        // Live update: decrement/remove serum card and lock rest for today
+        try {
+          const grid = document.querySelector('.inventory-grid');
+          if (grid){
+            const card = grid.querySelector('.inventory-item[data-shop-item-id="'+shopItemId+'"][class*="serum"]');
+            if (card){
+              const qtyEl = card.querySelector('.inventory-quantity');
+              let qty = 1;
+              if (qtyEl){
+                const m = (qtyEl.textContent||'').match(/\d+/); qty = m ? parseInt(m[0],10) : 1;
+              }
+              if (qty <= 1){ card.remove(); }
+              else { if (qtyEl) qtyEl.textContent = '×' + (qty-1); }
+            }
+            // Disable any other serum cards for the day
+            grid.querySelectorAll('.inventory-item.clickable-serum').forEach(function(el){
+              el.classList.remove('clickable-serum');
+              el.classList.add('serum-disabled');
+              el.removeAttribute('onclick');
+              let hint = el.querySelector('.serum-disabled-hint');
+              if (!hint){ hint = document.createElement('div'); hint.className='serum-disabled-hint'; hint.textContent='Daily limit reached'; el.appendChild(hint); }
+            });
+          }
+        } catch(_){ }
       } else {
         var msg = (d && d.error) ? d.error : 'Failed to apply';
         try { if (window.toast && window.toast.error) window.toast.error(msg, 4500); } catch(_){ }

@@ -1833,6 +1833,19 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Daily limit: block serum purchases if user has already used a serum today
+	if item.ItemType == "serum" {
+		if used, uerr := s.repo.HasUsedSerumToday(user.ID); uerr == nil && used {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "Daily serum usage reached. Come back tomorrow.",
+			})
+			return
+		}
+	}
+
 	// Check if this is a unique item and user already owns it
 	if item.ItemType == "mvp_player" || item.ItemType == "high_roller" {
 		userInventory, err := s.repo.GetUserInventory(user.ID)
