@@ -26,6 +26,13 @@ type LiveAction struct {
 	Health2    int    `json:"health2"`     // Fighter 2 current health
 	Round      int    `json:"round"`       // Current round number
 	TickNumber int    `json:"tick_number"` // Current tick
+	// Undead frenzy telemetry for client effects
+	Frenzy1     bool   `json:"frenzy1,omitempty"`
+	Frenzy2     bool   `json:"frenzy2,omitempty"`
+	Frenzy1Mult int    `json:"frenzy1_mult,omitempty"`
+	Frenzy2Mult int    `json:"frenzy2_mult,omitempty"`
+	Frenzy1Zero string `json:"frenzy1_zero,omitempty"`
+	Frenzy2Zero string `json:"frenzy2_zero,omitempty"`
 }
 
 var announcers = []Announcer{

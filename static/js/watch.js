@@ -568,6 +568,9 @@ function handleLiveAction(action) {
         flashScreen('#000000');
         document.getElementById('fight-status').textContent = '💀 FATALITY';
     }
+
+    // Frenzy visual: throb the undead fighter's panel and show multiplier
+    applyFrenzyEffects(action);
 }
 
 function updateHealthBar(healthId, health) {
@@ -651,3 +654,29 @@ function flashScreen(color) {
         document.body.removeChild(flash);
     }, 200);
 } 
+
+function applyFrenzyEffects(action){
+    const left = document.querySelector('.fighter-left');
+    const right = document.querySelector('.fighter-right');
+    // Remove previous pulse classes quickly
+    left && left.classList.remove('frenzy-pulse');
+    right && right.classList.remove('frenzy-pulse');
+    // If fighter1 is frenzied
+    if (action.frenzy1 && left){ left.classList.add('frenzy-pulse'); showFrenzyBadge(left, action.frenzy1_mult, action.frenzy1_zero); }
+    if (action.frenzy2 && right){ right.classList.add('frenzy-pulse'); showFrenzyBadge(right, action.frenzy2_mult, action.frenzy2_zero); }
+}
+
+function showFrenzyBadge(panel, mult, zeroStat){
+    try {
+        let badge = panel.querySelector('.frenzy-badge');
+        if (!badge){
+            badge = document.createElement('div');
+            badge.className = 'frenzy-badge';
+            panel.appendChild(badge);
+        }
+        badge.textContent = `🧟 Frenzy x${mult} (0 ${zeroStat})`;
+        badge.classList.add('show');
+        clearTimeout(badge.__hideTimer);
+        badge.__hideTimer = setTimeout(()=>{ badge.classList.remove('show'); }, 3000);
+    } catch(_){ }
+}

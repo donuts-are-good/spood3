@@ -406,9 +406,67 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 	// Determine advantage using a random stat and coinflip aggregation
 	fighter1Advantage := e.determineStatBasedAdvantage(fighter1, fighter2, rng)
 
+	// Undead frenzy (25% chance). If frenzied, zero one stat and apply 2x/3x/4x multiplier to outgoing damage.
+	frenzy1 := false
+	frenzy2 := false
+	frenzy1Mult := 1
+	frenzy2Mult := 1
+	frenzy1Zero := ""
+	frenzy2Zero := ""
+	if fighter1.IsUndead && rng.Intn(4) == 0 {
+		frenzy1 = true
+		switch rng.Intn(4) {
+		case 0:
+			fighter1.Strength, frenzy1Zero = 0, "strength"
+		case 1:
+			fighter1.Speed, frenzy1Zero = 0, "speed"
+		case 2:
+			fighter1.Endurance, frenzy1Zero = 0, "endurance"
+		default:
+			fighter1.Technique, frenzy1Zero = 0, "technique"
+		}
+		switch rng.Intn(3) {
+		case 0:
+			frenzy1Mult = 2
+		case 1:
+			frenzy1Mult = 3
+		default:
+			frenzy1Mult = 4
+		}
+		fighter1Advantage = e.determineStatBasedAdvantage(fighter1, fighter2, rng)
+	}
+	if fighter2.IsUndead && rng.Intn(4) == 0 {
+		frenzy2 = true
+		switch rng.Intn(4) {
+		case 0:
+			fighter2.Strength, frenzy2Zero = 0, "strength"
+		case 1:
+			fighter2.Speed, frenzy2Zero = 0, "speed"
+		case 2:
+			fighter2.Endurance, frenzy2Zero = 0, "endurance"
+		default:
+			fighter2.Technique, frenzy2Zero = 0, "technique"
+		}
+		switch rng.Intn(3) {
+		case 0:
+			frenzy2Mult = 2
+		case 1:
+			frenzy2Mult = 3
+		default:
+			frenzy2Mult = 4
+		}
+		fighter1Advantage = e.determineStatBasedAdvantage(fighter1, fighter2, rng)
+	}
+
 	// Calculate base damage for both fighters (simultaneous combat)
 	baseDamage1 := e.calculateDamage(fighter1, rng)
 	baseDamage2 := e.calculateDamage(fighter2, rng)
+	if frenzy2 {
+		baseDamage1 *= frenzy2Mult
+	}
+	if frenzy1 {
+		baseDamage2 *= frenzy1Mult
+	}
 
 	var damage1, damage2 int
 	if fighter1Advantage {
@@ -454,6 +512,12 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 	// Generate and broadcast live action if broadcaster is available
 	if e.broadcaster != nil {
 		action := GenerateLiveAction(fightID, tickNumber, fighter1, fighter2, damage1, damage2, state.Fighter1Health, state.Fighter2Health, state.CurrentRound)
+		if frenzy1 {
+			action.Frenzy1, action.Frenzy1Mult, action.Frenzy1Zero = true, frenzy1Mult, frenzy1Zero
+		}
+		if frenzy2 {
+			action.Frenzy2, action.Frenzy2Mult, action.Frenzy2Zero = true, frenzy2Mult, frenzy2Zero
+		}
 		e.broadcaster.BroadcastAction(fightID, action)
 
 		// Log the action to file
@@ -480,13 +544,15 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 				state.Fighter2Health -= critDmg
 				state.LastDamage2 += critDmg
 				// Lifesteal: attacker recovers half the crit damage (capped)
-				heal := critDmg / 2
-				if heal > 0 {
-					healed := state.Fighter1Health + heal
-					if healed > STARTING_HEALTH {
-						healed = STARTING_HEALTH
+				if !fighter2.IsUndead {
+					heal := critDmg / 2
+					if heal > 0 {
+						healed := state.Fighter1Health + heal
+						if healed > STARTING_HEALTH {
+							healed = STARTING_HEALTH
+						}
+						state.Fighter1Health = healed
 					}
-					state.Fighter1Health = healed
 				}
 				if e.broadcaster != nil {
 					critAction := LiveAction{
@@ -525,13 +591,15 @@ func (e *Engine) simulateTick(fightID, tickNumber int, fighter1, fighter2 databa
 				state.Fighter1Health -= critDmg
 				state.LastDamage1 += critDmg
 				// Lifesteal: attacker recovers half the crit damage (capped)
-				heal := critDmg / 2
-				if heal > 0 {
-					healed := state.Fighter2Health + heal
-					if healed > STARTING_HEALTH {
-						healed = STARTING_HEALTH
+				if !fighter1.IsUndead {
+					heal := critDmg / 2
+					if heal > 0 {
+						healed := state.Fighter2Health + heal
+						if healed > STARTING_HEALTH {
+							healed = STARTING_HEALTH
+						}
+						state.Fighter2Health = healed
 					}
-					state.Fighter2Health = healed
 				}
 				if e.broadcaster != nil {
 					critAction := LiveAction{
