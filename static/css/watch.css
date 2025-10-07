@@ -180,10 +180,14 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #031;
-    font-weight: 800;
+    color: #fff; /* bold white text */
+    font-weight: 900; /* heavier weight for readability */
     font-size: 0.8rem;
-    text-shadow: none;
+    /* heavy black drop shadow to separate from the bar fill underneath */
+    text-shadow:
+        0 2px 0 rgba(0,0,0,0.9),
+        0 0 8px rgba(0,0,0,0.9),
+        0 0 2px rgba(0,0,0,0.9);
     z-index: 2;
 }
 
