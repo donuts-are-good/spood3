@@ -41,6 +41,15 @@
 <body>
     <header>
         <div class="header-actions">
+
+            {{if .User}}
+            <span><a href="/shop">Credits: {{.User.Credits}}</a></span>
+                <span class="user-display-name">
+                    <span class="color-indicator" style="background-color: #{{.PrimaryColor}};"></span>
+                    {{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}
+                    <span class="color-indicator" style="background-color: #{{.SecondaryColor}};"></span>
+                </span>
+            {{end}}
             <a href="/about" aria-label="Help" title="Help">
                 <img src="/static/svg/help.svg" alt="Help">
             </a>
@@ -66,19 +75,13 @@
         
         
         <nav>
-            <!-- <a href="/">Schedule</a> -->
-            <a href="/fighters">Fighters</a>
             <a href="/blog">Blog</a>
+            <a href="/fighters">Fighters</a>
             <a href="/champions">Champions</a>
             <a href="/leaderboard">Players</a>
             {{if .User}}
+                <a href="/shop">Shop</a>
                 <a href="/user/dashboard">Dashboard</a>
-                <span><a href="/shop">Credits: {{.User.Credits}}</a></span>
-                <span class="user-display-name">
-                    <span class="color-indicator" style="background-color: #{{.PrimaryColor}};"></span>
-                    {{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}
-                    <span class="color-indicator" style="background-color: #{{.SecondaryColor}};"></span>
-                </span>
                 <a href="/user/settings">Settings</a>
 
             {{else}}
