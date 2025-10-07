@@ -136,12 +136,12 @@ func (s *Scheduler) EnsureTodaysSchedule(now time.Time) error {
 
 	log.Printf("No fights found for today, generating new schedule...")
 
-	allFighters, err := s.repo.GetAliveFighters()
+	allFighters, err := s.repo.GetEligibleFighters()
 	if err != nil {
-		return fmt.Errorf("failed to get alive fighters: %w", err)
+		return fmt.Errorf("failed to get eligible fighters: %w", err)
 	}
 
-	log.Printf("Found %d alive fighters", len(allFighters))
+	log.Printf("Found %d eligible fighters (alive or undead)", len(allFighters))
 
 	todaysFighters := s.generator.SelectDailyFighters(allFighters, today)
 	log.Printf("Selected %d fighters for today", len(todaysFighters))
@@ -202,12 +202,14 @@ func (s *Scheduler) ensureSaturdayRoundRobin(t *database.Tournament, now time.Ti
 		}
 	}
 
-	// Load fighter details
+	// Load fighter details, but filter to only eligible (alive or undead)
 	var entrants []database.Fighter
 	for fid := range fighterSeen {
 		ft, err := s.repo.GetFighter(fid)
-		if err == nil {
-			entrants = append(entrants, *ft)
+		if err == nil && ft != nil {
+			if !ft.IsDead || ft.IsUndead {
+				entrants = append(entrants, *ft)
+			}
 		}
 	}
 

@@ -54,6 +54,18 @@ func (r *Repository) GetAliveFighters() ([]Fighter, error) {
 	return fighters, err
 }
 
+// GetEligibleFighters returns fighters who are eligible to be scheduled:
+// either currently alive, or undead (reanimated). This allows zombies to
+// participate even if their is_dead flag is set.
+func (r *Repository) GetEligibleFighters() ([]Fighter, error) {
+	var fighters []Fighter
+	err := r.db.Select(&fighters, "SELECT * FROM fighters WHERE is_dead = FALSE OR is_undead = TRUE ORDER BY id")
+	if err == nil {
+		ensureFightersDefaults(fighters)
+	}
+	return fighters, err
+}
+
 func (r *Repository) GetTodaysFights(tournamentID int, today, tomorrow time.Time) ([]Fight, error) {
 	var fights []Fight
 	err := r.db.Select(&fights,
