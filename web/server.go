@@ -3400,6 +3400,22 @@ func (s *Server) renderTemplate(w http.ResponseWriter, templateName string, data
 		"int64": func(i int64) int {
 			return int(i)
 		},
+		"until": func(n int) []int {
+			if n <= 0 {
+				return []int{}
+			}
+			out := make([]int, n)
+			for i := 0; i < n; i++ {
+				out[i] = i
+			}
+			return out
+		},
+		"repeat": func(s string, count int) string {
+			if count <= 0 {
+				return ""
+			}
+			return strings.Repeat(s, count)
+		},
 		"getDisplayName": func(username, customUsername string) string {
 			if customUsername != "" {
 				return customUsername
