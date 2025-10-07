@@ -52,6 +52,8 @@
 .section-title .now{ color:var(--idx-dim); font-size:.95rem; }
 .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 .fight-card{ border:1px solid var(--idx-card-border); border-radius:12px; background:#0a0a0a; padding:14px; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; position:relative; overflow:hidden; }
+/* Remove third grid column for normal fight cards so names don't compress (ad cards keep 3 cols) */
+.fight-card:not(.ad-card){ grid-template-columns:auto 1fr; }
 .fight-card:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,.5); }
 .fight-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#444; }
 /* Undead tint */
@@ -67,7 +69,7 @@
 .match{ display:grid; gap:4px; }
 .names{ font-family:'Mozilla Headline',sans-serif; letter-spacing:1px; }
 .undead-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:#c4b5fd; box-shadow:0 0 8px rgba(196,181,253,.6); vertical-align:middle; margin-left:6px; }
-.status{ font-size:.85rem; font-weight:700; letter-spacing:1px; padding:6px 10px; border-radius:999px; border:1px solid #242424; }
+.status{ font-size:.85rem; font-weight:700; letter-spacing:1px; padding:6px 10px; border-radius:999px; border:1px solid #242424; position:absolute; right:12px; bottom:10px; pointer-events:none; }
 .status.upcoming{ color:#fff; }
 .status.completed{ color:#9e9e9e; }
 .status.voided{ color:#b66; font-style:italic; }

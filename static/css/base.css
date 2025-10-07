@@ -452,10 +452,21 @@ nav a {
 .header-credits-num {
     color: #ffffff;
     font-weight: 900;
+    -webkit-text-stroke: 1px rgba(0,0,0,1); /* solid black outline (WebKit) */
+    /* multi-layered shadows to approximate an outline + heavy drop */
     text-shadow:
-        0 2px 0 rgba(0,0,0,0.9),
-        0 0 8px rgba(0,0,0,0.9),
-        0 0 2px rgba(0,0,0,0.9);
+        /* outline */
+        0 1px 0 #000,
+        0 -1px 0 #000,
+        1px 0 0 #000,
+        -1px 0 0 #000,
+        1px 1px 0 #000,
+        -1px 1px 0 #000,
+        1px -1px 0 #000,
+        -1px -1px 0 #000,
+        /* drop glow */
+        0 0 10px rgba(0,0,0,0.95),
+        0 2px 14px rgba(0,0,0,0.9);
 }
 
 /* Logout Link Styling */
