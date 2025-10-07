@@ -39,6 +39,7 @@ type Fighter struct {
 	Draws            int       `db:"draws"`
 	IsDead           bool      `db:"is_dead"`
 	IsUndead         bool      `db:"is_undead"`
+	ReanimatedBy     *int      `db:"reanimated_by"`
 	CreatedAt        time.Time `db:"created_at"`
 	// Custom fighter fields
 	CreatedByUserID   *int       `db:"created_by_user_id"`

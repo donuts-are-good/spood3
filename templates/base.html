@@ -100,25 +100,19 @@
     <!-- Format header credits balance -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Format the user's credit balance in the header navigation
-        const nav = document.querySelector('nav');
-        if (nav) {
-            // Look for the credits link specifically
-            const creditsLinks = nav.querySelectorAll('a[href="/shop"]');
-            creditsLinks.forEach(link => {
-                if (link.textContent.includes('Credits:')) {
-                    const text = link.textContent;
-                    const match = text.match(/Credits:\s*(\d+)/);
-                    if (match) {
-                        const credits = parseInt(match[1]);
-                        const formatted = formatLargeNumber(credits);
-                        // Add title attribute to show full amount on hover
-                        link.title = credits.toLocaleString() + ' Violence Credits';
-                        link.textContent = text.replace(/Credits:\s*\d+/, `Credits: ${formatted}`);
-                    }
+        const creditsLinks = document.querySelectorAll('a[href="/shop"]');
+        creditsLinks.forEach(link => {
+            if (link.textContent.includes('Credits:')) {
+                const text = link.textContent;
+                const match = text.match(/Credits:\s*(\d+)/);
+                if (match) {
+                    const credits = parseInt(match[1]);
+                    const formatted = formatLargeNumber(credits);
+                    link.title = credits.toLocaleString() + ' Violence Credits';
+                    link.textContent = text.replace(/Credits:\s*\d+/, `Credits: ${formatted}`);
                 }
-            });
-        }
+            }
+        });
         
         // Convert large numbers to abbreviated format with decimal precision
         function formatLargeNumber(num) {
@@ -146,6 +140,19 @@
             
             return num.toString();
         }
+
+        // Global updater so ad/shop flows can refresh header balance succinctly
+        window.updateGlobalCreditsDisplay = function(newBalance){
+            try {
+                const links = document.querySelectorAll('a[href="/shop"]');
+                links.forEach(link => {
+                    if (!link.textContent.includes('Credits:')) return;
+                    const formatted = formatLargeNumber(newBalance);
+                    link.title = newBalance.toLocaleString() + ' Violence Credits';
+                    link.textContent = link.textContent.replace(/Credits:\s*[^\s]+/, `Credits: ${formatted}`);
+                });
+            } catch (_) {}
+        };
     });
     </script>
 </body>

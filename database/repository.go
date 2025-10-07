@@ -711,7 +711,7 @@ func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error)
 	// 2-in-3 success roll, server authoritative
 	worked := (time.Now().UnixNano() % 3) != 0
 	if worked {
-		if _, err := tx.Exec(`UPDATE fighters SET is_dead = 1, is_undead = 1, updated_at = datetime('now') WHERE id = ?`, fighterID); err != nil {
+		if _, err := tx.Exec(`UPDATE fighters SET is_dead = 1, is_undead = 1, reanimated_by = ?, updated_at = datetime('now') WHERE id = ?`, userID, fighterID); err != nil {
 			return false, err
 		}
 	}
