@@ -26,7 +26,9 @@
                     </span>
                 </div>
                 <div class="status-display">
-                    {{if .Fighter.IsDead}}
+                    {{if .Fighter.IsUndead}}
+                        <span class="status-badge undead">🧟 UNDEAD</span>
+                    {{else if .Fighter.IsDead}}
                         <span class="status-badge dead">💀 DECEASED</span>
                     {{else}}
                         <span class="status-badge alive">✅ ACTIVE</span>

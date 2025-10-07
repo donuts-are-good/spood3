@@ -54,6 +54,8 @@
 .fight-card{ border:1px solid var(--idx-card-border); border-radius:12px; background:#0a0a0a; padding:14px; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; position:relative; overflow:hidden; }
 .fight-card:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,.5); }
 .fight-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#444; }
+/* Undead tint */
+.fight-card.undead-present{ background: linear-gradient(0deg, rgba(164,140,232,0.06), rgba(164,140,232,0.06)), #0a0a0a; }
 /* Status-specific left-edge colors */
 .fight-card.status-active::before{ background:#00ff00; }
 .fight-card.status-completed::before{ background:#888888; }
@@ -64,6 +66,7 @@
 .time-display{ color:var(--idx-dim); font-weight:700; }
 .match{ display:grid; gap:4px; }
 .names{ font-family:'Mozilla Headline',sans-serif; letter-spacing:1px; }
+.undead-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:#c4b5fd; box-shadow:0 0 8px rgba(196,181,253,.6); vertical-align:middle; margin-left:6px; }
 .status{ font-size:.85rem; font-weight:700; letter-spacing:1px; padding:6px 10px; border-radius:999px; border:1px solid #242424; }
 .status.upcoming{ color:#fff; }
 .status.completed{ color:#9e9e9e; }

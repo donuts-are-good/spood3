@@ -239,6 +239,17 @@
     display: inline !important;
 }
 
+.status-undead {
+    color: #c4b5fd; /* lavender */
+    font-weight: bold;
+    font-size: 0.9rem;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    display: inline !important;
+}
+
 /* Empty State */
 .empty-fighters {
     text-align: center;

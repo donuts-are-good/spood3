@@ -296,18 +296,25 @@ function openSerumModal(shopItemId, name){
 }
 function closeSerumModal(){ document.getElementById('serumModal').classList.add('hidden'); }
 function applySerum(shopItemId, fighterId, itemName){
+  // Mini animation pre-result
+  const list = document.getElementById('serumEligibleList');
+  const anim = document.createElement('div');
+  anim.className = 'serum-anim';
+  anim.innerHTML = '<div class="vial"></div><div class="anim-text">Infusing...</div>';
+  list.prepend(anim);
   fetch('/user/drugs/apply', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ shop_item_id: shopItemId, fighter_id: fighterId }) })
     .then(r=>r.json())
     .then(function(d){
       if (d && d.success){
-        try { if (window.toast && window.toast.success) window.toast.success('Reanimation protocol successful.', 4500); } catch(_){}
+        if (d.worked){ anim.classList.add('success'); try { if (window.toast && window.toast.success) window.toast.success('Reanimation successful. Subject is now UNDEAD.', 5000); } catch(_){ } }
+        else { anim.classList.add('failure'); try { if (window.toast && window.toast.warning) window.toast.warning('Serum failed to bind. Subject remains deceased.', 5000); } catch(_){ } }
         closeSerumModal();
       } else {
         var msg = (d && d.error) ? d.error : 'Failed to apply';
-        try { if (window.toast && window.toast.error) window.toast.error(msg, 4500); } catch(_){}
+        try { if (window.toast && window.toast.error) window.toast.error(msg, 4500); } catch(_){ }
       }
     })
-    .catch(function(){ try { if (window.toast && window.toast.error) window.toast.error('Network error', 4000); } catch(_){} });
+    .catch(function(){ try { if (window.toast && window.toast.error) window.toast.error('Network error', 4000); } catch(_){ } });
 }
 </script>
 

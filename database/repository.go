@@ -670,57 +670,66 @@ func (r *Repository) HasUsedSerumToday(userID int) (bool, error) {
 }
 
 // ApplySerum marks a fighter undead and consumes one serum from inventory with validations
-func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) error {
+func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer tx.Rollback()
 
 	// Validate fighter status
 	var dead, undead int
 	if err := tx.QueryRow(`SELECT is_dead, is_undead FROM fighters WHERE id = ?`, fighterID).Scan(&dead, &undead); err != nil {
-		return err
+		return false, err
 	}
 	if dead == 0 || undead != 0 {
-		return fmt.Errorf("fighter not eligible")
+		return false, fmt.Errorf("fighter not eligible")
 	}
 
 	// Validate inventory
 	var qty int
 	if err := tx.QueryRow(`SELECT quantity FROM user_inventory WHERE user_id = ? AND shop_item_id = ?`, userID, shopItemID).Scan(&qty); err != nil {
-		return err
+		return false, err
 	}
 	if qty <= 0 {
-		return fmt.Errorf("no serum in inventory")
+		return false, fmt.Errorf("no serum in inventory")
 	}
 
 	// Enforce one serum per user per day
 	var usedToday int
 	if err := tx.QueryRow(`SELECT COUNT(1) FROM applied_effects WHERE user_id = ? AND effect_type = 'serum_use' AND date(created_at) = date('now')`, userID).Scan(&usedToday); err != nil {
-		return err
+		return false, err
 	}
 	if usedToday > 0 {
-		return fmt.Errorf("daily serum limit reached")
+		return false, fmt.Errorf("daily serum limit reached")
 	}
 
 	// Decrement inventory
 	if _, err := tx.Exec(`UPDATE user_inventory SET quantity = quantity - 1 WHERE user_id = ? AND shop_item_id = ? AND quantity > 0`, userID, shopItemID); err != nil {
-		return err
+		return false, err
 	}
-
-	// Update fighter to undead
-	if _, err := tx.Exec(`UPDATE fighters SET is_undead = 1, updated_at = datetime('now') WHERE id = ?`, fighterID); err != nil {
-		return err
+	// 2-in-3 success roll, server authoritative
+	worked := (time.Now().UnixNano() % 3) != 0
+	if worked {
+		if _, err := tx.Exec(`UPDATE fighters SET is_undead = 1, updated_at = datetime('now') WHERE id = ?`, fighterID); err != nil {
+			return false, err
+		}
 	}
 
 	// Log usage in applied_effects
 	nowStr := time.Now().UTC().Format("2006-01-02 15:04:05")
-	if _, err := tx.Exec(`INSERT INTO applied_effects (user_id, target_type, target_id, effect_type, effect_value, created_at) VALUES (?, 'fighter', ?, 'serum_use', 1, ?)`, userID, fighterID, nowStr); err != nil {
-		return err
+	val := 0
+	if worked {
+		val = 1
+	}
+	if _, err := tx.Exec(`INSERT INTO applied_effects (user_id, target_type, target_id, effect_type, effect_value, created_at) VALUES (?, 'fighter', ?, 'serum_use', ?, ?)`, userID, fighterID, val, nowStr); err != nil {
+		return false, err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return worked, nil
 }
 
 func (r *Repository) UseInventoryItem(userID, itemID int, quantity int) error {

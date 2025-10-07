@@ -45,7 +45,7 @@
                         data-wins="{{$fighter.Wins}}"
                         data-losses="{{$fighter.Losses}}"
                         data-draws="{{$fighter.Draws}}"
-                        data-status="{{if $fighter.IsDead}}DEAD{{else}}ACTIVE{{end}}">
+                        data-status="{{if $fighter.IsUndead}}UNDEAD{{else if $fighter.IsDead}}DEAD{{else}}ACTIVE{{end}}">
                         <td class="rank-cell">
                             {{if eq $index 0}}
                                 <span class="rank-badge rank-1">👑 1</span>
@@ -76,7 +76,9 @@
                             <span class="draws-count">{{$fighter.Draws}}</span>
                         </td>
                         <td class="status-cell">
-                            {{if $fighter.IsDead}}
+                            {{if $fighter.IsUndead}}
+                                <span class="status-undead">UNDEAD</span>
+                            {{else if $fighter.IsDead}}
                                 <span class="status-dead">DEAD</span>
                             {{else}}
                                 <span class="status-alive">ACTIVE</span>

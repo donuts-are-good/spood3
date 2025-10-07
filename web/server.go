@@ -578,7 +578,8 @@ func (s *Server) handleSerumApply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.repo.ApplySerum(user.ID, req.ShopItemID, req.FighterID); err != nil {
+	worked, err := s.repo.ApplySerum(user.ID, req.ShopItemID, req.FighterID)
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
@@ -592,7 +593,7 @@ func (s *Server) handleSerumApply(w http.ResponseWriter, r *http.Request) {
 		newBalance = updatedUser.Credits
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "new_balance": newBalance})
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "worked": worked, "new_balance": newBalance})
 }
 
 // userHasSacrificeExemption returns true if the user has at least 1000 sacrifices

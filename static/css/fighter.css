@@ -110,6 +110,12 @@
     border: 1px solid #ff4444;
 }
 
+.status-badge.undead {
+    background: #2a1033; /* dark lavender */
+    color: #c4b5fd;      /* lavender text */
+    border: 1px solid #a78bfa;
+}
+
 /* Top Grid: Avatar (col 1) + Lore (col 2-3) */
 .fighter-top-grid {
     display: grid;

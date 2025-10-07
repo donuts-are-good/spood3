@@ -147,14 +147,17 @@
 						</div>
 					</div>
 				{{end}}
-				{{range $i, $fight := .Fights}}
-					{{if or (eq $fight.Status "scheduled") (eq $fight.Status "active")}}
-						<div class="fight-card status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
+                {{range $i, $fight := .Fights}}
+                    {{if or (eq $fight.Status "scheduled") (eq $fight.Status "active")}}
+                        {{ $f1 := index $.FighterMap $fight.Fighter1ID }}
+                        {{ $f2 := index $.FighterMap $fight.Fighter2ID }}
+                        {{ $hasUndead := or (and $f1 $f1.IsUndead) (and $f2 $f2.IsUndead) }}
+                        <div class="fight-card status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}} {{if $hasUndead}}undead-present{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
 							<div class="fight-time"><span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span></div>
 							<div class="match">
 								<div class="names">
-									<a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()">{{$fight.Fighter1Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
-									<a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()">{{$fight.Fighter2Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
+                                    <a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()">{{$fight.Fighter1Name}}</a>{{if and $f1 $f1.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
+                                    <a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()">{{$fight.Fighter2Name}}</a>{{if and $f2 $f2.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
 								</div>
 								<div class="sub" style="color:var(--idx-dim)">Slot {{add $i 1}}</div>
 							</div>
@@ -166,14 +169,17 @@
 			</section>
 
 			<section class="grid" style="margin-top: 10px;">
-				{{range $i, $fight := .Fights}}
-					{{if or (eq $fight.Status "completed") (eq $fight.Status "voided")}}
-						<div class="fight-card status-{{$fight.Status}}" onclick="window.location='/fight/{{$fight.ID}}'">
+                {{range $i, $fight := .Fights}}
+                    {{if or (eq $fight.Status "completed") (eq $fight.Status "voided")}}
+                        {{ $f1 := index $.FighterMap $fight.Fighter1ID }}
+                        {{ $f2 := index $.FighterMap $fight.Fighter2ID }}
+                        {{ $hasUndead := or (and $f1 $f1.IsUndead) (and $f2 $f2.IsUndead) }}
+                        <div class="fight-card status-{{$fight.Status}} {{if $hasUndead}}undead-present{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
 							<div class="fight-time"><span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span></div>
 							<div class="match">
 								<div class="names">
-									<a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()">{{$fight.Fighter1Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
-									<a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()">{{$fight.Fighter2Name}}</a>{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
+                                    <a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()">{{$fight.Fighter1Name}}</a>{{if and $f1 $f1.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
+                                    <a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()">{{$fight.Fighter2Name}}</a>{{if and $f2 $f2.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
 								</div>
 								<div class="sub" style="color:var(--idx-dim)">Fight {{add $i 1}}</div>
 							</div>
