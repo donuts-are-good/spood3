@@ -309,6 +309,10 @@
     50%{ opacity:1; box-shadow:0 0 20px rgba(196,181,253,.6); }
 }
 
+.serum-disabled{ opacity:.6; filter:grayscale(.3); cursor:not-allowed; border-color:#444 !important; }
+.serum-disabled::before{ background:#333 !important; animation:none; }
+.serum-disabled-hint{ font-size:.7em; color:#aaa; margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+
 /* Modal (match blog modal aesthetics) */
 .modal{ position:fixed; inset:0; z-index:1000; display:block; }
 .modal.hidden{ display:none; }
@@ -321,6 +325,7 @@
 .eligible-list{ display:grid; gap:10px; }
 .eligible-row{ display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; border:1px dashed #3b2c5e; border-radius:10px; padding:10px; }
 .eligible-row .f-name{ font-weight:700; }
+.serum-policy{ color:#c4b5fd; background:rgba(167,139,250,0.08); border:1px solid #3b2c5e; border-radius:10px; padding:8px 10px; margin-bottom:10px; font-size:.95rem; }
 
 @keyframes pulse-green {
     0%, 100% { 

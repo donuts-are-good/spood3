@@ -156,12 +156,15 @@
                     <h3>🎒 YOUR CHAOS INVENTORY</h3>
                     <div class="inventory-grid">
                         {{range .UserInventory}}
-                        <div class="inventory-item {{if eq .ItemType "fighter_creation"}}clickable-license{{end}} {{if eq .ItemType "serum"}}clickable-serum{{end}}" 
+                        <div class="inventory-item {{if eq .ItemType "fighter_creation"}}clickable-license{{end}} {{if eq .ItemType "serum"}}{{if $.SerumUsedToday}}serum-disabled{{else}}clickable-serum{{end}}{{end}}" 
                              {{if eq .ItemType "fighter_creation"}}onclick="window.location.href='/user/create-fighter'"{{end}}
-                             {{if eq .ItemType "serum"}}data-shop-item-id="{{.ShopItemID}}" onclick="openSerumModal({{.ShopItemID}}, '{{.Name}}')"{{end}}>
+                             {{if and (eq .ItemType "serum") (not $.SerumUsedToday)}}data-shop-item-id="{{.ShopItemID}}" onclick="openSerumModal({{.ShopItemID}}, '{{.Name}}')"{{end}}>
                             <div class="inventory-emoji">{{.Emoji}}</div>
                             <div class="inventory-name">{{.Name}}</div>
                             <div class="inventory-quantity">×{{.Quantity}}</div>
+                            {{if and (eq .ItemType "serum") $.SerumUsedToday}}
+                                <div class="serum-disabled-hint">Daily limit reached</div>
+                            {{end}}
                             {{if eq .ItemType "fighter_creation"}}
                                 <div class="license-hint">Click to create fighter!</div>
                             {{end}}
@@ -275,14 +278,16 @@ function openSerumModal(shopItemId, name){
   fetch('/user/drugs/eligible').then(r=>r.json()).then(d=>{
     if (!d || !d.success){ list.innerHTML = 'Failed to load.'; return; }
     if (!d.fighters || d.fighters.length === 0){ list.innerHTML = '<div class="empty">No eligible corpses. Check back later.</div>'; return; }
-    list.innerHTML = '';
+    list.innerHTML = '<div class="serum-policy">Policy: You may apply <strong>one</strong> serum per day to a <em>single</em> deceased fighter. The serum dose is fully consumed on use.</div>';
     d.fighters.forEach(function(f){
       var row = document.createElement('div');
       row.className = 'eligible-row';
-      row.innerHTML = '<div class="f-name">' + f.name + '</div>' +
-                      '<button class="action-button" data-fid="'+f.id+'">Reanimate</button>';
+      var fname = (f && (f.Name || f.name)) || 'Unknown';
+      var fid = (f && (typeof f.ID !== 'undefined' ? f.ID : f.id));
+      row.innerHTML = '<div class="f-name">' + fname + '</div>' +
+                      '<button class="action-button" data-fid="'+fid+'">Reanimate</button>';
       row.querySelector('button').addEventListener('click', function(){
-        applySerum(shopItemId, f.id, name);
+        applySerum(shopItemId, fid, name);
       });
       list.appendChild(row);
     });

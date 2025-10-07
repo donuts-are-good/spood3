@@ -131,6 +131,8 @@ type PageData struct {
 	BettingStats *database.BettingStats // For comprehensive betting statistics
 	// CSS optimization
 	RequiredCSS []string // Page-specific CSS files to load
+	// Daily limits / flags
+	SerumUsedToday bool
 	// Access and limits
 	FightBetMax  int // Per-user fight bet cap (min of credits and policy)
 	CasinoBetMax int // Casino wager cap (100M unless sacrifice exemption)
@@ -762,6 +764,11 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		if inv, invErr := s.repo.GetUserInventory(user.ID); invErr == nil {
 			data.UserInventory = inv
 		}
+
+		// Daily serum usage lock
+		if used, err := s.repo.HasUsedSerumToday(user.ID); err == nil {
+			data.SerumUsedToday = used
+		}
 	}
 
 	s.renderTemplate(w, "index.html", data)
@@ -1331,6 +1338,11 @@ func (s *Server) handleUserDashboard(w http.ResponseWriter, r *http.Request) {
 		UserInventory:  userInventory,
 		BettingStats:   bettingStats,
 		RequiredCSS:    []string{"dashboard.css"},
+	}
+
+	// Daily serum limit flag
+	if used, err := s.repo.HasUsedSerumToday(user.ID); err == nil {
+		data.SerumUsedToday = used
 	}
 
 	s.renderTemplate(w, "dashboard.html", data)
