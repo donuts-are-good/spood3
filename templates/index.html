@@ -136,15 +136,13 @@
 							{{end}}
 						{{end}}
 					{{end}}
-					<div class="fight-card ad-card" onclick="event.stopPropagation()">
+					<div class="fight-card ad-card" data-item-id="{{$ad.ID}}" data-item-name="{{$ad.Name}}">
 						<div class="ad-badge" aria-label="Advertisement" title="Advertisement">AD</div>
 						<div class="ad-left"><span class="ad-emoji">{{$ad.Emoji}}</span></div>
 						<div class="ad-body">
 							<div class="ad-title">{{$ad.Name}}</div>
 							<div class="ad-sub">Lengthen your aura. Ingredients: pulverized robot horn, ghost pepper oil, 0.01% mystery goo.</div>
-							<div class="ad-cta">
-								<button class="ad-buy {{if $owned}}disabled{{end}}" data-item-id="{{$ad.ID}}" data-item-name="{{$ad.Name}}" {{if $owned}}disabled aria-disabled="true"{{end}}>{{if $owned}}OWNED{{else}}TRY • 1M{{end}}</button>
-							</div>
+							<!-- Clickable card replaces button -->
 						</div>
 					</div>
 				{{end}}

@@ -5,7 +5,7 @@
 .ad-body{ display:grid; gap:4px; position:relative; }
 .ad-title{ font-family:'Mozilla Headline',sans-serif; letter-spacing:1px; color:#ffd24d; text-transform:uppercase; font-weight:900; text-shadow:0 0 18px rgba(255,200,0,.15); }
 .ad-sub{ color:#caa; font-size:.9rem; }
-.ad-cta{ display:flex; align-items:center; position:absolute; right:12px; bottom:12px; }
+/* .ad-cta removed (card is clickable) */
 .ad-buy{ background:linear-gradient(135deg,#ff3b3b,#ff9e00); color:#000; font-weight:900; border:none; border-radius:10px; padding:8px 12px; letter-spacing:1px; cursor:pointer; box-shadow:0 8px 20px rgba(255,100,0,.25), inset 0 0 0 2px rgba(0,0,0,.25); }
 .ad-buy:hover{ filter:saturate(1.2); transform:translateY(-1px); }
 .ad-buy.disabled, .ad-buy[disabled]{ cursor:not-allowed; filter:grayscale(0.8) brightness(0.7); transform:none; box-shadow:0 0 0 rgba(0,0,0,0.1) inset; }
@@ -16,4 +16,18 @@
 
 /* AD marker (subtle text in top-right) */
 .ad-badge{ position:absolute; top:10px; right:12px; font-weight:800; letter-spacing:.5px; font-size:.75rem; color:#c8c8c8; opacity:.7; text-transform:uppercase; text-shadow:0 1px 1px rgba(0,0,0,.6); }
+
+/* Modal styles */
+.ad-modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:grid; place-items:center; z-index:9999; }
+.ad-modal{ width:min(520px, 92%); background:#0b0b0b; border:1px solid #2a2a2a; border-radius:12px; box-shadow:0 14px 40px rgba(0,0,0,.6); overflow:hidden; }
+.ad-modal-header{ padding:14px 16px; border-bottom:1px solid #1a1a1a; }
+.ad-modal-title{ font-family:'Mozilla Headline',sans-serif; font-weight:900; letter-spacing:1px; color:#ffd24d; text-shadow:0 0 12px rgba(255,200,0,.15); }
+.ad-modal-body{ padding:16px; color:#ddd; line-height:1.5; }
+.ad-modal-body p{ margin:8px 0; }
+.ad-modal-check{ display:flex; gap:8px; align-items:flex-start; font-size:.9rem; color:#ccc; margin-top:8px; }
+.ad-modal-check input{ margin-top:3px; }
+.ad-modal-footer{ padding:12px 16px; border-top:1px solid #1a1a1a; display:flex; justify-content:flex-end; gap:10px; }
+.ad-modal-btn{ background:#111; color:#fff; border:1px solid #333; border-radius:8px; padding:8px 12px; font-weight:800; letter-spacing:.5px; cursor:pointer; }
+.ad-modal-btn.ad-confirm{ background:linear-gradient(135deg,#ff3b3b,#ff9e00); color:#000; border:none; }
+.ad-modal-btn:disabled{ opacity:.5; cursor:not-allowed; }
 
