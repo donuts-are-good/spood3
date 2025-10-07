@@ -43,7 +43,7 @@
         <div class="header-actions">
 
             {{if .User}}
-            <span><a href="/shop">💰{{.User.Credits}}</a></span>
+            <span><a href="/shop">Credits: {{.User.Credits}}</a></span>
                 <span class="user-display-name">
                     <span class="color-indicator" style="background-color: #{{.PrimaryColor}};"></span>
                     {{if .User.CustomUsername}}{{.User.CustomUsername}}{{else}}{{.User.Username}}{{end}}
