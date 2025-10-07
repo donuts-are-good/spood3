@@ -13,7 +13,14 @@
     padding: 24px;
     margin-bottom: 24px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    position: relative;
 }
+
+/* Killmarks pinned to top-right of header */
+.killmarks-top{ position:absolute; top:10px; right:12px; display:flex; gap:6px; align-items:center; }
+.killmarks-top.few .kill-skull{ font-size:2rem; }
+.killmarks-top.some .kill-skull{ font-size:1.4rem; }
+.killmarks-top.many .kill-skull{ font-size:1.1rem; }
 
 .fighter-title h2 {
     font-size: 2.5rem;
