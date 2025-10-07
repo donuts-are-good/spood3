@@ -448,6 +448,16 @@ nav a {
     display: inline-block;
 }
 
+/* Header Credits number styling (bold white with heavy black drop shadow) */
+.header-credits-num {
+    color: #ffffff;
+    font-weight: 900;
+    text-shadow:
+        0 2px 0 rgba(0,0,0,0.9),
+        0 0 8px rgba(0,0,0,0.9),
+        0 0 2px rgba(0,0,0,0.9);
+}
+
 /* Logout Link Styling */
 .logout-link {
     background: none !important;
