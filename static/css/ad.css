@@ -1,11 +1,11 @@
-.ad-card{ display:grid; grid-template-columns:auto 1fr auto; gap:12px; border:1px dashed #3a2a00; background:radial-gradient(120% 120% at 0% 0%, rgba(255,220,120,.08), transparent 55%), #0a0a0a; position:relative; overflow:hidden; cursor:default; }
+.ad-card{ display:grid; grid-template-columns:auto 1fr; gap:12px; border:1px dashed #3a2a00; background:radial-gradient(120% 120% at 0% 0%, rgba(255,220,120,.08), transparent 55%), #0a0a0a; position:relative; overflow:hidden; cursor:default; }
 .ad-card::before{ content:""; position:absolute; inset:-1px; border:2px double rgba(255,200,40,.25); pointer-events:none; filter:drop-shadow(0 0 18px rgba(255,180,0,.08)); }
 .ad-left{ font-size:28px; line-height:1; padding:4px 8px; }
 .ad-emoji{ filter:drop-shadow(0 0 6px rgba(255,200,0,.25)); }
 .ad-body{ display:grid; gap:4px; }
 .ad-title{ font-family:'Mozilla Headline',sans-serif; letter-spacing:1px; color:#ffd24d; text-transform:uppercase; font-weight:900; text-shadow:0 0 18px rgba(255,200,0,.15); }
 .ad-sub{ color:#caa; font-size:.9rem; }
-.ad-cta{ display:flex; align-items:center; }
+.ad-cta{ display:flex; align-items:center; position:absolute; right:12px; bottom:12px; }
 .ad-buy{ background:linear-gradient(135deg,#ff3b3b,#ff9e00); color:#000; font-weight:900; border:none; border-radius:10px; padding:8px 12px; letter-spacing:1px; cursor:pointer; box-shadow:0 8px 20px rgba(255,100,0,.25), inset 0 0 0 2px rgba(0,0,0,.25); }
 .ad-buy:hover{ filter:saturate(1.2); transform:translateY(-1px); }
 .ad-buy.disabled, .ad-buy[disabled]{ cursor:not-allowed; filter:grayscale(0.8) brightness(0.7); transform:none; box-shadow:0 0 0 rgba(0,0,0,0.1) inset; }
@@ -13,4 +13,7 @@
 @media (max-width:960px){
     .ad-sub{ font-size:.85rem; }
 }
+
+/* AD badge in the top-right corner */
+.ad-badge{ position:absolute; top:10px; right:12px; font-weight:900; letter-spacing:1px; color:#111; background:linear-gradient(135deg,#ffd24d,#ff9e00); border:1px solid #3a2a00; border-radius:999px; padding:4px 10px; box-shadow:0 6px 16px rgba(255,180,0,.25); }
 
