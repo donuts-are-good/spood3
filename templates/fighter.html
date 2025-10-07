@@ -15,6 +15,11 @@
                     {{end}}
                 </div>
             </div>
+            {{if gt .FighterKillCount 0}}
+            <div class="killmarks-top {{if gt .FighterKillCount 5}}many{{else if gt .FighterKillCount 2}}some{{else}}few{{end}}" title="Confirmed kills">
+                {{range $i, $_ := (until .FighterKillCount)}}<span class="kill-skull">☠️</span>{{end}}
+            </div>
+            {{end}}
             
             <div class="fighter-status-row">
                 <div class="record-display">
@@ -25,11 +30,6 @@
                         <span class="draws-num">{{.Fighter.Draws}}D</span>
                     </span>
                 </div>
-                {{if gt .FighterKillCount 0}}
-                <div class="killmarks" title="Confirmed kills">
-                    {{range $i, $_ := (until .FighterKillCount)}}<span class="kill-skull">☠️</span>{{end}}
-                </div>
-                {{end}}
                 <div class="status-display">
                     {{if .Fighter.IsUndead}}
                         <span class="status-badge undead">🧟 UNDEAD</span>
@@ -210,14 +210,11 @@
             {{end}}
         </div>
 
-        
     {{else}}
-        <div class="error-message">
-            <h2>Fighter Not Found</h2>
-            <p>The fighter you're looking for doesn't exist.</p>
-            <a href="/" class="back-button">← Back to Schedule</a>
+        <div class="error-section">
+            <h2>💀 FIGHTER NOT FOUND</h2>
+            <p>The requested fighter could not be found in the violence database.</p>
         </div>
     {{end}}
 </div>
-<script src="/static/js/fighter.js"></script>
 {{end}} 
