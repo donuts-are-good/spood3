@@ -677,12 +677,12 @@ func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error)
 	}
 	defer tx.Rollback()
 
-	// Validate fighter status
-	var dead, undead int
+	// Validate fighter status (SQLite may return 0/1 or true/false)
+	var dead, undead bool
 	if err := tx.QueryRow(`SELECT is_dead, is_undead FROM fighters WHERE id = ?`, fighterID).Scan(&dead, &undead); err != nil {
 		return false, err
 	}
-	if dead == 0 || undead != 0 {
+	if !dead || undead {
 		return false, fmt.Errorf("fighter not eligible")
 	}
 
@@ -711,7 +711,7 @@ func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error)
 	// 2-in-3 success roll, server authoritative
 	worked := (time.Now().UnixNano() % 3) != 0
 	if worked {
-		if _, err := tx.Exec(`UPDATE fighters SET is_undead = 1, updated_at = datetime('now') WHERE id = ?`, fighterID); err != nil {
+		if _, err := tx.Exec(`UPDATE fighters SET is_dead = 1, is_undead = 1, updated_at = datetime('now') WHERE id = ?`, fighterID); err != nil {
 			return false, err
 		}
 	}
