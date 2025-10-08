@@ -171,6 +171,10 @@ func main() {
 			if now.Weekday() == time.Sunday {
 				continue
 			}
+			// Daily user credits top-up to minimum (idempotent)
+			if err := repo.TopUpUsersToMinimum(1000000); err != nil {
+				log.Printf("Daily top-up: error: %v", err)
+			}
 			// Get today's fights and sync Discord events once
 			fights, err := sched.GetTodaysSchedule(now)
 			if err != nil {

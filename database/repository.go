@@ -258,7 +258,7 @@ func (r *Repository) CleanExpiredSessions() error {
 func (r *Repository) CreateUser(discordID, username, avatarURL string) (*User, error) {
 	result, err := r.db.Exec(`
 		INSERT INTO users (discord_id, username, avatar_url, custom_username, credits) 
-		VALUES (?, ?, ?, ?, 1000)`,
+		VALUES (?, ?, ?, ?, 1000000)`,
 		discordID, username, avatarURL, username)
 	if err != nil {
 		return nil, err
@@ -1385,5 +1385,21 @@ func (r *Repository) DecaySacrificesIfNeeded(now time.Time) error {
 		log.Printf("Applied weekly sacrifice decay to user %d: -%d (from %d to %d)", rec.UserID, dec, rec.Total, newTotal)
 	}
 
+	return nil
+}
+
+// TopUpUsersToMinimum sets all users with credits below the provided minimum to that minimum.
+// Idempotent by operation: running multiple times in a day will not increase balances beyond the minimum.
+// Intended to be called once per day by the scheduler.
+func (r *Repository) TopUpUsersToMinimum(minimumCredits int) error {
+	// Use a single UPDATE to efficiently raise all users below the threshold
+	_, err := r.db.Exec(`
+        UPDATE users
+        SET credits = ?, updated_at = datetime('now')
+        WHERE credits < ?
+    `, minimumCredits, minimumCredits)
+	if err != nil {
+		return err
+	}
 	return nil
 }
