@@ -868,3 +868,31 @@
         align-self: flex-end;
     }
 } 
+
+/* --- Fighter Page Navigation Arrows (match fight page) --- */
+.fight-nav-left,
+.fight-nav-right{
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+}
+.fight-nav-left{ left: 15px; }
+.fight-nav-right{ right: 15px; }
+.nav-arrow{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.nav-arrow:hover{ background:#333; transform: translateY(-50%) scale(1.1); }
