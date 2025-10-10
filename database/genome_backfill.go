@@ -9,7 +9,7 @@ import (
 func (r *Repository) BackfillFighterGenomes() error {
 	// Count total needing backfill upfront
 	var total int
-	if err := r.db.Get(&total, `SELECT COUNT(1) FROM fighters WHERE genome IS NULL OR genome = 'unknown'`); err != nil {
+	if err := r.db.Get(&total, `SELECT COUNT(1) FROM fighters WHERE genome IS NULL OR genome = 'unknown' OR LENGTH(genome) < 256`); err != nil {
 		return err
 	}
 	if total == 0 {
@@ -19,7 +19,7 @@ func (r *Repository) BackfillFighterGenomes() error {
 
 	// Fetch in one batch; small dataset expected. For very large sets, use pagination.
 	var fighters []Fighter
-	if err := r.db.Select(&fighters, `SELECT * FROM fighters WHERE genome IS NULL OR genome = 'unknown' ORDER BY id ASC`); err != nil {
+	if err := r.db.Select(&fighters, `SELECT * FROM fighters WHERE genome IS NULL OR genome = 'unknown' OR LENGTH(genome) < 256 ORDER BY id ASC`); err != nil {
 		return err
 	}
 
@@ -34,5 +34,26 @@ func (r *Repository) BackfillFighterGenomes() error {
 	}
 
 	log.Printf("genome backfill complete: updated=%d", total)
+	return nil
+}
+
+// RecomputeAllFighterGenomes recomputes and overwrites genome for all fighters.
+// Useful for one-time upgrades to the genome algorithm. Logs progress.
+func (r *Repository) RecomputeAllFighterGenomes() error {
+	var fighters []Fighter
+	if err := r.db.Select(&fighters, `SELECT * FROM fighters ORDER BY id ASC`); err != nil {
+		return err
+	}
+	total := len(fighters)
+	remaining := total
+	for _, f := range fighters {
+		g := f.DeriveGenome()
+		if _, err := r.db.Exec(`UPDATE fighters SET genome = ? WHERE id = ?`, g, f.ID); err != nil {
+			return err
+		}
+		remaining--
+		log.Printf("genome recompute: fighter_id=%d name=\"%s\" genome=%s remaining=%d", f.ID, f.Name, g[:16], remaining)
+	}
+	log.Printf("genome recompute complete: updated=%d", total)
 	return nil
 }

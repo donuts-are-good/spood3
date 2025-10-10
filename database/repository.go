@@ -1152,21 +1152,27 @@ func (r *Repository) CreateCustomFighter(fighter Fighter) (int, error) {
 	// Ensure default avatar if not set
 	ensureFighterDefaults(&fighter)
 
+	// Use a single timestamp for deterministic hashing and storage
+	now := time.Now()
+	fighter.CreatedAt = now
+	// Compute genome (256 hex) from fighter fields
+	genome := fighter.DeriveGenome()
+
 	result, err := r.db.Exec(`
-		INSERT INTO fighters (
-			name, team, strength, speed, endurance, technique, 
-			blood_type, horoscope, molecular_density, existential_dread, 
-			fingers, toes, ancestors, fighter_class, wins, losses, draws, 
-			is_dead, created_by_user_id, is_custom, creation_date, 
-			custom_description, avatar_url, created_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        INSERT INTO fighters (
+            name, team, strength, speed, endurance, technique, 
+            blood_type, horoscope, molecular_density, existential_dread, 
+            fingers, toes, ancestors, fighter_class, wins, losses, draws, 
+            is_dead, created_by_user_id, is_custom, creation_date, 
+            custom_description, avatar_url, created_at, genome
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		fighter.Name, fighter.Team, fighter.Strength, fighter.Speed,
 		fighter.Endurance, fighter.Technique, fighter.BloodType,
 		fighter.Horoscope, fighter.MolecularDensity, fighter.ExistentialDread,
 		fighter.Fingers, fighter.Toes, fighter.Ancestors, fighter.FighterClass,
 		fighter.Wins, fighter.Losses, fighter.Draws, fighter.IsDead,
 		fighter.CreatedByUserID, fighter.IsCustom, fighter.CreationDate,
-		fighter.CustomDescription, fighter.AvatarURL, time.Now(),
+		fighter.CustomDescription, fighter.AvatarURL, now, genome,
 	)
 	if err != nil {
 		return 0, err

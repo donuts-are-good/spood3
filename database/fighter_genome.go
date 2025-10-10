@@ -71,6 +71,11 @@ func (f Fighter) DeriveGenome() string {
 	writeString(f.Lore)
 	writeString(f.AvatarURL)
 
-	sum := h.Sum(nil)
-	return fmt.Sprintf("%x", sum)
+	// First digest
+	sum0 := h.Sum(nil)
+	// Second digest over the first to extend to 256 hex chars total
+	h2 := sha512.New()
+	_, _ = h2.Write(sum0)
+	sum1 := h2.Sum(nil)
+	return fmt.Sprintf("%x%x", sum0, sum1)
 }

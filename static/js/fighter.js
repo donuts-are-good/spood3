@@ -1,5 +1,34 @@
 document.addEventListener('DOMContentLoaded', function () {
     try {
+        // Genome grid render
+        (function renderGenome() {
+            const grid = document.getElementById('genome-grid');
+            if (!grid) return;
+            let genome = (grid.getAttribute('data-genome') || '').trim();
+            if (!genome || genome.toLowerCase() === 'unknown') {
+                grid.innerHTML = '<div class="genome-empty">Genome pending filing…</div>';
+                return;
+            }
+            if (genome.startsWith('0x')) genome = genome.slice(2);
+            const chunks = [];
+            for (let i = 0; i + 8 <= genome.length && chunks.length < 32; i += 8) {
+                chunks.push(genome.slice(i, i + 8));
+            }
+            while (chunks.length < 32) chunks.push('000000ff');
+            grid.innerHTML = '';
+            chunks.forEach((code, idx) => {
+                const r = parseInt(code.slice(0, 2), 16) || 0;
+                const g = parseInt(code.slice(2, 4), 16) || 0;
+                const b = parseInt(code.slice(4, 6), 16) || 0;
+                const a = (parseInt(code.slice(6, 8), 16) || 255) / 255;
+                const cell = document.createElement('div');
+                cell.className = 'gene-cell';
+                cell.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
+                cell.innerHTML = `<span class="gene-idx">${idx + 1}.</span><span class="gene-code">${code.toUpperCase()}</span>`;
+                grid.appendChild(cell);
+            });
+        })();
+
         // Lore editor toggle
         const loreToggle = document.querySelector('.lore-edit-toggle');
         const loreArea = document.querySelector('.lore-edit');

@@ -187,7 +187,17 @@
         </div>
             </div><!-- End fighter-main-content -->
 
-            <!-- genomics here as a grid of 8 genes, 8 characters each, in a display of boxes like a mnemonic phrase input in a crypto wallet looks. -->
+			<div class="stats-card genome-card">
+				<h3>Genomic Sigils</h3>
+				<div id="genome-grid" class="genome-grid" data-genome="{{.Fighter.Genome}}"></div>
+				<style>
+					.genome-grid { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 8px; }
+					.gene-cell { border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000; }
+					.gene-idx { font-weight: 700; margin-right: 8px; opacity: .95; }
+					.gene-code { letter-spacing: .5px; font-weight: 600; }
+					.genome-empty { font-style: italic; opacity: .7; padding: 8px 0; }
+				</style>
+			</div>
         </div><!-- End fighter-content-grid -->
         
         <div class="fighter-actions">
