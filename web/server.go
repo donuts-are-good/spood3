@@ -140,6 +140,10 @@ type PageData struct {
 	CasinoBetMax int // Casino wager cap (100M unless sacrifice exemption)
 	// Access flags
 	IsAdmin bool
+	// Blog/Post extras
+	SpecimenGenome string
+	SpecimenName   string
+	SpecimenID     int
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -303,6 +307,18 @@ func (s *Server) handleBlogPost(w http.ResponseWriter, r *http.Request) {
 		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
 		data.PrimaryColor = primaryColor
 		data.SecondaryColor = secondaryColor
+	}
+	// Optional specimen for genomics proclamation
+	if slug == "2025-10-10-genomic-ledger" {
+		if q := strings.TrimSpace(r.URL.Query().Get("fighter")); q != "" {
+			if id, err := strconv.Atoi(q); err == nil && id > 0 {
+				if f, err := s.repo.GetFighter(id); err == nil && f != nil && f.Genome != "" && f.Genome != "unknown" {
+					data.SpecimenGenome = f.Genome
+					data.SpecimenName = f.Name
+					data.SpecimenID = f.ID
+				}
+			}
+		}
 	}
 	s.renderTemplate(w, tmpl, data)
 }

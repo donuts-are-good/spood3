@@ -195,7 +195,10 @@
             </div><!-- End fighter-main-content -->
 
 			<div class="stats-card genome-card">
-				<h3>Genomic Sigils</h3>
+				<div class="card-header" style="margin-bottom:12px; border-bottom:1px solid #333;">
+					<h3 style="margin:0; border:0; padding:0;">Genomic Sigils</h3>
+					<a class="cta cta-secondary" href="https://spoodblort.com/blog/posts/2025-10-10-genomic-ledger" target="_blank" rel="noopener">What is this?</a>
+				</div>
 				<div id="genome-grid" class="genome-grid" data-genome="{{.Fighter.Genome}}"></div>
 				<style>
 					.genome-grid { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 8px; }

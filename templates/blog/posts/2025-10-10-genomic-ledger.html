@@ -14,6 +14,36 @@
       <p class="proc-lede cont">The GENOME is not medical advice, not a password, not a prayer. It is, however, <em>binding</em>. Those who attempt to peel it off will discover that it peels back. Those who synchronize their breathing with it may hear the distant bells.</p>
     </div>
 
+    <aside class="related-filings" style="margin:1.5em 2em; padding:1em; border:1px dashed #555; border-radius:8px;">
+      <div class="rf-title" style="font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:.5em;">Related Filings</div>
+      <ul style="list-style:none; margin:0; padding:0; display:grid; gap:.35em;">
+        <li><a href="/blog/posts/2025-10-06-proclamation">Proclamation: Team Draft Results</a> — digit recount directives noted.</li>
+        <li><a href="/blog/posts/serum-dossier">Commissioner’s Pharmaceutical Directorate — TRS Dossier Ω‑7</a></li>
+        <li><a href="/blog/posts/2025-10-04-weather-advisory">Advisory: Extreme Atmospheric Thickness Event</a></li>
+      </ul>
+    </aside>
+
+    <details class="unofficial" style="margin:1.5em 2em;">
+      <summary style="cursor:pointer; font-weight:700;">Unofficial Interpretations</summary>
+      <ul style="margin:.6em 0 0 1.2em;">
+        <li>Indices 9–16 whisper to the Market if you hold your breath near a ledger.</li>
+        <li>Gene 22 politely refuses to appear on Tuesdays unless bribed with stationery.</li>
+        <li>Three matching cells in one row entitle the bearer to a small trumpet.</li>
+      </ul>
+    </details>
+
+    <section class="faq" style="margin:1.5em 2em;">
+      <div class="rf-title" style="font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:.5em;">Frequently Asked Questions</div>
+      <dl>
+        <dt>Can my GENOME change?</dt>
+        <dd>Only when your facts do.</dd>
+        <dt>Does it affect betting?</dt>
+        <dd>Market sentiments swell; the Department maintains neutrality.</dd>
+        <dt>Should I lick it?</dt>
+        <dd>No.</dd>
+      </dl>
+    </section>
+
     <div class="royal-divider" aria-hidden="true"><i></i><b></b><i></i></div>
 
     <div class="proc-list">
@@ -26,7 +56,10 @@
 
     <div class="sigil-sample" style="margin: 2em; padding: 1em; border: 1px solid #fff; border-radius: 8px;">
       <div class="sigil-title">Specimen Sigil (full)</div>
-      <div id="specimen-genome" class="genome-grid" data-genome="324DEBFDC5FEF6A34A6C65CCF75D912DA0FE39C259F2E8ACE4419D0A3BB51DE3A1A88B170A22D10394F00BC11969F87911A2784B4C370FBEE786760525221BCBD30409ECAAEC640512ECCAA015B8A11F6C07D2891B3F9C6F0DE8F8A23B720CA36D49421ED336C9F7F0FF7F046EBA31D952375654AAECA6113FE2877AF2BB8079"></div>
+      <div class="sigil-title" style="font-size:.9rem; opacity:.9; margin-top:4px;">
+        Specimen: {{if .SpecimenName}}<a href="/fighter/{{.SpecimenID}}">{{.SpecimenName}}</a>{{else}}Public Exhibition Copy{{end}}
+      </div>
+      <div id="specimen-genome" class="genome-grid" data-genome="{{if .SpecimenGenome}}{{.SpecimenGenome}}{{else}}324DEBFDC5FEF6A34A6C65CCF75D912DA0FE39C259F2E8ACE4419D0A3BB51DE3A1A88B170A22D10394F00BC11969F87911A2784B4C370FBEE786760525221BCBD30409ECAAEC640512ECCAA015B8A11F6C07D2891B3F9C6F0DE8F8A23B720CA36D49421ED336C9F7F0FF7F046EBA31D952375654AAECA6113FE2877AF2BB8079{{end}}"></div>
       <style>
         .genome-grid { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 8px; margin-top: 8px; }
         .gene-cell { border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000; }
