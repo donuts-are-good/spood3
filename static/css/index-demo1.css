@@ -58,6 +58,28 @@
 .fight-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#444; }
 /* Undead tint */
 .fight-card.undead-present{ background: linear-gradient(0deg, rgba(164,140,232,0.06), rgba(164,140,232,0.06)), #0a0a0a; }
+/* Side-specific undead aura: purple fade from zombie side + green edge that fades across */
+.fight-card.undead-left::before,
+.fight-card.undead-right::before{ width:6px; }
+.fight-card.undead-left::after,
+.fight-card.undead-right::after{ content:""; position:absolute; top:0; bottom:0; width:42%; pointer-events:none; }
+.fight-card.undead-left::after{ left:0; background:linear-gradient(90deg, rgba(164,140,232,0.18) 0%, rgba(164,140,232,0.08) 40%, rgba(164,140,232,0.0) 100%); box-shadow:inset 4px 0 0 rgba(16,185,129,0.35); }
+.fight-card.undead-right::after{ right:0; background:linear-gradient(270deg, rgba(164,140,232,0.18) 0%, rgba(164,140,232,0.08) 40%, rgba(164,140,232,0.0) 100%); box-shadow:inset -4px 0 0 rgba(16,185,129,0.35); }
+/* Green outline tint that fades along the top/bottom toward the non‑zombie side */
+.fight-card.undead-left{ border-color:#0f172a; }
+.fight-card.undead-right{ border-color:#0f172a; }
+.fight-card.undead-left{ box-shadow:0 0 0 1px rgba(0,0,0,0) inset; }
+.fight-card.undead-right{ box-shadow:0 0 0 1px rgba(0,0,0,0) inset; }
+.fight-card.undead-left{ background-image:
+    linear-gradient(0deg, rgba(164,140,232,0.06), rgba(164,140,232,0.06)),
+    radial-gradient(120px 80% at left center, rgba(16,185,129,0.35) 0%, rgba(16,185,129,0.12) 35%, rgba(0,0,0,0) 70%),
+    linear-gradient(90deg, rgba(16,185,129,0.5) 0%, rgba(16,185,129,0.12) 30%, rgba(0,0,0,0) 55%),
+    #0a0a0a; }
+.fight-card.undead-right{ background-image:
+    linear-gradient(0deg, rgba(164,140,232,0.06), rgba(164,140,232,0.06)),
+    radial-gradient(120px 80% at right center, rgba(16,185,129,0.35) 0%, rgba(16,185,129,0.12) 35%, rgba(0,0,0,0) 70%),
+    linear-gradient(270deg, rgba(16,185,129,0.5) 0%, rgba(16,185,129,0.12) 30%, rgba(0,0,0,0) 55%),
+    #0a0a0a; }
 /* Status-specific left-edge colors */
 .fight-card.status-active::before{ background:#00ff00; }
 .fight-card.status-completed::before{ background:#888888; }

@@ -157,7 +157,9 @@
                         {{ $f1 := index $.FighterMap $fight.Fighter1ID }}
                         {{ $f2 := index $.FighterMap $fight.Fighter2ID }}
                         {{ $hasUndead := or (and $f1 $f1.IsUndead) (and $f2 $f2.IsUndead) }}
-                        <div class="fight-card status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}} {{if $hasUndead}}undead-present{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
+                        {{ $undeadLeft := and $f1 $f1.IsUndead }}
+                        {{ $undeadRight := and $f2 $f2.IsUndead }}
+                        <div class="fight-card status-{{$fight.Status}} {{if and (eq $fight.Status "scheduled") (index $.UserBetFightIDs $fight.ID)}}bet-placed{{end}} {{if $hasUndead}}undead-present{{end}} {{if $undeadLeft}}undead-left{{end}} {{if $undeadRight}}undead-right{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
 							<div class="fight-time"><span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span></div>
 							<div class="match">
 									<div class="names">
@@ -179,7 +181,9 @@
                         {{ $f1 := index $.FighterMap $fight.Fighter1ID }}
                         {{ $f2 := index $.FighterMap $fight.Fighter2ID }}
                         {{ $hasUndead := or (and $f1 $f1.IsUndead) (and $f2 $f2.IsUndead) }}
-                        <div class="fight-card status-{{$fight.Status}} {{if $hasUndead}}undead-present{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
+                        {{ $undeadLeft := and $f1 $f1.IsUndead }}
+                        {{ $undeadRight := and $f2 $f2.IsUndead }}
+                        <div class="fight-card status-{{$fight.Status}} {{if $hasUndead}}undead-present{{end}} {{if $undeadLeft}}undead-left{{end}} {{if $undeadRight}}undead-right{{end}}" onclick="window.location='/fight/{{$fight.ID}}'">
 							<div class="fight-time"><span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span></div>
 							<div class="match">
 									<div class="names">
