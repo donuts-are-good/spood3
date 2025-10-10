@@ -1,54 +1,43 @@
 {{define "content"}}
-<div class="weather-container">
-  <header class="weather-hero">
+<div class="weather-absurd">
+  <header class="wa-hero">
     <h2>Recreational Meteorology</h2>
-    <p class="weather-sub">Weekly card · Daily drift</p>
+    <p class="wa-sub">Filed by the Department · Deterministic yet unreasonable</p>
   </header>
 
-  <section class="atlas-grid">
-    <article class="card">
-      <h3>Weekly Card</h3>
-      <div class="pad">
-        <div class="kv">
-          <div class="chip"><span class="k">Biome</span><span class="v">{{if .WeeklyWeather}}{{.WeeklyWeather.Biome}}{{else}}—{{end}}</span></div>
-          <div class="chip"><span class="k">Pizza</span><span class="v">{{if .WeeklyWeather}}{{.WeeklyWeather.PizzaSelection}}{{else}}—{{end}}</span></div>
-          <div class="chip"><span class="k">Officials</span><span class="v">{{if .WeeklyWeather}}{{.WeeklyWeather.CasinoOfficials}}{{else}}—{{end}}</span></div>
-          <div class="chip"><span class="k">Time‑Mode</span><span class="v">{{if .DailyWeather}}{{.DailyWeather.TimeMode}}{{else}}—{{end}}</span></div>
+  <div class="wa-grid">
+    <div class="wa-left">
+      <div class="wa-pan" id="panel-visc-temp">
+        <div class="wa-h">Viscosity & Temperature — Ritual Waveform</div>
+        <svg id="svg-visc-temp" viewBox="0 0 820 260" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="wa-ribbon" id="regime-ribbon"></div>
+      </div>
+      <div class="wa-pan" id="panel-labels">
+        <div class="wa-kv">
+          <div class="kv-item"><span class="k">Biome</span><span class="v" id="kv-biome">—</span></div>
+          <div class="kv-item"><span class="k">Pizza</span><span class="v" id="kv-pizza">—</span></div>
+          <div class="kv-item"><span class="k">Officials</span><span class="v" id="kv-off">—</span></div>
+          <div class="kv-item"><span class="k">Cheese</span><span class="v" id="kv-cheese">—</span></div>
+          <div class="kv-item"><span class="k">Time‑Mode</span><span class="v" id="kv-time">—</span></div>
         </div>
-        <div class="ribbon" id="regime-ribbon"></div>
       </div>
-    </article>
+    </div>
 
-    <article class="card">
-      <h3>Daily Trackers</h3>
-      <div class="pad">
-        <svg class="chart" id="v-chart" viewBox="0 0 420 160"></svg>
-        <svg class="chart" id="t-chart" viewBox="0 0 420 160" style="margin-top:10px"></svg>
+    <div class="wa-right">
+      <div class="wa-pan" id="panel-rose">
+        <div class="wa-h">Wind Rose — Circular Bureaucracy</div>
+        <svg id="svg-rose" viewBox="0 0 420 420"></svg>
       </div>
-    </article>
-
-    <article class="card">
-      <h3>Wind Map</h3>
-      <div class="pad">
-        <svg class="mini" id="wind-rose" viewBox="0 0 420 160"></svg>
+      <div class="wa-pan" id="panel-counts">
+        <div class="wa-h">Counts — Swarm of Allegations</div>
+        <svg id="svg-swarm" viewBox="0 0 420 240"></svg>
       </div>
-    </article>
-
-    <article class="card">
-      <h3>Counts</h3>
-      <div class="pad kv" id="counts"></div>
-    </article>
-
-    <article class="card">
-      <h3>Events</h3>
-      <div class="pad" id="events"></div>
-    </article>
-
-    <article class="card">
-      <h3>Notes</h3>
-      <div class="pad" id="notes"></div>
-    </article>
-  </section>
+      <div class="wa-pan" id="panel-events">
+        <div class="wa-h">Events — Timeline of Questionable Omens</div>
+        <svg id="svg-events" viewBox="0 0 420 160"></svg>
+      </div>
+    </div>
+  </div>
 
   <script>
     window.__WEATHER__ = {
@@ -57,6 +46,7 @@
       series: {{json .DailySeries}}
     };
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="/static/js/weather.js"></script>
 </div>
 {{end}}
