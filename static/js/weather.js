@@ -39,7 +39,8 @@
     const yV=v=>P+(1-((v-vMin)/(vMax-vMin)))*(H-2*P);
     const yP=v=>H-P-((v-pMin)/(pMax-pMin))*(H-2*P);
     // grid
-    for(let i=0;i<n;i++){const gx=document.createElementNS('http://www.w3.org/2000/svg','line'); const xx=x(i); gx.setAttribute('x1',xx);gx.setAttribute('y1',P);gx.setAttribute('x2',xx);gx.setAttribute('y2',H-P);gx.setAttribute('stroke','#1e1e1e'); svg.appendChild(gx)}
+    for(let i=0;i<n;i++){const gx=document.createElementNS('http://www.w3.org/2000/svg','line'); const xx=x(i); gx.setAttribute('x1',xx);gx.setAttribute('y1',P);gx.setAttribute('x2',xx);gx.setAttribute('y2',H-P);gx.setAttribute('stroke','#1e1e1e'); svg.appendChild(gx); const lbl=document.createElementNS('http://www.w3.org/2000/svg','text'); lbl.setAttribute('x',xx); lbl.setAttribute('y',H-6); lbl.setAttribute('fill','#888'); lbl.setAttribute('font-size','11'); lbl.setAttribute('text-anchor','middle'); lbl.textContent='D'+(i+1); svg.appendChild(lbl)}
+    for(let j=0;j<=4;j++){ const y=P+j*((H-2*P)/4); const gl=document.createElementNS('http://www.w3.org/2000/svg','line'); gl.setAttribute('x1',P); gl.setAttribute('y1',y); gl.setAttribute('x2',W-P); gl.setAttribute('y2',y); gl.setAttribute('stroke','#151515'); svg.appendChild(gl) }
     // precip bars
     for(let i=0;i<n;i++){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'); r.setAttribute('x',x(i)-5); r.setAttribute('y',yP(rain[i])); r.setAttribute('width',10); r.setAttribute('height',Math.max(0,(H-P)-yP(rain[i]))); r.setAttribute('fill','rgba(64,224,208,0.28)'); r.setAttribute('stroke','rgba(64,224,208,0.7)'); svg.appendChild(r)}
     // temp
@@ -48,6 +49,12 @@
     let pV=''; for(let i=0;i<n;i++){pV+=`${i?'L':'M'}${x(i)},${yV(visc[i])} `;} const pathV=document.createElementNS('http://www.w3.org/2000/svg','path'); pathV.setAttribute('d',pV); pathV.setAttribute('fill','none'); pathV.setAttribute('stroke','#5ad1ff'); pathV.setAttribute('stroke-width','2'); svg.appendChild(pathV);
     // legend
     const lg=document.getElementById('legend-mini'); if(lg){ lg.innerHTML=''; const mk=(c,t)=>{const d=document.createElement('div'); d.className='lg'; const sw=document.createElement('span'); sw.className='sw'; sw.style.background=c; const tx=document.createElement('span'); tx.textContent=t; d.appendChild(sw); d.appendChild(tx); lg.appendChild(d)}; mk('#ff6fb3','Temp'); mk('#5ad1ff','Visc'); mk('rgba(64,224,208,0.6)','Precip'); }
+    // tooltips on hover (points + bars)
+    const tip=document.getElementById('wx-tip'); const show=(html,e)=>{if(!tip) return; tip.innerHTML=html; tip.style.display='block'; tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+12)+'px'}; const hide=()=>{if(tip) tip.style.display='none'};
+    // hit targets: small circles on series
+    for(let i=0;i<n;i++){ const cx=x(i), cyT=yT(temp[i]), cyV=yV(visc[i]); const mk=(x0,y0,html)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',x0); c.setAttribute('cy',y0); c.setAttribute('r',6); c.setAttribute('fill','transparent'); c.addEventListener('mousemove',e=>show(html,e)); c.addEventListener('mouseleave',hide); svg.appendChild(c)}; mk(cx,cyT,`D${i+1}<br/>Temp: <b>${temp[i]}°F</b>`); mk(cx,cyV,`D${i+1}<br/>Visc: <b>${visc[i]}</b> cP`); }
+    // precip bars tooltip overlays
+    for(let i=0;i<n;i++){ const ov=document.createElementNS('http://www.w3.org/2000/svg','rect'); ov.setAttribute('x',x(i)-8); ov.setAttribute('y',P); ov.setAttribute('width',16); ov.setAttribute('height',H-2*P); ov.setAttribute('fill','transparent'); ov.addEventListener('mousemove',e=>show(`D${i+1}<br/>Precip: <b>${rain[i]} mm</b>`,e)); ov.addEventListener('mouseleave',hide); svg.appendChild(ov) }
   })();
 
   // Weekly composite chart: temperature (left axis), viscosity (right axis), precipitation bars
@@ -101,6 +108,8 @@
     const circle=(rad)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',rad);c.setAttribute('fill','none');c.setAttribute('stroke','#222'); svg.appendChild(c)}; circle(r*0.5); circle(r);
     const lab=(tx,x,y)=>{const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('fill','#666'); t.setAttribute('font-size','10'); t.setAttribute('text-anchor','middle'); t.textContent=tx; svg.appendChild(t)}; lab('N',cx,10); lab('S',cx,H-4); lab('E',W-6,cy+4); lab('W',6,cy+4);
     const d = data.today||{}; const a=((d.WindDirDeg||0)-90)*Math.PI/180; const len=Math.min(1,(d.WindSpeedMPH||0)/35)*r; const x=cx+Math.cos(a)*len; const y=cy+Math.sin(a)*len; const l=document.createElementNS('http://www.w3.org/2000/svg','line'); l.setAttribute('x1',cx);l.setAttribute('y1',cy);l.setAttribute('x2',x);l.setAttribute('y2',y); l.setAttribute('stroke','#40e0d0'); l.setAttribute('stroke-width','3'); svg.appendChild(l); const dot=document.createElementNS('http://www.w3.org/2000/svg','circle'); dot.setAttribute('cx',x); dot.setAttribute('cy',y); dot.setAttribute('r',3.5); dot.setAttribute('fill','#40e0d0'); svg.appendChild(dot);
+    // title-like tooltip
+    const tip=document.getElementById('wx-tip'); const html=`Wind: <b>${d.WindSpeedMPH||0} mph</b> @ <b>${d.WindDirDeg||0}°</b>`; svg.addEventListener('mousemove',e=>{if(!tip) return; tip.innerHTML=html; tip.style.display='block'; tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+12)+'px'}); svg.addEventListener('mouseleave',()=>{if(tip) tip.style.display='none'})
   })();
 
   // Counts list
