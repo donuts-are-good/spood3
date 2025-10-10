@@ -9,6 +9,9 @@
 .hl-v{font-weight:700;color:#fff;margin-left:6px}
 .hl-sep{margin:0 8px;color:#555}
 .wa-grid{display:grid;grid-template-columns:360px 1fr;gap:16px}
+.wx-nav{position:fixed;top:50%;transform:translateY(-50%);font-size:32px;line-height:32px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;text-decoration:none;opacity:.85}
+.wx-nav-left{left:12px}
+.wx-nav-right{right:12px}
 .wa-col{display:flex;flex-direction:column;gap:12px}
 .wa-pan{background:#000;border:1px solid #2a2a2a;border-radius:12px;overflow:hidden;padding:12px}
 .wa-h{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#ffcc66;margin-bottom:8px}

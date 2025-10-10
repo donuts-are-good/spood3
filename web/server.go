@@ -335,8 +335,13 @@ func (s *Server) handleBlogPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 
-	// Determine current tournament and week via scheduler helper if available; fallback to latest
+	// Determine reference date (supports ?date=YYYY-MM-DD)
 	now := time.Now()
+	if ds := r.URL.Query().Get("date"); ds != "" {
+		if d, err := time.ParseInLocation("2006-01-02", ds, time.Local); err == nil {
+			now = d
+		}
+	}
 	tournament, _ := s.scheduler.GetCurrentTournament(now)
 	var weekNum int
 	var tournamentID int
@@ -402,6 +407,8 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 		data.PrimaryColor = primaryColor
 		data.SecondaryColor = secondaryColor
 	}
+
+	// Template helpers for date navigation are defined in renderTemplate funcMap
 
 	s.renderTemplate(w, "weather.html", data)
 }
@@ -3536,6 +3543,8 @@ func (s *Server) renderTemplate(w http.ResponseWriter, templateName string, data
 				return 0
 			}
 		},
+		"addDays":         func(t time.Time, n int) time.Time { return t.AddDate(0, 0, n) },
+		"formatDateParam": func(t time.Time) string { return t.Format("2006-01-02") },
 		"until": func(n int) []int {
 			if n <= 0 {
 				return []int{}

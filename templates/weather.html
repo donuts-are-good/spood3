@@ -30,6 +30,8 @@
   </header>
 
   <div class="wa-grid">
+    <a class="wx-nav wx-nav-left" href="/weather?date={{formatDateParam (addDays .Now -1)}}" title="Previous day">‹</a>
+    <a class="wx-nav wx-nav-right" href="/weather?date={{formatDateParam (addDays .Now 1)}}" title="Next day">›</a>
     <div class="wa-col">
       <div class="wa-pan" id="today-card">
         <div class="wa-h">Today</div>
