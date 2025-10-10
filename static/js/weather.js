@@ -124,8 +124,8 @@
     const tip=document.getElementById('wx-tip'); const html=`Wind: <b>${d.WindSpeedMPH||0} mph</b> @ <b>${d.WindDirDeg||0}°</b>`; svg.addEventListener('mousemove',e=>{if(!tip) return; tip.innerHTML=html; tip.style.display='block'; tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+12)+'px'}); svg.addEventListener('mouseleave',()=>{if(tip) tip.style.display='none'})
   })();
 
-  // Counts list
-  (function(){const el=document.getElementById('counts-list'); if(!el) return; const today=data.today||{}; const counts=today.CountsJSON?JSON.parse(today.CountsJSON):{}; const items=Object.entries(counts); el.innerHTML = items.length? items.map(([k,v])=>`<li>${k}: <b>${v}</b></li>`).join('') : '<li>No counts filed.</li>'; })();
+  // Counts list (compact cards)
+  (function(){const el=document.getElementById('counts-list'); if(!el) return; const today=data.today||{}; const counts=today.CountsJSON?JSON.parse(today.CountsJSON):{}; const items=Object.entries(counts); el.innerHTML = items.length? items.map(([k,v])=>`<li><span>${k}</span><b>${v}</b></li>`).join('') : '<li>No counts filed.</li>'; })();
 
   // Events list
   (function(){const el=document.getElementById('events-list'); if(!el) return; const today=data.today||{}; const events=today.EventsJSON?JSON.parse(today.EventsJSON):[]; el.innerHTML = events.length? events.map((e)=>`<li>${e.type||'event'} — ${e.intensity||0}</li>`).join('') : '<li>No events recorded.</li>'; })();
