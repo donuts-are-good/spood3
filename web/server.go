@@ -357,11 +357,15 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 	// Load daily window (this week)
 	start := now.AddDate(0, 0, -3)
 	end := now.AddDate(0, 0, 3)
-	series, _ := s.repo.GetDailyWeatherRange(start, end)
-	if len(series) == 0 && tournament != nil {
-		_ = s.scheduler.EnsureDailyWeather(tournament, now)
-		series, _ = s.repo.GetDailyWeatherRange(start, end)
+	// Ensure daily records exist across the window (idempotent)
+	if tournament != nil {
+		for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
+			if _, err := s.repo.GetDailyWeather(d); err != nil {
+				_ = s.scheduler.EnsureDailyWeather(tournament, d)
+			}
+		}
 	}
+	series, _ := s.repo.GetDailyWeatherRange(start, end)
 	today, _ := s.repo.GetDailyWeather(now)
 
 	data := PageData{
