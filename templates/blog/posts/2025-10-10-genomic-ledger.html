@@ -25,10 +25,15 @@
     </div>
 
     <div class="sigil-sample">
-      <div class="sigil-title">Specimen Sigil (partial)</div>
-      <pre class="sigil-grid">1. 9F1A2CDE  2. 77B0A4FF  3. 12D9A0C1  4. 4C3B2A19
-5. 00FFEE11  6. A1B2C3D4  7. DEADBEAF  8. 42424242</pre>
-      <div class="sigil-foot">Note: This display shows leading segments only. Full sigils are filed under seal.</div>
+      <div class="sigil-title">Specimen Sigil (full)</div>
+      <div id="specimen-genome" class="genome-grid" data-genome="324DEBFDC5FEF6A34A6C65CCF75D912DA0FE39C259F2E8ACE4419D0A3BB51DE3A1A88B170A22D10394F00BC11969F87911A2784B4C370FBEE786760525221BCBD30409ECAAEC640512ECCAA015B8A11F6C07D2891B3F9C6F0DE8F8A23B720CA36D49421ED336C9F7F0FF7F046EBA31D952375654AAECA6113FE2877AF2BB8079"></div>
+      <style>
+        .genome-grid { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 8px; margin-top: 8px; }
+        .gene-cell { border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000; }
+        .gene-idx { font-weight: 700; margin-right: 8px; opacity: .95; }
+        .gene-code { letter-spacing: .5px; font-weight: 600; }
+      </style>
+      <div class="sigil-foot">Rendered as 32 sealed genes (8 per row). Colors derive from each gene’s RGBA.</div>
     </div>
 
     <section class="approvals framed">
@@ -68,6 +73,30 @@
   </article>
 
   <script src="/static/js/blog.js"></script>
+  <script>
+    (function(){
+      const grid = document.getElementById('specimen-genome');
+      if (!grid) return;
+      let genome = (grid.getAttribute('data-genome')||'').trim();
+      if (!genome) return;
+      if (genome.startsWith('0x')) genome = genome.slice(2);
+      const chunks = [];
+      for (let i=0; i+8<=genome.length && chunks.length<32; i+=8) chunks.push(genome.slice(i,i+8));
+      while (chunks.length<32) chunks.push('000000ff');
+      grid.innerHTML = '';
+      chunks.forEach((code, idx) => {
+        const r = parseInt(code.slice(0,2),16)||0;
+        const g = parseInt(code.slice(2,4),16)||0;
+        const b = parseInt(code.slice(4,6),16)||0;
+        const a = (parseInt(code.slice(6,8),16)||255)/255;
+        const cell = document.createElement('div');
+        cell.className = 'gene-cell';
+        cell.style.backgroundColor = `rgba(${r},${g},${b},${a.toFixed(3)})`;
+        cell.innerHTML = `<span class="gene-idx">${idx+1}.</span><span class="gene-code">${code.toUpperCase()}</span>`;
+        grid.appendChild(cell);
+      });
+    })();
+  </script>
 </div>
 {{end}}
 
