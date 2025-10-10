@@ -382,7 +382,11 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	series, _ := s.repo.GetDailyWeatherRange(start, end)
-	today, _ := s.repo.GetDailyWeather(now)
+	today, terr := s.repo.GetDailyWeather(now)
+	if terr != nil && tournament != nil {
+		_ = s.scheduler.EnsureDailyWeather(tournament, now)
+		today, _ = s.repo.GetDailyWeather(now)
+	}
 
 	// Network start date for banner (use advisory cert: Oct 5, 2025)
 	networkStart := time.Date(2025, 10, 5, 0, 0, 0, 0, now.Location())
@@ -396,7 +400,7 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 		DailyWeather:         today,
 		Tournament:           tournament,
 		Now:                  now,
-		ShowHistoricalBanner: weekly != nil && weekly.WeekStart.Before(networkStart),
+		ShowHistoricalBanner: start.Before(networkStart),
 		NetworkStart:         networkStart,
 		MetaDescription:      "📡 Recreational meteorology: weekly card and daily drift.",
 		MetaType:             "website",
