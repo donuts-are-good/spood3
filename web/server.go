@@ -354,10 +354,18 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Load daily window (this week)
-	start := now.AddDate(0, 0, -3)
-	end := now.AddDate(0, 0, 3)
-	// Ensure daily records exist across the window (idempotent)
+	// Load daily window aligned to week (Mon–Sun)
+	var start time.Time
+	var end time.Time
+	if weekly != nil {
+		start = weekly.WeekStart
+	} else {
+		// Fallback: compute Monday of current week in local tz
+		start = time.Date(now.Year(), now.Month(), now.Day()-int(now.Weekday())+1, 0, 0, 0, 0, now.Location())
+	}
+	end = start.AddDate(0, 0, 6)
+
+	// Ensure daily records exist across the aligned week (idempotent)
 	if tournament != nil {
 		for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 			if _, err := s.repo.GetDailyWeather(d); err != nil {
