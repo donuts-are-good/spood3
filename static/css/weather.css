@@ -1,0 +1,18 @@
+.weather-container{max-width:1280px;margin:24px auto;padding:0 18px}
+.weather-hero{margin-bottom:16px;text-align:center}
+.weather-hero h2{font-size:1.8rem;margin:0 0 6px 0}
+.weather-sub{opacity:.8;margin:0}
+.atlas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#000;border:1px solid #2a2a2a;border-radius:12px;overflow:hidden}
+.card h3{margin:0;padding:12px 14px;border-bottom:1px solid #2a2a2a;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#ffcc66}
+.pad{padding:14px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip{background:#0f0f0f;border:1px solid #2a2a2a;border-radius:10px;padding:10px}
+.k{display:block;color:#a9a9a9;font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.v{display:block;font-weight:700;font-size:18px}
+.ribbon{height:14px;border:1px solid #2a2a2a;border-radius:999px;overflow:hidden;display:flex;margin-top:10px}
+.seg{flex:1}
+.chart{height:160px;border:1px solid #2a2a2a;border-radius:10px;background:#090909}
+.mini{height:160px;border:1px solid #2a2a2a;border-radius:10px;background:#090909}
+@media (max-width:1000px){.atlas-grid{grid-template-columns:1fr}}
+

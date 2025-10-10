@@ -1130,6 +1130,34 @@ func (r *Repository) SumChampionFightBets(fightID int) (int, int, error) {
 	return totalWagered, totalPayout, err
 }
 
+// Weather methods
+func (r *Repository) GetWeeklyWeather(tournamentID, tournamentWeek int) (*WeatherWeekly, error) {
+	var w WeatherWeekly
+	err := r.db.Get(&w, `SELECT * FROM weather_weekly WHERE tournament_id = ? AND tournament_week = ?`, tournamentID, tournamentWeek)
+	if err != nil {
+		return nil, err
+	}
+	return &w, nil
+}
+
+func (r *Repository) GetDailyWeather(date time.Time) (*WeatherDaily, error) {
+	var d WeatherDaily
+	ds := date.UTC().Format("2006-01-02")
+	err := r.db.Get(&d, `SELECT * FROM weather_daily WHERE date = ?`, ds)
+	if err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func (r *Repository) GetDailyWeatherRange(start, end time.Time) ([]WeatherDaily, error) {
+	var items []WeatherDaily
+	s := start.UTC().Format("2006-01-02")
+	e := end.UTC().Format("2006-01-02")
+	err := r.db.Select(&items, `SELECT * FROM weather_daily WHERE date >= ? AND date <= ? ORDER BY date ASC`, s, e)
+	return items, err
+}
+
 func (r *Repository) CountEffectsForFightDay(fightID int) (int, int, error) {
 	var blessings, curses int
 	err := r.db.QueryRow(`

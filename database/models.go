@@ -204,3 +204,46 @@ type BettingStats struct {
 	WinLossRatio float64 `json:"win_loss_ratio"`
 	NetProfit    int     `json:"net_profit"`
 }
+
+// Weather models
+type WeatherWeekly struct {
+	ID                   int       `db:"id"`
+	TournamentID         int       `db:"tournament_id"`
+	TournamentWeek       int       `db:"tournament_week"`
+	WeekStart            time.Time `db:"week_start"`
+	SeedHash             string    `db:"seed_hash"`
+	AlgoVersion          string    `db:"algo_version"`
+	Biome                string    `db:"biome"`
+	PizzaSelection       string    `db:"pizza_selection"`
+	CasinoOfficials      string    `db:"casino_officials"`
+	WeeklyTraitsJSON     string    `db:"weekly_traits_json"`
+	TransitionMatrixJSON string    `db:"transition_matrix_json"`
+	CreatedAt            time.Time `db:"created_at"`
+	UpdatedAt            time.Time `db:"updated_at"`
+}
+
+type WeatherDaily struct {
+	ID              int       `db:"id"`
+	Date            time.Time `db:"date"`
+	TournamentID    int       `db:"tournament_id"`
+	TournamentWeek  int       `db:"tournament_week"`
+	SeedHash        string    `db:"seed_hash"`
+	AlgoVersion     string    `db:"algo_version"`
+	Regime          string    `db:"regime"`
+	Viscosity       int       `db:"viscosity"`
+	TemperatureF    int       `db:"temperature_f"`
+	Temporality     int       `db:"temporality"`
+	CheeseSmell     string    `db:"cheese_smell"`
+	TimeMode        string    `db:"time_mode"`
+	WindSpeedMPH    int       `db:"wind_speed_mph"`
+	WindDirDeg      int       `db:"wind_dir_deg"`
+	PrecipitationMM int       `db:"precipitation_mm"`
+	DrizzleMinutes  int       `db:"drizzle_minutes"`
+	IndicesJSON     string    `db:"indices_json"`
+	CountsJSON      string    `db:"counts_json"`
+	EventsJSON      string    `db:"events_json"`
+	MetaJSON        string    `db:"meta_json"`
+	IsFinal         bool      `db:"is_final"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
+}

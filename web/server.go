@@ -144,6 +144,10 @@ type PageData struct {
 	SpecimenGenome string
 	SpecimenName   string
 	SpecimenID     int
+	// Weather
+	WeeklyWeather *database.WeatherWeekly
+	DailyWeather  *database.WeatherDaily
+	DailySeries   []database.WeatherDaily
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -197,6 +201,7 @@ func (s *Server) setupRoutes() {
 	public.HandleFunc("/about", s.handleAbout).Methods("GET")
 	public.HandleFunc("/blog", s.handleBlogIndex).Methods("GET")
 	public.HandleFunc("/blog/posts/{slug}", s.handleBlogPost).Methods("GET")
+	public.HandleFunc("/weather", s.handleWeather).Methods("GET")
 	public.HandleFunc("/fighters", s.handleFighters).Methods("GET")
 	public.HandleFunc("/fighter/{id}", s.handleFighter).Methods("GET")
 	public.HandleFunc("/fight/{id}", s.handleFight).Methods("GET")
@@ -321,6 +326,54 @@ func (s *Server) handleBlogPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.renderTemplate(w, tmpl, data)
+}
+
+// handleWeather renders the deterministic weather dashboard
+func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+
+	// Determine current tournament and week via scheduler helper if available; fallback to latest
+	now := time.Now()
+	tournament, _ := s.scheduler.GetCurrentTournament(now)
+	var weekNum int
+	var tournamentID int
+	if tournament != nil {
+		weekNum = tournament.WeekNumber
+		tournamentID = tournament.ID
+	}
+
+	// Load weekly
+	var weekly *database.WeatherWeekly
+	if tournament != nil {
+		if wrec, err := s.repo.GetWeeklyWeather(tournamentID, weekNum); err == nil {
+			weekly = wrec
+		}
+	}
+
+	// Load daily window (this week)
+	start := now.AddDate(0, 0, -3)
+	end := now.AddDate(0, 0, 3)
+	series, _ := s.repo.GetDailyWeatherRange(start, end)
+	today, _ := s.repo.GetDailyWeather(now)
+
+	data := PageData{
+		User:            user,
+		Title:           "Weather",
+		RequiredCSS:     []string{"weather.css"},
+		WeeklyWeather:   weekly,
+		DailySeries:     series,
+		DailyWeather:    today,
+		MetaDescription: "📡 Recreational meteorology: weekly card and daily drift.",
+		MetaType:        "website",
+	}
+
+	if user != nil {
+		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
+		data.PrimaryColor = primaryColor
+		data.SecondaryColor = secondaryColor
+	}
+
+	s.renderTemplate(w, "weather.html", data)
 }
 
 // isAdmin checks if a user is an admin based on allowed Discord IDs from env
