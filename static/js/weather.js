@@ -136,7 +136,19 @@
   (function(){const el=document.getElementById('weekly-kv'); if(!el) return; const w=data.weekly||{}; const traits=w.WeeklyTraitsJSON?JSON.parse(w.WeeklyTraitsJSON):{}; const rows=[]; if(w.SeedHash){ rows.push(`<div class='kv-item'><span class='k'>Seed</span><span class='v small'>${w.SeedHash}</span></div>`);} if(w.AlgoVersion){ rows.push(`<div class='kv-item'><span class='k'>Algo</span><span class='v'>${w.AlgoVersion}</span></div>`);} for(const [k,v] of Object.entries(traits)){ rows.push(`<div class='kv-item'><span class='k'>${k}</span><span class='v'>${v}</span></div>`);} el.innerHTML = rows.join(''); })();
 
   // Forecast table
-  (function(){const t=document.getElementById('forecast-table'); if(!t) return; const rows=data.series||[]; const header=['Day','Temp °F','Visc cP','Precip mm']; t.innerHTML = `<tr>${header.map(h=>`<th>${h}</th>`).join('')}</tr>` + rows.map((d,i)=>`<tr><td>D${i+1}</td><td>${d.TemperatureF||0}</td><td>${d.Viscosity||0}</td><td>${d.PrecipitationMM||0}</td></tr>`).join(''); })();
+  (function(){const t=document.getElementById('forecast-table'); if(!t) return; const rows=data.series||[]; const header=['Day','Temp °F','Visc cP','Precip mm']; const dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; t.innerHTML = `<tr>${header.map(h=>`<th>${h}</th>`).join('')}</tr>` + rows.map((d,i)=>`<tr><td>${dayLabels[i%7]||('D'+(i+1))}</td><td>${d.TemperatureF||0}</td><td>${d.Viscosity||0}</td><td>${d.PrecipitationMM||0}</td></tr>`).join(''); })();
+
+  // Keyboard navigation for days
+  (function(){
+    const url=new URL(window.location.href); const param=url.searchParams.get('date');
+    const base = param || (new Date().toISOString().slice(0,10));
+    function go(delta){ const d=new Date(base+'T00:00:00'); d.setDate(d.getDate()+delta); const today=new Date(); today.setHours(0,0,0,0); if (d>today) return; window.location='/weather?date='+d.toISOString().slice(0,10); }
+    document.addEventListener('keydown', (e)=>{
+      if (['INPUT','TEXTAREA'].includes((document.activeElement.tagName||'').toUpperCase())) return;
+      if (e.key==='ArrowLeft') { e.preventDefault(); go(-1); }
+      else if (e.key==='ArrowRight') { e.preventDefault(); go(1); }
+    });
+  })();
 
   // Notes
   (function(){const el=document.getElementById('notes'); if(!el) return; for(const d of data.series){const p=document.createElement('div'); const dt=(d.Date||'').toString().slice(0,10); p.textContent=`${dt||'Day'} — temp ${d.TemperatureF||0}°F; visc ${d.Viscosity||0} cP; rain ${d.PrecipitationMM||0}mm.`; el.appendChild(p)} })();
