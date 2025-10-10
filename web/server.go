@@ -371,6 +371,8 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 		WeeklyWeather:   weekly,
 		DailySeries:     series,
 		DailyWeather:    today,
+		Tournament:      tournament,
+		Now:             now,
 		MetaDescription: "📡 Recreational meteorology: weekly card and daily drift.",
 		MetaType:        "website",
 	}
