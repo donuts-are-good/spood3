@@ -342,11 +342,15 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 		tournamentID = tournament.ID
 	}
 
-	// Load weekly
+	// Ensure generated if missing
 	var weekly *database.WeatherWeekly
 	if tournament != nil {
 		if wrec, err := s.repo.GetWeeklyWeather(tournamentID, weekNum); err == nil {
 			weekly = wrec
+		} else {
+			weekStart := time.Date(now.Year(), now.Month(), now.Day()-int(now.Weekday())+1, 0, 0, 0, 0, now.Location())
+			_ = s.scheduler.EnsureWeeklyWeather(tournament, weekStart)
+			weekly, _ = s.repo.GetWeeklyWeather(tournamentID, weekNum)
 		}
 	}
 
@@ -354,6 +358,10 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 	start := now.AddDate(0, 0, -3)
 	end := now.AddDate(0, 0, 3)
 	series, _ := s.repo.GetDailyWeatherRange(start, end)
+	if len(series) == 0 && tournament != nil {
+		_ = s.scheduler.EnsureDailyWeather(tournament, now)
+		series, _ = s.repo.GetDailyWeatherRange(start, end)
+	}
 	today, _ := s.repo.GetDailyWeather(now)
 
 	data := PageData{

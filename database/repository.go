@@ -1158,6 +1158,64 @@ func (r *Repository) GetDailyWeatherRange(start, end time.Time) ([]WeatherDaily,
 	return items, err
 }
 
+func (r *Repository) UpsertWeeklyWeather(w *WeatherWeekly) error {
+	_, err := r.db.Exec(`
+        INSERT INTO weather_weekly (
+            tournament_id, tournament_week, week_start, seed_hash, algo_version,
+            biome, pizza_selection, casino_officials, weekly_traits_json, transition_matrix_json,
+            created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        ON CONFLICT(tournament_id, tournament_week) DO UPDATE SET
+            seed_hash = excluded.seed_hash,
+            algo_version = excluded.algo_version,
+            biome = excluded.biome,
+            pizza_selection = excluded.pizza_selection,
+            casino_officials = excluded.casino_officials,
+            weekly_traits_json = excluded.weekly_traits_json,
+            transition_matrix_json = excluded.transition_matrix_json,
+            updated_at = datetime('now')
+    `, w.TournamentID, w.TournamentWeek, w.WeekStart, w.SeedHash, w.AlgoVersion,
+		w.Biome, w.PizzaSelection, w.CasinoOfficials, w.WeeklyTraitsJSON, w.TransitionMatrixJSON)
+	return err
+}
+
+func (r *Repository) UpsertDailyWeather(d *WeatherDaily) error {
+	_, err := r.db.Exec(`
+        INSERT INTO weather_daily (
+            date, tournament_id, tournament_week, seed_hash, algo_version, regime,
+            viscosity, temperature_f, temporality, cheese_smell, time_mode,
+            wind_speed_mph, wind_dir_deg, precipitation_mm, drizzle_minutes,
+            indices_json, counts_json, events_json, meta_json, is_final,
+            created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        ON CONFLICT(date) DO UPDATE SET
+            tournament_id = excluded.tournament_id,
+            tournament_week = excluded.tournament_week,
+            seed_hash = excluded.seed_hash,
+            algo_version = excluded.algo_version,
+            regime = excluded.regime,
+            viscosity = excluded.viscosity,
+            temperature_f = excluded.temperature_f,
+            temporality = excluded.temporality,
+            cheese_smell = excluded.cheese_smell,
+            time_mode = excluded.time_mode,
+            wind_speed_mph = excluded.wind_speed_mph,
+            wind_dir_deg = excluded.wind_dir_deg,
+            precipitation_mm = excluded.precipitation_mm,
+            drizzle_minutes = excluded.drizzle_minutes,
+            indices_json = excluded.indices_json,
+            counts_json = excluded.counts_json,
+            events_json = excluded.events_json,
+            meta_json = excluded.meta_json,
+            is_final = excluded.is_final,
+            updated_at = datetime('now')
+    `, d.Date.UTC().Format("2006-01-02"), d.TournamentID, d.TournamentWeek, d.SeedHash, d.AlgoVersion, d.Regime,
+		d.Viscosity, d.TemperatureF, d.Temporality, d.CheeseSmell, d.TimeMode,
+		d.WindSpeedMPH, d.WindDirDeg, d.PrecipitationMM, d.DrizzleMinutes,
+		d.IndicesJSON, d.CountsJSON, d.EventsJSON, d.MetaJSON, d.IsFinal)
+	return err
+}
+
 func (r *Repository) CountEffectsForFightDay(fightID int) (int, int, error) {
 	var blessings, curses int
 	err := r.db.QueryRow(`
