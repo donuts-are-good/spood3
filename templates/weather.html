@@ -3,6 +3,11 @@
   <header class="wa-hero">
     <h2>Recreational Meteorology</h2>
     <p class="wa-sub">Filed by the Department · Deterministic yet unreasonable</p>
+    {{if .ShowHistoricalBanner}}
+    <div class="wa-banner">
+      <strong>Department Notice:</strong> Prior to {{formatDate .NetworkStart}}, the public Weather Network did not exist. Records shown for earlier weeks are retrospectively reconstructed from quantum indices and departmental ledgers. See <a href="/blog/posts/2025-10-04-weather-advisory" class="wa-link">Weather Advisory</a> for context.
+    </div>
+    {{end}}
     <div class="wa-headline">
       <div>
         <span class="hl-k">Week:</span>

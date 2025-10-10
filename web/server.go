@@ -148,6 +148,9 @@ type PageData struct {
 	WeeklyWeather *database.WeatherWeekly
 	DailyWeather  *database.WeatherDaily
 	DailySeries   []database.WeatherDaily
+	// Weather page flags
+	ShowHistoricalBanner bool
+	NetworkStart         time.Time
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -376,17 +379,22 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 	series, _ := s.repo.GetDailyWeatherRange(start, end)
 	today, _ := s.repo.GetDailyWeather(now)
 
+	// Network start date for banner (use advisory cert: Oct 5, 2025)
+	networkStart := time.Date(2025, 10, 5, 0, 0, 0, 0, now.Location())
+
 	data := PageData{
-		User:            user,
-		Title:           "Weather",
-		RequiredCSS:     []string{"weather.css"},
-		WeeklyWeather:   weekly,
-		DailySeries:     series,
-		DailyWeather:    today,
-		Tournament:      tournament,
-		Now:             now,
-		MetaDescription: "📡 Recreational meteorology: weekly card and daily drift.",
-		MetaType:        "website",
+		User:                 user,
+		Title:                "Weather",
+		RequiredCSS:          []string{"weather.css"},
+		WeeklyWeather:        weekly,
+		DailySeries:          series,
+		DailyWeather:         today,
+		Tournament:           tournament,
+		Now:                  now,
+		ShowHistoricalBanner: weekly != nil && weekly.WeekStart.Before(networkStart),
+		NetworkStart:         networkStart,
+		MetaDescription:      "📡 Recreational meteorology: weekly card and daily drift.",
+		MetaType:             "website",
 	}
 
 	if user != nil {
