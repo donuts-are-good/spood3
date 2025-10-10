@@ -124,6 +124,7 @@ type PageData struct {
 	FighterLegacy      []database.ChampionLegacyRecord
 	FighterLegacyCount int
 	FighterKillCount   int
+	FighterPastFights  []database.Fight
 	// MVP-related fields
 	CurrentMVP   *database.UserSetting
 	CanChangeMVP bool
@@ -939,11 +940,16 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 	legacyCount := 0
 	var legacyRecords []database.ChampionLegacyRecord
 	killCount := 0
+	var pastFights []database.Fight
 	if fighter != nil {
 		legacyCount, _ = s.repo.CountChampionTitlesForFighter(fighter.ID)
 		legacyRecords, _ = s.repo.GetChampionLegacyRecordsForFighter(fighter.ID)
 		if kc, err := s.repo.CountFighterKills(fighter.ID); err == nil {
 			killCount = kc
+		}
+		// Load past fights (completed) for this fighter, newest first
+		if pf, err := s.repo.GetPastFightsForFighter(fighter.ID, 50); err == nil {
+			pastFights = pf
 		}
 	}
 
@@ -956,6 +962,7 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 		FighterLegacy:      legacyRecords,
 		FighterLegacyCount: legacyCount,
 		FighterKillCount:   killCount,
+		FighterPastFights:  pastFights,
 	}
 
 	// If this is a custom fighter with a creator, get the creator's info

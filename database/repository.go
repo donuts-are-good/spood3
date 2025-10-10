@@ -197,6 +197,22 @@ func (r *Repository) GetAllFights() ([]Fight, error) {
 	return fights, err
 }
 
+// GetPastFightsForFighter returns completed fights involving the fighter, most recent first
+func (r *Repository) GetPastFightsForFighter(fighterID int, limit int) ([]Fight, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	var fights []Fight
+	err := r.db.Select(&fights, `
+        SELECT * FROM fights
+        WHERE status = 'completed'
+          AND (fighter1_id = ? OR fighter2_id = ?)
+        ORDER BY completed_at DESC
+        LIMIT ?
+    `, fighterID, fighterID, limit)
+	return fights, err
+}
+
 func (r *Repository) GetFighter(fighterID int) (*Fighter, error) {
 	var fighter Fighter
 	err := r.db.Get(&fighter, "SELECT * FROM fighters WHERE id = ?", fighterID)
