@@ -31,6 +31,7 @@
   (function(){
     const svg=document.getElementById('mini-weekly'); if(!svg) return; const W=600,H=180,P=28; svg.innerHTML='';
     const n=Math.max(1,data.series.length); const x=(i)=>P+i*((W-2*P)/(n-1));
+    const dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     const temp=data.series.map(d=>d.TemperatureF||0);
     const visc=data.series.map(d=>d.Viscosity||0);
     const rain=data.series.map(d=>d.PrecipitationMM||0);
@@ -39,7 +40,7 @@
     const yV=v=>P+(1-((v-vMin)/(vMax-vMin)))*(H-2*P);
     const yP=v=>H-P-((v-pMin)/(pMax-pMin))*(H-2*P);
     // grid
-    for(let i=0;i<n;i++){const gx=document.createElementNS('http://www.w3.org/2000/svg','line'); const xx=x(i); gx.setAttribute('x1',xx);gx.setAttribute('y1',P);gx.setAttribute('x2',xx);gx.setAttribute('y2',H-P);gx.setAttribute('stroke','#1e1e1e'); svg.appendChild(gx); const lbl=document.createElementNS('http://www.w3.org/2000/svg','text'); lbl.setAttribute('x',xx); lbl.setAttribute('y',H-6); lbl.setAttribute('fill','#888'); lbl.setAttribute('font-size','11'); lbl.setAttribute('text-anchor','middle'); lbl.textContent='D'+(i+1); svg.appendChild(lbl)}
+    for(let i=0;i<n;i++){const gx=document.createElementNS('http://www.w3.org/2000/svg','line'); const xx=x(i); gx.setAttribute('x1',xx);gx.setAttribute('y1',P);gx.setAttribute('x2',xx);gx.setAttribute('y2',H-P);gx.setAttribute('stroke','#1e1e1e'); svg.appendChild(gx); const lbl=document.createElementNS('http://www.w3.org/2000/svg','text'); lbl.setAttribute('x',xx); lbl.setAttribute('y',H-6); lbl.setAttribute('fill', (i%7===5)?'#ffcc66':'#888'); lbl.setAttribute('font-size','11'); lbl.setAttribute('text-anchor','middle'); lbl.textContent=dayLabels[i%7]||('D'+(i+1)); svg.appendChild(lbl)}
     for(let j=0;j<=4;j++){ const y=P+j*((H-2*P)/4); const gl=document.createElementNS('http://www.w3.org/2000/svg','line'); gl.setAttribute('x1',P); gl.setAttribute('y1',y); gl.setAttribute('x2',W-P); gl.setAttribute('y2',y); gl.setAttribute('stroke','#151515'); svg.appendChild(gl) }
     // precip bars
     for(let i=0;i<n;i++){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'); r.setAttribute('x',x(i)-5); r.setAttribute('y',yP(rain[i])); r.setAttribute('width',10); r.setAttribute('height',Math.max(0,(H-P)-yP(rain[i]))); r.setAttribute('fill','rgba(64,224,208,0.28)'); r.setAttribute('stroke','rgba(64,224,208,0.7)'); svg.appendChild(r)}
@@ -59,7 +60,7 @@
       ov.setAttribute('width', Math.max(14, step));
       ov.setAttribute('height', H-2*P);
       ov.setAttribute('fill', 'transparent');
-      const html = `D${i+1}<br/>`+
+      const html = `${dayLabels[i%7]||('D'+(i+1))}<br/>`+
         `<span style="color:#ff6fb3">Temp</span>: <b>${temp[i]}°F</b><br/>`+
         `<span style="color:#5ad1ff">Visc</span>: <b>${visc[i]}</b> cP<br/>`+
         `<span style="color:turquoise">Precip</span>: <b>${rain[i]} mm</b>`;
