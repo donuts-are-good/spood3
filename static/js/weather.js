@@ -27,11 +27,28 @@
     }
   }
 
-  // Regime ribbon (placeholder colors to distinguish segments)
-  const rib=document.getElementById('regime-ribbon'); if (rib) {
-    const cols=['#2e7d32','#8d6e63','#b71c1c','#5c6bc0','#ff8f00'];
-    for(let i=0;i<Math.max(1,days);i++){ const s=document.createElement('div'); s.className='seg'; s.style.background=cols[i%cols.length]; rib.appendChild(s); }
-  }
+  // Weekly mini chart (Temp, Visc, Precip)
+  (function(){
+    const svg=document.getElementById('mini-weekly'); if(!svg) return; const W=600,H=180,P=28; svg.innerHTML='';
+    const n=Math.max(1,data.series.length); const x=(i)=>P+i*((W-2*P)/(n-1));
+    const temp=data.series.map(d=>d.TemperatureF||0);
+    const visc=data.series.map(d=>d.Viscosity||0);
+    const rain=data.series.map(d=>d.PrecipitationMM||0);
+    const tMin=-20,tMax=120, vMin=0,vMax=100000, pMin=0,pMax=100;
+    const yT=v=>P+(1-((v-tMin)/(tMax-tMin)))*(H-2*P);
+    const yV=v=>P+(1-((v-vMin)/(vMax-vMin)))*(H-2*P);
+    const yP=v=>H-P-((v-pMin)/(pMax-pMin))*(H-2*P);
+    // grid
+    for(let i=0;i<n;i++){const gx=document.createElementNS('http://www.w3.org/2000/svg','line'); const xx=x(i); gx.setAttribute('x1',xx);gx.setAttribute('y1',P);gx.setAttribute('x2',xx);gx.setAttribute('y2',H-P);gx.setAttribute('stroke','#1e1e1e'); svg.appendChild(gx)}
+    // precip bars
+    for(let i=0;i<n;i++){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'); r.setAttribute('x',x(i)-5); r.setAttribute('y',yP(rain[i])); r.setAttribute('width',10); r.setAttribute('height',Math.max(0,(H-P)-yP(rain[i]))); r.setAttribute('fill','rgba(64,224,208,0.28)'); r.setAttribute('stroke','rgba(64,224,208,0.7)'); svg.appendChild(r)}
+    // temp
+    let pT=''; for(let i=0;i<n;i++){pT+=`${i?'L':'M'}${x(i)},${yT(temp[i])} `;} const pathT=document.createElementNS('http://www.w3.org/2000/svg','path'); pathT.setAttribute('d',pT); pathT.setAttribute('fill','none'); pathT.setAttribute('stroke','#ff6fb3'); pathT.setAttribute('stroke-width','2'); svg.appendChild(pathT);
+    // visc
+    let pV=''; for(let i=0;i<n;i++){pV+=`${i?'L':'M'}${x(i)},${yV(visc[i])} `;} const pathV=document.createElementNS('http://www.w3.org/2000/svg','path'); pathV.setAttribute('d',pV); pathV.setAttribute('fill','none'); pathV.setAttribute('stroke','#5ad1ff'); pathV.setAttribute('stroke-width','2'); svg.appendChild(pathV);
+    // legend
+    const lg=document.getElementById('legend-mini'); if(lg){ lg.innerHTML=''; const mk=(c,t)=>{const d=document.createElement('div'); d.className='lg'; const sw=document.createElement('span'); sw.className='sw'; sw.style.background=c; const tx=document.createElement('span'); tx.textContent=t; d.appendChild(sw); d.appendChild(tx); lg.appendChild(d)}; mk('#ff6fb3','Temp'); mk('#5ad1ff','Visc'); mk('rgba(64,224,208,0.6)','Precip'); }
+  })();
 
   // Weekly composite chart: temperature (left axis), viscosity (right axis), precipitation bars
   function drawWeeklyChart(){
@@ -79,22 +96,25 @@
   }
   drawWeeklyChart();
 
-  // Wind rose — compact with guides and titles
-  (function(){const svg=document.getElementById('svg-rose'); if(!svg) return; const W=320,H=320,cx=W/2,cy=H/2,r=120; svg.innerHTML='';
-    const circle=(rad)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',rad);c.setAttribute('fill','none');c.setAttribute('stroke','#222'); svg.appendChild(c)}; circle(r*0.33); circle(r*0.66); circle(r);
-    const lab=(tx,x,y)=>{const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('fill','#666'); t.setAttribute('font-size','11'); t.setAttribute('text-anchor','middle'); t.textContent=tx; svg.appendChild(t)}; lab('N',cx,12); lab('S',cx,H-6); lab('E',W-8,cy+4); lab('W',8,cy+4);
-    for(const d of data.series){const a=((d.WindDirDeg||0)-90)*Math.PI/180; const len=Math.min(1,(d.WindSpeedMPH||0)/35)*r; const x=cx+Math.cos(a)*len; const y=cy+Math.sin(a)*len; const l=document.createElementNS('http://www.w3.org/2000/svg','line'); l.setAttribute('x1',cx);l.setAttribute('y1',cy);l.setAttribute('x2',x);l.setAttribute('y2',y); l.setAttribute('stroke','#40e0d0'); l.setAttribute('stroke-width','3'); l.setAttribute('opacity','.8'); svg.appendChild(l); const dot=document.createElementNS('http://www.w3.org/2000/svg','circle'); dot.setAttribute('cx',x); dot.setAttribute('cy',y); dot.setAttribute('r',3.5); dot.setAttribute('fill','#40e0d0'); dot.setAttribute('title',`Wind ${d.WindSpeedMPH||0} mph @ ${d.WindDirDeg||0}°`); svg.appendChild(dot); }
+  // Compact wind compass
+  (function(){const svg=document.getElementById('wind-compass'); if(!svg) return; const W=160,H=160,cx=W/2,cy=H/2,r=60; svg.innerHTML='';
+    const circle=(rad)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',rad);c.setAttribute('fill','none');c.setAttribute('stroke','#222'); svg.appendChild(c)}; circle(r*0.5); circle(r);
+    const lab=(tx,x,y)=>{const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('fill','#666'); t.setAttribute('font-size','10'); t.setAttribute('text-anchor','middle'); t.textContent=tx; svg.appendChild(t)}; lab('N',cx,10); lab('S',cx,H-4); lab('E',W-6,cy+4); lab('W',6,cy+4);
+    const d = data.today||{}; const a=((d.WindDirDeg||0)-90)*Math.PI/180; const len=Math.min(1,(d.WindSpeedMPH||0)/35)*r; const x=cx+Math.cos(a)*len; const y=cy+Math.sin(a)*len; const l=document.createElementNS('http://www.w3.org/2000/svg','line'); l.setAttribute('x1',cx);l.setAttribute('y1',cy);l.setAttribute('x2',x);l.setAttribute('y2',y); l.setAttribute('stroke','#40e0d0'); l.setAttribute('stroke-width','3'); svg.appendChild(l); const dot=document.createElementNS('http://www.w3.org/2000/svg','circle'); dot.setAttribute('cx',x); dot.setAttribute('cy',y); dot.setAttribute('r',3.5); dot.setAttribute('fill','#40e0d0'); svg.appendChild(dot);
   })();
 
-  // Swarm counts
-  (function(){const svg=document.getElementById('svg-swarm'); if(!svg) return; const W=420,H=240; svg.innerHTML=''; const today=data.today||{}; const counts=today.CountsJSON?JSON.parse(today.CountsJSON):{}; const items=Object.entries(counts); if(!items.length){const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',12); t.setAttribute('y',H/2); t.setAttribute('fill','#888'); t.textContent='No counts filed.'; svg.appendChild(t); return;} let x=40; for(const [k,v] of items){ const n=v||0; for(let i=0;i<n;i++){ const cx=x + Math.random()*20; const cy=H-20 - (Math.random()* (H-60)); const dot=document.createElementNS('http://www.w3.org/2000/svg','circle'); dot.setAttribute('cx',cx); dot.setAttribute('cy',cy); dot.setAttribute('r',4); dot.setAttribute('fill','#ffcc66'); svg.appendChild(dot);} const label=document.createElementNS('http://www.w3.org/2000/svg','text'); label.setAttribute('x',x); label.setAttribute('y',H-4); label.setAttribute('fill','#fff'); label.setAttribute('font-size','12'); label.textContent=k+` (${n})`; svg.appendChild(label); x+=Math.max(60, (W-80)/items.length); } })();
+  // Counts list
+  (function(){const el=document.getElementById('counts-list'); if(!el) return; const today=data.today||{}; const counts=today.CountsJSON?JSON.parse(today.CountsJSON):{}; const items=Object.entries(counts); el.innerHTML = items.length? items.map(([k,v])=>`<li>${k}: <b>${v}</b></li>`).join('') : '<li>No counts filed.</li>'; })();
 
-  // Events
-  (function(){const svg=document.getElementById('svg-events'); if(!svg) return; const W=420,H=160,P=24; svg.innerHTML=''; const today=data.today||{}; const events=today.EventsJSON?JSON.parse(today.EventsJSON):[]; if(!events.length){const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',P); t.setAttribute('y',H/2); t.setAttribute('fill','#888'); t.textContent='No events recorded.'; svg.appendChild(t); return;} let x=P; const step=(W-2*P)/Math.max(1,events.length-1); for(const ev of events){ const y = H/2 + ((ev.intensity||0)-50); const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',5); c.setAttribute('fill','#ff6fb3'); svg.appendChild(c); const label=document.createElementNS('http://www.w3.org/2000/svg','text'); label.setAttribute('x',x+8); label.setAttribute('y',y-8); label.setAttribute('fill','#fff'); label.setAttribute('font-size','11'); label.textContent=ev.type||'event'; svg.appendChild(label); x+=step; } })();
+  // Events list
+  (function(){const el=document.getElementById('events-list'); if(!el) return; const today=data.today||{}; const events=today.EventsJSON?JSON.parse(today.EventsJSON):[]; el.innerHTML = events.length? events.map((e)=>`<li>${e.type||'event'} — ${e.intensity||0}</li>`).join('') : '<li>No events recorded.</li>'; })();
 
   // Indices and weekly JSON dumps as readable KV
   (function(){const el=document.getElementById('indices-list'); if(!el) return; const today=data.today||{}; const idx=today.IndicesJSON?JSON.parse(today.IndicesJSON):{}; const items=Object.entries(idx); el.innerHTML = items.length? items.map(([k,v])=>`<div class='kv-item'><span class='k'>${k}</span><span class='v'>${v}</span></div>`).join('') : '<div class="kv-item"><span class="k">No indices</span><span class="v">—</span></div>'; })();
   (function(){const el=document.getElementById('weekly-kv'); if(!el) return; const w=data.weekly||{}; const traits=w.WeeklyTraitsJSON?JSON.parse(w.WeeklyTraitsJSON):{}; const pairs=[['Seed', w.SeedHash||'—'], ['Algo', w.AlgoVersion||'—']]; const extra=Object.entries(traits); el.innerHTML = pairs.concat(extra).map(([k,v])=>`<div class='kv-item'><span class='k'>${k}</span><span class='v'>${v}</span></div>`).join(''); })();
+
+  // Forecast table
+  (function(){const t=document.getElementById('forecast-table'); if(!t) return; const rows=data.series||[]; const header=['Day','Temp °F','Visc cP','Precip mm']; t.innerHTML = `<tr>${header.map(h=>`<th>${h}</th>`).join('')}</tr>` + rows.map((d,i)=>`<tr><td>D${i+1}</td><td>${d.TemperatureF||0}</td><td>${d.Viscosity||0}</td><td>${d.PrecipitationMM||0}</td></tr>`).join(''); })();
 
   // Notes
   (function(){const el=document.getElementById('notes'); if(!el) return; for(const d of data.series){const p=document.createElement('div'); const dt=(d.Date||'').toString().slice(0,10); p.textContent=`${dt||'Day'} — temp ${d.TemperatureF||0}°F; visc ${d.Viscosity||0} cP; rain ${d.PrecipitationMM||0}mm.`; el.appendChild(p)} })();

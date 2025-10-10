@@ -25,15 +25,17 @@
   </header>
 
   <div class="wa-grid">
-    <div class="wa-left">
-      <div class="wa-pan" id="panel-visc-temp">
-        <div class="wa-h">Weekly Trends — Temperature (°F) & Viscosity (cP)</div>
-        <div class="legend" id="legend-main"></div>
-        <svg id="svg-visc-temp" viewBox="0 0 860 320" preserveAspectRatio="xMidYMid meet"></svg>
-        <div class="wa-ribbon" id="regime-ribbon" title="Weekly regimes"></div>
-        <div class="legend" id="legend-ribbon"></div>
+    <div class="wa-col">
+      <div class="wa-pan" id="today-card">
+        <div class="wa-h">Today</div>
+        <div class="wa-kv" id="today-kv"></div>
       </div>
-      <div class="wa-pan" id="panel-labels">
+      <div class="wa-pan" id="wind-card">
+        <div class="wa-h">Wind</div>
+        <svg id="wind-compass" viewBox="0 0 160 160"></svg>
+      </div>
+      <div class="wa-pan" id="labels-card">
+        <div class="wa-h">This Week</div>
         <div class="wa-kv">
           <div class="kv-item"><span class="k">Biome</span><span class="v" id="kv-biome">—</span></div>
           <div class="kv-item"><span class="k">Pizza</span><span class="v" id="kv-pizza">—</span></div>
@@ -41,36 +43,27 @@
           <div class="kv-item"><span class="k">Cheese</span><span class="v" id="kv-cheese">—</span></div>
           <div class="kv-item"><span class="k">Time‑Mode</span><span class="v" id="kv-time">—</span></div>
         </div>
-      </div>
-
-      <div class="wa-pan" id="panel-today">
-        <div class="wa-h">Today — Full Readout</div>
-        <div class="wa-kv" id="today-kv"></div>
+        <div class="wa-kv" id="weekly-kv"></div>
       </div>
     </div>
 
-    <div class="wa-right">
-      <div class="wa-pan" id="panel-rose">
-        <div class="wa-h">Wind Rose — Circular Bureaucracy</div>
-        <svg id="svg-rose" viewBox="0 0 320 320"></svg>
+    <div class="wa-col">
+      <div class="wa-pan" id="weekly-chart">
+        <div class="wa-h">Weekly — Temp, Visc, Precip</div>
+        <div class="legend" id="legend-mini"></div>
+        <svg id="mini-weekly" viewBox="0 0 600 180" preserveAspectRatio="xMidYMid meet"></svg>
       </div>
-      <div class="wa-pan" id="panel-counts">
-        <div class="wa-h">Counts — Swarm of Allegations</div>
-        <svg id="svg-swarm" viewBox="0 0 420 240"></svg>
+      <div class="wa-pan" id="forecast-card">
+        <div class="wa-h">7‑Day Forecast</div>
+        <table class="wx-table" id="forecast-table"></table>
       </div>
-      <div class="wa-pan" id="panel-events">
-        <div class="wa-h">Events — Timeline of Questionable Omens</div>
-        <svg id="svg-events" viewBox="0 0 420 160"></svg>
+      <div class="wa-pan" id="counts-card">
+        <div class="wa-h">Counts</div>
+        <ul class="wx-list" id="counts-list"></ul>
       </div>
-
-      <div class="wa-pan" id="panel-indices">
-        <div class="wa-h">Indices — Bureau of Feelings</div>
-        <div class="wa-kv" id="indices-list"></div>
-      </div>
-
-      <div class="wa-pan" id="panel-weekly">
-        <div class="wa-h">Weekly Details — Provenance</div>
-        <div class="wa-kv" id="weekly-kv"></div>
+      <div class="wa-pan" id="events-card">
+        <div class="wa-h">Events</div>
+        <ul class="wx-list" id="events-list"></ul>
       </div>
     </div>
   </div>
