@@ -49,12 +49,24 @@
     let pV=''; for(let i=0;i<n;i++){pV+=`${i?'L':'M'}${x(i)},${yV(visc[i])} `;} const pathV=document.createElementNS('http://www.w3.org/2000/svg','path'); pathV.setAttribute('d',pV); pathV.setAttribute('fill','none'); pathV.setAttribute('stroke','#5ad1ff'); pathV.setAttribute('stroke-width','2'); svg.appendChild(pathV);
     // legend
     const lg=document.getElementById('legend-mini'); if(lg){ lg.innerHTML=''; const mk=(c,t)=>{const d=document.createElement('div'); d.className='lg'; const sw=document.createElement('span'); sw.className='sw'; sw.style.background=c; const tx=document.createElement('span'); tx.textContent=t; d.appendChild(sw); d.appendChild(tx); lg.appendChild(d)}; mk('#ff6fb3','Temp'); mk('#5ad1ff','Visc'); mk('rgba(64,224,208,0.6)','Precip'); }
-    // tooltips on hover (points + bars)
+    // unified tooltips per day (Temp, Visc, Precip)
     const tip=document.getElementById('wx-tip'); const show=(html,e)=>{if(!tip) return; tip.innerHTML=html; tip.style.display='block'; tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+12)+'px'}; const hide=()=>{if(tip) tip.style.display='none'};
-    // hit targets: small circles on series
-    for(let i=0;i<n;i++){ const cx=x(i), cyT=yT(temp[i]), cyV=yV(visc[i]); const mk=(x0,y0,html)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',x0); c.setAttribute('cy',y0); c.setAttribute('r',6); c.setAttribute('fill','transparent'); c.addEventListener('mousemove',e=>show(html,e)); c.addEventListener('mouseleave',hide); svg.appendChild(c)}; mk(cx,cyT,`D${i+1}<br/>Temp: <b>${temp[i]}°F</b>`); mk(cx,cyV,`D${i+1}<br/>Visc: <b>${visc[i]}</b> cP`); }
-    // precip bars tooltip overlays
-    for(let i=0;i<n;i++){ const ov=document.createElementNS('http://www.w3.org/2000/svg','rect'); ov.setAttribute('x',x(i)-8); ov.setAttribute('y',P); ov.setAttribute('width',16); ov.setAttribute('height',H-2*P); ov.setAttribute('fill','transparent'); ov.addEventListener('mousemove',e=>show(`D${i+1}<br/>Precip: <b>${rain[i]} mm</b>`,e)); ov.addEventListener('mouseleave',hide); svg.appendChild(ov) }
+    const step = (W-2*P)/Math.max(1,(n-1));
+    for(let i=0;i<n;i++){
+      const ov=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      ov.setAttribute('x', (x(i) - step/2));
+      ov.setAttribute('y', P);
+      ov.setAttribute('width', Math.max(14, step));
+      ov.setAttribute('height', H-2*P);
+      ov.setAttribute('fill', 'transparent');
+      const html = `D${i+1}<br/>`+
+        `<span style="color:#ff6fb3">Temp</span>: <b>${temp[i]}°F</b><br/>`+
+        `<span style="color:#5ad1ff">Visc</span>: <b>${visc[i]}</b> cP<br/>`+
+        `<span style="color:turquoise">Precip</span>: <b>${rain[i]} mm</b>`;
+      ov.addEventListener('mousemove', e=>show(html,e));
+      ov.addEventListener('mouseleave', hide);
+      svg.appendChild(ov);
+    }
   })();
 
   // Weekly composite chart: temperature (left axis), viscosity (right axis), precipitation bars
