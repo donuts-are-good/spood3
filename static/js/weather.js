@@ -10,6 +10,21 @@
   if (data.today) {
     const t = data.today; const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v||'—'};
     set('kv-cheese', t.CheeseSmell); set('kv-time', t.TimeMode);
+    // Today full readout
+    const kv=document.getElementById('today-kv'); if(kv){
+      const pairs = [
+        ['Date', (t.Date||'').toString().slice(0,10)],
+        ['Regime', t.Regime],
+        ['Viscosity (cP)', t.Viscosity],
+        ['Temperature (°F)', t.TemperatureF],
+        ['Temporality', t.Temporality],
+        ['Wind Speed (mph)', t.WindSpeedMPH],
+        ['Wind Dir (deg)', t.WindDirDeg],
+        ['Precipitation (mm)', t.PrecipitationMM],
+        ['Drizzle (min)', t.DrizzleMinutes],
+      ];
+      kv.innerHTML = pairs.map(([k,v])=>`<div class='kv-item'><span class='k'>${k}</span><span class='v'>${v??'—'}</span></div>`).join('');
+    }
   }
 
   // Regime ribbon
@@ -47,10 +62,14 @@
   })();
 
   // Swarm counts
-  (function(){const svg=document.getElementById('svg-swarm'); if(!svg) return; const W=420,H=240; svg.innerHTML=''; const today=data.today||{}; const counts=today.CountsJSON?JSON.parse(today.CountsJSON):{}; const items=Object.entries(counts); if(!items.length){const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',12); t.setAttribute('y',H/2); t.setAttribute('fill','#888'); t.textContent='No counts filed.'; svg.appendChild(t); return;} let x=40; for(const [k,v] of items){ const n=v||0; for(let i=0;i<n;i++){ const cx=x + Math.random()*20; const cy=H-20 - (Math.random()* (H-60)); const dot=document.createElementNS('http://www.w3.org/2000/svg','circle'); dot.setAttribute('cx',cx); dot.setAttribute('cy',cy); dot.setAttribute('r',4); dot.setAttribute('fill','#ffcc66'); svg.appendChild(dot);} const label=document.createElementNS('http://www.w3.org/2000/svg','text'); label.setAttribute('x',x); label.setAttribute('y',H-4); label.setAttribute('fill','#fff'); label.setAttribute('font-size','12'); label.textContent=k; svg.appendChild(label); x+=Math.max(60, (W-80)/items.length); } })();
+  (function(){const svg=document.getElementById('svg-swarm'); if(!svg) return; const W=420,H=240; svg.innerHTML=''; const today=data.today||{}; const counts=today.CountsJSON?JSON.parse(today.CountsJSON):{}; const items=Object.entries(counts); if(!items.length){const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',12); t.setAttribute('y',H/2); t.setAttribute('fill','#888'); t.textContent='No counts filed.'; svg.appendChild(t); return;} let x=40; for(const [k,v] of items){ const n=v||0; for(let i=0;i<n;i++){ const cx=x + Math.random()*20; const cy=H-20 - (Math.random()* (H-60)); const dot=document.createElementNS('http://www.w3.org/2000/svg','circle'); dot.setAttribute('cx',cx); dot.setAttribute('cy',cy); dot.setAttribute('r',4); dot.setAttribute('fill','#ffcc66'); svg.appendChild(dot);} const label=document.createElementNS('http://www.w3.org/2000/svg','text'); label.setAttribute('x',x); label.setAttribute('y',H-4); label.setAttribute('fill','#fff'); label.setAttribute('font-size','12'); label.textContent=k+` (${n})`; svg.appendChild(label); x+=Math.max(60, (W-80)/items.length); } })();
 
   // Events
   (function(){const svg=document.getElementById('svg-events'); if(!svg) return; const W=420,H=160,P=24; svg.innerHTML=''; const today=data.today||{}; const events=today.EventsJSON?JSON.parse(today.EventsJSON):[]; if(!events.length){const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',P); t.setAttribute('y',H/2); t.setAttribute('fill','#888'); t.textContent='No events recorded.'; svg.appendChild(t); return;} let x=P; const step=(W-2*P)/Math.max(1,events.length-1); for(const ev of events){ const y = H/2 + ((ev.intensity||0)-50); const c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',5); c.setAttribute('fill','#ff6fb3'); svg.appendChild(c); const label=document.createElementNS('http://www.w3.org/2000/svg','text'); label.setAttribute('x',x+8); label.setAttribute('y',y-8); label.setAttribute('fill','#fff'); label.setAttribute('font-size','11'); label.textContent=ev.type||'event'; svg.appendChild(label); x+=step; } })();
+
+  // Indices and weekly JSON dumps as readable KV
+  (function(){const el=document.getElementById('indices-list'); if(!el) return; const today=data.today||{}; const idx=today.IndicesJSON?JSON.parse(today.IndicesJSON):{}; const items=Object.entries(idx); el.innerHTML = items.length? items.map(([k,v])=>`<div class='kv-item'><span class='k'>${k}</span><span class='v'>${v}</span></div>`).join('') : '<div class="kv-item"><span class="k">No indices</span><span class="v">—</span></div>'; })();
+  (function(){const el=document.getElementById('weekly-kv'); if(!el) return; const w=data.weekly||{}; const traits=w.WeeklyTraitsJSON?JSON.parse(w.WeeklyTraitsJSON):{}; const pairs=[['Seed', w.SeedHash||'—'], ['Algo', w.AlgoVersion||'—']]; const extra=Object.entries(traits); el.innerHTML = pairs.concat(extra).map(([k,v])=>`<div class='kv-item'><span class='k'>${k}</span><span class='v'>${v}</span></div>`).join(''); })();
 
   // Notes
   (function(){const el=document.getElementById('notes'); if(!el) return; for(const d of data.series){const p=document.createElement('div'); const dt=(d.Date||'').toString().slice(0,10); p.textContent=`${dt||'Day'} — temp ${d.TemperatureF||0}°F; visc ${d.Viscosity||0} cP; rain ${d.PrecipitationMM||0}mm.`; el.appendChild(p)} })();
