@@ -186,10 +186,11 @@
             </div>
         </div>
             </div><!-- End fighter-main-content -->
+
+            <!-- genomics here as a grid of 8 genes, 8 characters each, in a display of boxes like a mnemonic phrase input in a crypto wallet looks. -->
         </div><!-- End fighter-content-grid -->
         
         <div class="fighter-actions">
-            <a href="/" class="back-button">← Back to Schedule</a>
             {{if gt .FighterLegacyCount 0}}
             <div class="fighter-championships">
                 <div class="champion-badge">🏆 {{.FighterLegacyCount}}x Champion</div>
@@ -207,6 +208,8 @@
                     {{end}}
                 </ul>
             </div>
+            <a href="/" class="back-button">← Back to Schedule</a>
+
             {{end}}
         </div>
 
