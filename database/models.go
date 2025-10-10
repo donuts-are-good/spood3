@@ -48,6 +48,7 @@ type Fighter struct {
 	CustomDescription *string    `db:"custom_description"`
 	Lore              string     `db:"lore"`
 	AvatarURL         string     `db:"avatar_url"`
+	Genome            string     `db:"genome"`
 }
 
 type ChampionLegacyRecord struct {
