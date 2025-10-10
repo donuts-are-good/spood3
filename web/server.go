@@ -151,6 +151,7 @@ type PageData struct {
 	// Weather page flags
 	ShowHistoricalBanner bool
 	NetworkStart         time.Time
+	ShowNextNav          bool
 }
 
 func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessionSecret string) *Server {
@@ -335,11 +336,17 @@ func (s *Server) handleBlogPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 
-	// Determine reference date (supports ?date=YYYY-MM-DD)
+	// Determine reference date (supports ?date=YYYY-MM-DD) but do not allow future dates
 	now := time.Now()
 	if ds := r.URL.Query().Get("date"); ds != "" {
 		if d, err := time.ParseInLocation("2006-01-02", ds, time.Local); err == nil {
-			now = d
+			todayLocal := time.Now().In(time.Local)
+			todayDate := time.Date(todayLocal.Year(), todayLocal.Month(), todayLocal.Day(), 0, 0, 0, 0, time.Local)
+			if d.After(todayDate) {
+				now = todayDate
+			} else {
+				now = d
+			}
 		}
 	}
 	tournament, _ := s.scheduler.GetCurrentTournament(now)
@@ -402,6 +409,7 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 		Now:                  now,
 		ShowHistoricalBanner: start.Before(networkStart),
 		NetworkStart:         networkStart,
+		ShowNextNav:          now.Before(time.Now().In(time.Local).Truncate(24 * time.Hour)),
 		MetaDescription:      "📡 Recreational meteorology: weekly card and daily drift.",
 		MetaType:             "website",
 	}
