@@ -2,9 +2,16 @@
 .wa-hero{margin-bottom:16px;text-align:center}
 .wa-hero h2{font-size:1.8rem;margin:0 0 6px 0}
 .wa-sub{opacity:.8;margin:0}
+.wa-headline{display:flex;justify-content:space-between;gap:12px;margin-top:8px;color:#ccc;font-size:.9rem}
+.hl-k{color:#aaa;text-transform:uppercase;letter-spacing:1px}
+.hl-v{font-weight:700;color:#fff;margin-left:6px}
+.hl-sep{margin:0 8px;color:#555}
 .wa-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
 .wa-pan{background:#000;border:1px solid #2a2a2a;border-radius:12px;overflow:hidden;padding:12px}
 .wa-h{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#ffcc66;margin-bottom:8px}
+.legend{display:flex;gap:12px;margin:6px 0 10px 0}
+.legend .lg{display:flex;align-items:center;gap:6px;color:#ddd;font-size:.85rem}
+.legend .sw{width:14px;height:14px;border-radius:3px}
 .wa-ribbon{height:14px;border:1px solid #2a2a2a;border-radius:999px;overflow:hidden;display:flex;margin-top:10px}
 .seg{flex:1}
 .wa-kv{display:grid;grid-template-columns:1fr 1fr;gap:10px}

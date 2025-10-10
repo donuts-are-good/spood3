@@ -3,13 +3,33 @@
   <header class="wa-hero">
     <h2>Recreational Meteorology</h2>
     <p class="wa-sub">Filed by the Department · Deterministic yet unreasonable</p>
+    <div class="wa-headline">
+      <div>
+        <span class="hl-k">Week:</span>
+        <span class="hl-v">{{if .Tournament}}#{{.Tournament.WeekNumber}}{{else}}—{{end}}</span>
+        <span class="hl-sep">·</span>
+        <span class="hl-k">Tournament:</span>
+        <span class="hl-v">{{if .Tournament}}{{.Tournament.Name}}{{else}}—{{end}}</span>
+        <span class="hl-sep">·</span>
+        <span class="hl-k">Sponsor:</span>
+        <span class="hl-v">{{if .Tournament}}{{.Tournament.Sponsor}}{{else}}—{{end}}</span>
+      </div>
+      <div>
+        <span class="hl-k">Week Start:</span>
+        <span class="hl-v">{{if .WeeklyWeather}}{{formatDate .WeeklyWeather.WeekStart}}{{else}}—{{end}}</span>
+        <span class="hl-sep">·</span>
+        <span class="hl-k">Today:</span>
+        <span class="hl-v">{{formatDate .Now}}</span>
+      </div>
+    </div>
   </header>
 
   <div class="wa-grid">
     <div class="wa-left">
       <div class="wa-pan" id="panel-visc-temp">
-        <div class="wa-h">Viscosity & Temperature — Ritual Waveform</div>
-        <svg id="svg-visc-temp" viewBox="0 0 820 260" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="wa-h">Weekly Trends — Temperature (°F) & Viscosity (cP)</div>
+        <div class="legend" id="legend-main"></div>
+        <svg id="svg-visc-temp" viewBox="0 0 860 320" preserveAspectRatio="xMidYMid meet"></svg>
         <div class="wa-ribbon" id="regime-ribbon"></div>
       </div>
       <div class="wa-pan" id="panel-labels">

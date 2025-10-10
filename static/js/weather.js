@@ -18,13 +18,20 @@
     for(let i=0;i<Math.max(1,days);i++){ const s=document.createElement('div'); s.className='seg'; s.style.background=cols[i%cols.length]; rib.appendChild(s); }
   }
 
+  // Draw axes, legend, and series (two y-axes conceptually)
   function drawLine(svgId, arr, color, min, max, precip){
-    const svg=document.getElementById(svgId); if(!svg || !arr || !arr.length) return; const W=820,H=260,P=28; svg.innerHTML='';
-    for(let i=0;i<=6;i++){const x=P+i*((W-2*P)/6); const g=document.createElementNS('http://www.w3.org/2000/svg','line'); g.setAttribute('x1',x);g.setAttribute('y1',P);g.setAttribute('x2',x);g.setAttribute('y2',H-P);g.setAttribute('stroke','#1e1e1e'); svg.appendChild(g)}
-    for(let j=0;j<3;j++){const y=P+j*((H-2*P)/3); const g=document.createElementNS('http://www.w3.org/2000/svg','line'); g.setAttribute('x1',P);g.setAttribute('y1',y);g.setAttribute('x2',W-P);g.setAttribute('y2',y);g.setAttribute('stroke','#1e1e1e'); svg.appendChild(g)}
+    const svg=document.getElementById(svgId); if(!svg || !arr || !arr.length) return; const W=860,H=320,P=36; svg.innerHTML='';
+    // axes
+    const axisCol='#3a3a3a';
+    const xSteps=arr.length-1; for(let i=0;i<=xSteps;i++){const x=P+i*((W-2*P)/(xSteps)); const g=document.createElementNS('http://www.w3.org/2000/svg','line'); g.setAttribute('x1',x);g.setAttribute('y1',P);g.setAttribute('x2',x);g.setAttribute('y2',H-P);g.setAttribute('stroke','#1e1e1e'); svg.appendChild(g); const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',x); t.setAttribute('y',H-P+18); t.setAttribute('fill','#888'); t.setAttribute('font-size','12'); t.setAttribute('text-anchor','middle'); t.textContent = 'D'+(i+1); svg.appendChild(t); }
+    const yTicks=5; for(let j=0;j<=yTicks;j++){const y=P+j*((H-2*P)/yTicks); const g=document.createElementNS('http://www.w3.org/2000/svg','line'); g.setAttribute('x1',P);g.setAttribute('y1',y);g.setAttribute('x2',W-P);g.setAttribute('y2',y);g.setAttribute('stroke','#1e1e1e'); svg.appendChild(g); const v=max - j*((max-min)/yTicks); const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',8); t.setAttribute('y',y+4); t.setAttribute('fill','#888'); t.setAttribute('font-size','12'); t.textContent = Math.round(v); svg.appendChild(t); }
+    // legend
+    const lg=document.getElementById('legend-main'); if(lg){ lg.innerHTML=''; const mk=(c,t)=>{const d=document.createElement('div'); d.className='lg'; const sw=document.createElement('span'); sw.className='sw'; sw.style.background=c; const tx=document.createElement('span'); tx.textContent=t; d.appendChild(sw); d.appendChild(tx); lg.appendChild(d)}; mk('#5ad1ff','Viscosity (cP)'); mk('#ff6fb3','Temperature (°F)'); mk('rgba(64,224,208,0.6)','Precipitation (mm)'); }
+    // lines
     let path=''; for(let i=0;i<arr.length;i++){const x=P+i*((W-2*P)/(arr.length-1)); const y=P+(1-((arr[i]-min)/(max-min)))*(H-2*P); path+=`${i?'L':'M'}${x},${y} `}
     const p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d',path); p.setAttribute('fill','none'); p.setAttribute('stroke',color); p.setAttribute('stroke-width','2.5'); svg.appendChild(p);
-    if (precip) { for(let i=0;i<precip.length;i++){ const x=P+i*((W-2*P)/precip.length); const h=(precip[i]/100)*(H-2*P); const r=document.createElementNS('http://www.w3.org/2000/svg','rect'); r.setAttribute('x',x-5); r.setAttribute('y',H-P-h); r.setAttribute('width',10); r.setAttribute('height',h); r.setAttribute('fill','rgba(64,224,208,0.28)'); r.setAttribute('stroke','rgba(64,224,208,0.7)'); svg.appendChild(r) } }
+    // precipitation bars on secondary axis (0-100)
+    if (precip) { const pmin=0,pmax=100; for(let i=0;i<precip.length;i++){ const x=P+i*((W-2*P)/precip.length); const h=((precip[i]-pmin)/(pmax-pmin))*(H-2*P); const r=document.createElementNS('http://www.w3.org/2000/svg','rect'); r.setAttribute('x',x-6); r.setAttribute('y',H-P-h); r.setAttribute('width',12); r.setAttribute('height',h); r.setAttribute('fill','rgba(64,224,208,0.28)'); r.setAttribute('stroke','rgba(64,224,208,0.7)'); svg.appendChild(r) } }
   }
 
   const visc = data.series.map(d => d.Viscosity||0);
