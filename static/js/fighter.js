@@ -1,5 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
     try {
+        // Keyboard left/right to navigate fighters by ID
+        (function fighterKeyNav(){
+            const path = window.location.pathname;
+            const m = path.match(/\/fighter\/(\d+)/);
+            if (!m) return;
+            const currentId = parseInt(m[1], 10);
+            document.addEventListener('keydown', function(event){
+                if (document.activeElement && (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) return;
+                let target = null;
+                if (event.key === 'ArrowLeft') { target = currentId - 1; event.preventDefault(); }
+                if (event.key === 'ArrowRight') { target = currentId + 1; event.preventDefault(); }
+                if (target && target > 0) window.location = `/fighter/${target}`;
+            });
+        })();
+
         // Genome grid render
         (function renderGenome() {
             const grid = document.getElementById('genome-grid');

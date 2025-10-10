@@ -1,6 +1,13 @@
 {{define "content"}}
 <div class="fighter-profile">
     {{if .Fighter}}
+        <!-- Fighter Navigation Arrows -->
+        <div class="fight-nav-left">
+            <a href="/fighter/{{sub .Fighter.ID 1}}" class="nav-arrow" title="Previous Fighter">‹</a>
+        </div>
+        <div class="fight-nav-right">
+            <a href="/fighter/{{add .Fighter.ID 1}}" class="nav-arrow" title="Next Fighter">›</a>
+        </div>
         <!-- Clean header with name and record -->
         <div class="fighter-header-clean">
             <div class="fighter-title">
