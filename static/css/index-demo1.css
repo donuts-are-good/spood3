@@ -60,11 +60,9 @@
 .fight-card.undead-present{ background: linear-gradient(0deg, rgba(164,140,232,0.06), rgba(164,140,232,0.06)), #0a0a0a; }
 /* Side-specific undead aura: purple fade from zombie side + green edge that fades across */
 .fight-card.undead-left::before,
-.fight-card.undead-right::before{ width:6px; }
-.fight-card.undead-left::before{ background:#10b981; }
-.fight-card.undead-right::before{ background:#10b981; }
+.fight-card.undead-right::before{ width:4px; border-radius:inherit; background:revert; }
 .fight-card.undead-left::after,
-.fight-card.undead-right::after{ content:""; position:absolute; top:0; bottom:0; width:52%; pointer-events:none; }
+.fight-card.undead-right::after{ content:""; position:absolute; top:0; bottom:0; width:52%; pointer-events:none; border-radius:inherit; }
 .fight-card.undead-left::after{ left:0; background:
     linear-gradient(90deg, rgba(156,126,252,0.34) 0%, rgba(164,140,232,0.16) 45%, rgba(164,140,232,0.00) 100%);
     box-shadow:inset 5px 0 0 rgba(16,185,129,0.5); }
@@ -73,7 +71,7 @@
     box-shadow:inset -5px 0 0 rgba(16,185,129,0.5); }
 /* Green outline tint that fades along the top/bottom toward the non‑zombie side */
 .fight-card.undead-left,
-.fight-card.undead-right{ border:1px solid transparent; border-image-slice:1; }
+.fight-card.undead-right{ border:3px solid transparent; border-image-slice:1; border-radius:12px; }
 .fight-card.undead-left{ border-image: linear-gradient(90deg, rgba(16,185,129,0.85), rgba(10,10,10,1)) 1; }
 .fight-card.undead-right{ border-image: linear-gradient(270deg, rgba(16,185,129,0.85), rgba(10,10,10,1)) 1; }
 /* Status-specific left-edge colors */
