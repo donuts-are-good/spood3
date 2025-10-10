@@ -231,7 +231,7 @@
 				{{range .FighterPastFights}}
 				<li class="past-fight-row" onclick="window.location='/fight/{{.ID}}'" role="link">
 					<div class="pf-link">
-						<span class="pf-dot {{if and .WinnerID.Valid (eq .WinnerID.Int64 (int64 $.Fighter.ID))}}win{{else}}loss{{end}}" title="{{if and .WinnerID.Valid (eq .WinnerID.Int64 (int64 $.Fighter.ID))}}Win{{else}}Loss{{end}}"></span>
+						<span class="pf-dot {{if and .WinnerID.Valid (eq .WinnerID.Int64 (toInt64 $.Fighter.ID))}}win{{else}}loss{{end}}" title="{{if and .WinnerID.Valid (eq .WinnerID.Int64 (toInt64 $.Fighter.ID))}}Win{{else}}Loss{{end}}"></span>
 						<span class="pf-date">{{formatDate .CompletedAt.Time}}</span>
 						<span class="pf-vs">
 							<a href="/fighter/{{.Fighter1ID}}" class="pf-fighter">{{.Fighter1Name}}</a>

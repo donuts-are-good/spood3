@@ -3427,6 +3427,16 @@ func (s *Server) renderTemplate(w http.ResponseWriter, templateName string, data
 		"int64": func(i int64) int {
 			return int(i)
 		},
+		"toInt64": func(v interface{}) int64 {
+			switch t := v.(type) {
+			case int:
+				return int64(t)
+			case int64:
+				return t
+			default:
+				return 0
+			}
+		},
 		"until": func(n int) []int {
 			if n <= 0 {
 				return []int{}

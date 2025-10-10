@@ -77,13 +77,18 @@ func main() {
 	repo := database.NewRepository(db)
 	sched := scheduler.NewScheduler(repo)
 
-	// ONE-TIME: recompute all fighter genomes (remove after running once)
-	log.Println("[Genome] Starting one-time recompute of all fighter genomes…")
-	if err := repo.RecomputeAllFighterGenomes(); err != nil {
-		log.Printf("[Genome] Recompute error: %v", err)
-	} else {
-		log.Println("[Genome] Recompute complete.")
+	// Ensure any missing/unknown genomes are backfilled (idempotent)
+	if err := repo.BackfillFighterGenomes(); err != nil {
+		log.Printf("[Genome] Backfill error: %v", err)
 	}
+
+	// // ONE-TIME: recompute all fighter genomes (remove after running once)
+	// log.Println("[Genome] Starting one-time recompute of all fighter genomes…")
+	// if err := repo.RecomputeAllFighterGenomes(); err != nil {
+	// 	log.Printf("[Genome] Recompute error: %v", err)
+	// } else {
+	// 	log.Println("[Genome] Recompute complete.")
+	// }
 
 	// Ensure today's schedule exists (skip on Sundays - Department closed)
 	if now.Weekday() != time.Sunday {
