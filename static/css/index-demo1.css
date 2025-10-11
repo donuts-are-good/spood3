@@ -65,13 +65,13 @@
 .fight-card.undead-right::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; }
 /* Left zombie: top/bottom green fade from left → black, purple wash from left */
 .fight-card.undead-left::after{ background:
-    linear-gradient(90deg, rgba(16,185,129,0.85), rgba(10,10,10,0)) top/100% 3px no-repeat,
-    linear-gradient(90deg, rgba(16,185,129,0.85), rgba(10,10,10,0)) bottom/100% 3px no-repeat,
+    linear-gradient(90deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) top/100% 3px no-repeat,
+    linear-gradient(90deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) bottom/100% 3px no-repeat,
     linear-gradient(90deg, rgba(156,126,252,0.40) 0%, rgba(164,140,232,0.20) 28%, rgba(164,140,232,0.00) 40%); }
 /* Right zombie: top/bottom green fade from right → black, purple wash from right */
 .fight-card.undead-right::after{ background:
-    linear-gradient(270deg, rgba(16,185,129,0.85), rgba(10,10,10,0)) top/100% 3px no-repeat,
-    linear-gradient(270deg, rgba(16,185,129,0.85), rgba(10,10,10,0)) bottom/100% 3px no-repeat,
+    linear-gradient(270deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) top/100% 3px no-repeat,
+    linear-gradient(270deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) bottom/100% 3px no-repeat,
     linear-gradient(270deg, rgba(156,126,252,0.40) 0%, rgba(164,140,232,0.20) 28%, rgba(164,140,232,0.00) 40%); }
 /* Green outline tint that fades along the top/bottom toward the non‑zombie side */
 /* Use inner green edge via the aura pseudo-element instead of border-image to avoid radius conflicts */

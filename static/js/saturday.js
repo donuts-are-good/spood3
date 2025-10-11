@@ -7,6 +7,8 @@
 
   // Interval used to update the subtle countdown inside the Live Now card
   let liveNowCountdownInterval = null;
+  // Fighter metadata map for undead styling
+  let fightersMap = null; // Map<number, { IsUndead?: boolean, is_undead?: boolean }>
 
   const fightsPayload = loadJSON('#saturday-fights') || [];
   const betMap = loadJSON('#saturday-bets') || {};
@@ -17,8 +19,15 @@
   const partitions = partitionGroups(fights);
 
   renderOverview(fights, now);
-  renderGroups(partitions.groups, betMap);
-  renderShowdown(partitions.playoffs);
+  renderGroups(partitions.groups, betMap, fightersMap);
+  renderShowdown(partitions.playoffs, fightersMap);
+
+  // Load fighters to apply undead styling once available, then re-render
+  loadFighters().then((map) => {
+    fightersMap = map;
+    renderGroups(partitions.groups, betMap, fightersMap);
+    renderShowdown(partitions.playoffs, fightersMap);
+  }).catch(() => {/* non-fatal */});
 
   pollForUpdates();
 
@@ -175,7 +184,7 @@
     return `${minutesLeft}m until bell`;
   }
 
-  function renderGroups(groupMap, betMap) {
+  function renderGroups(groupMap, betMap, fightersMap) {
     const labels = ['A', 'B', 'C', 'D'];
     groupsRoot.innerHTML = '';
 
@@ -213,7 +222,7 @@
       const matchesEl = document.createElement('section');
       matchesEl.className = 'matches';
       fights.forEach((fight) => {
-        matchesEl.appendChild(renderMatchCard(fight, betMap));
+        matchesEl.appendChild(renderMatchCard(fight, betMap, fightersMap));
       });
       card.appendChild(matchesEl);
 
@@ -279,9 +288,13 @@
     }
   }
 
-  function renderMatchCard(fight, betMap) {
+  function renderMatchCard(fight, betMap, fightersMap) {
     const el = document.createElement('div');
     el.className = 'match-card';
+
+    const leftUndead = isUndead(fightersMap, fight.fighter1_id);
+    const rightUndead = isUndead(fightersMap, fight.fighter2_id);
+    const hasUndead = leftUndead || rightUndead;
 
     el.innerHTML = `
       <div class="match-top">
@@ -290,15 +303,21 @@
       </div>
       <div class="fighter-pair">
         <div class="fighter-name ${winnerClass(fight, fight.fighter1_id)}">
-          <span>${fight.fighter1_name}</span>
+          <span class="${leftUndead ? 'undead-name' : ''}">${fight.fighter1_name}</span>
           ${winnerDetail(fight, fight.fighter1_id)}
         </div>
         <div class="fighter-name ${winnerClass(fight, fight.fighter2_id)}">
-          <span>${fight.fighter2_name}</span>
+          <span class="${rightUndead ? 'undead-name' : ''}">${fight.fighter2_name}</span>
           ${winnerDetail(fight, fight.fighter2_id)}
         </div>
       </div>
     `;
+
+    if (hasUndead) {
+      el.classList.add('undead-present');
+      if (leftUndead) el.classList.add('undead-left');
+      if (rightUndead) el.classList.add('undead-right');
+    }
 
     if (betMap[fight.id]) {
       el.classList.add('bet');
@@ -347,7 +366,7 @@
     return '';
   }
 
-  function renderShowdown(playoffs) {
+  function renderShowdown(playoffs, fightersMap) {
     const descriptions = [
       'Semifinal · Group A Winner vs Group B Winner',
       'Semifinal · Group C Winner vs Group D Winner',
@@ -367,8 +386,9 @@
           const fight = playoffs.find(p => p.timeLabel === time);
           const revealed = fight && fight.fighter1_name && fight.fighter2_name;
           const href = revealed && fight && fight.id ? (fight.status === 'active' ? `/watch/${fight.id}` : `/fight/${fight.id}`) : '';
+          const undeadPresent = revealed && fight ? (isUndead(fightersMap, fight.fighter1_id) || isUndead(fightersMap, fight.fighter2_id)) : false;
           return `
-            <div class="showdown-card ${revealed && fight && fight.id ? 'clickable' : ''}" ${href ? `onclick="window.location='${href}'"` : ''}>
+            <div class="showdown-card ${undeadPresent ? 'undead-present' : ''} ${revealed && fight && fight.id ? 'clickable' : ''}" ${href ? `onclick=\"window.location='${href}'\"` : ''}>
               <div class="showdown-time">${time}</div>
               <div class="showdown-match ${revealed ? 'revealed' : 'pending'}">
                 ${revealed ? `${fight.fighter1_name} vs ${fight.fighter2_name}` : '▓▓▓▓▓▓▓▓▓ vs ▓▓▓▓▓▓▓▓▓'}
@@ -400,14 +420,41 @@
         const refreshed = payload.fights.map(enrichFight).sort((a, b) => a.scheduledTime - b.scheduledTime);
         const partitions = partitionGroups(refreshed);
         renderOverview(refreshed, new Date(payload.meta.now));
-        renderGroups(partitions.groups, betMap);
-        renderShowdown(partitions.playoffs);
+        renderGroups(partitions.groups, betMap, fightersMap);
+        renderShowdown(partitions.playoffs, fightersMap);
       } catch (err) {
         console.error('Saturday poll failed', err);
       } finally {
         pollForUpdates();
       }
     }, 45000);
+  }
+
+  async function loadFighters() {
+    try {
+      const res = await fetch('/api/fighters');
+      if (!res.ok) throw new Error('fighters load failed');
+      const list = await res.json();
+      const map = new Map();
+      (Array.isArray(list) ? list : []).forEach((f) => {
+        if (f && (typeof f.ID === 'number' || typeof f.id === 'number')) {
+          const id = typeof f.ID === 'number' ? f.ID : f.id;
+          map.set(id, f);
+        }
+      });
+      return map;
+    } catch (e) {
+      return new Map();
+    }
+  }
+
+  function isUndead(map, id) {
+    if (!map || !id) return false;
+    const f = map.get(id);
+    if (!f) return false;
+    if (typeof f.IsUndead === 'boolean') return f.IsUndead;
+    if (typeof f.is_undead === 'boolean') return f.is_undead;
+    return false;
   }
 })();
 

@@ -155,9 +155,22 @@
 .standing-row .name.bet {color:#4bb4ff;}
 
 .matches {display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; position:relative; z-index:1;}
-.match-card {background:rgba(12,7,18,0.85); border-radius:18px; border:1px solid rgba(255,255,255,0.06); padding:14px 16px; display:flex; flex-direction:column; gap:10px; transition:transform 0.25s, border-color 0.25s;}
+.match-card {background:rgba(12,7,18,0.85); border-radius:18px; border:1px solid rgba(255,255,255,0.06); padding:14px 16px; display:flex; flex-direction:column; gap:10px; transition:transform 0.25s, border-color 0.25s; position:relative; overflow:hidden;}
 .match-card.clickable {cursor:pointer;}
 .match-card:hover {transform:translateY(-4px); border-color:rgba(255,204,102,0.35);}
+.match-card::after{content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;}
+/* Undead tint like index: subtle purple wash; side-specific aura */
+.match-card.undead-present{ background: linear-gradient(0deg, rgba(164,140,232,0.06), rgba(164,140,232,0.06)), rgba(12,7,18,0.85); }
+.match-card.undead-left::after{ background:
+  linear-gradient(90deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) top/100% 3px no-repeat,
+  linear-gradient(90deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) bottom/100% 3px no-repeat,
+  linear-gradient(90deg, rgba(156,126,252,0.40) 0%, rgba(164,140,232,0.20) 28%, rgba(164,140,232,0.00) 40%);
+}
+.match-card.undead-right::after{ background:
+  linear-gradient(270deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) top/100% 3px no-repeat,
+  linear-gradient(270deg, rgba(156,126,252,0.95), rgba(10,10,10,0)) bottom/100% 3px no-repeat,
+  linear-gradient(270deg, rgba(156,126,252,0.40) 0%, rgba(164,140,232,0.20) 28%, rgba(164,140,232,0.00) 40%);
+}
 .match-top {display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; letter-spacing:2px; text-transform:uppercase; color:var(--sat-muted);}
 .tag {display:inline-block; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.06); font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.65);}
 
@@ -166,6 +179,10 @@
 .fighter-name.win {color:#8bffc7; font-weight:600;}
 .fighter-name.loss {color:rgba(255,255,255,0.55);}
 .match-card.bet {border-color:rgba(75, 180, 255, 0.35); box-shadow:0 12px 28px rgba(75, 180, 255, 0.15);}
+/* Glow for undead names – copied from index */
+.undead-name{ color:#c4b5fd !important; text-shadow:0 0 8px rgba(196,181,253,0.65), 0 0 14px rgba(124,58,237,0.45), 0 0 22px rgba(0,255,128,0.18); }
+@keyframes undeadNamePulse{ 0%{ text-shadow:0 0 6px rgba(196,181,253,0.45), 0 0 10px rgba(124,58,237,0.25), 0 0 0 rgba(0,255,128,0.0);} 50%{ text-shadow:0 0 14px rgba(196,181,253,0.9), 0 0 22px rgba(124,58,237,0.55), 0 0 12px rgba(0,255,128,0.25);} 100%{ text-shadow:0 0 6px rgba(196,181,253,0.45), 0 0 10px rgba(124,58,237,0.25), 0 0 0 rgba(0,255,128,0.0);} }
+.undead-name{ animation:undeadNamePulse 2200ms ease-in-out infinite; }
 
 .showdown {margin:48px 0; background:linear-gradient(120deg, rgba(255,68,68,0.1), rgba(255,204,102,0.12)); border-radius:28px; border:1px solid rgba(255,255,255,0.12); padding:30px 36px; position:relative; overflow:hidden;}
 .showdown::after {content:""; position:absolute; inset:-40% 35% auto -25%; height:230px; width:230px; background:radial-gradient(circle, rgba(255,204,102,0.3), transparent 60%); filter:blur(10px); opacity:0.6; pointer-events:none;}
@@ -173,7 +190,7 @@
 .showdown-title {font-size:1.4rem; letter-spacing:4px; text-transform:uppercase;}
 .showdown-sub {font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.72);} 
 .showdown-grid {display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px;}
-.showdown-card {background:rgba(10,4,16,0.78); border-radius:22px; border:1px solid rgba(255,255,255,0.12); padding:20px 22px; position:relative; transition:transform 0.3s, box-shadow 0.3s;}
+.showdown-card {background:rgba(10,4,16,0.78); border-radius:22px; border:1px solid rgba(255,255,255,0.12); padding:20px 22px; position:relative; transition:transform 0.3s, box-shadow 0.3s; overflow:hidden;}
 .showdown-card.clickable {cursor:pointer;}
 .showdown-card:hover {transform:translateY(-6px); box-shadow:0 25px 55px rgba(255,204,102,0.25);}
 .showdown-card::before {content:""; position:absolute; inset:12px; border-radius:18px; border:1px dashed rgba(255,255,255,0.08); opacity:0.35; pointer-events:none;}
@@ -181,6 +198,8 @@
 .showdown-match {font-size:1rem; text-transform:uppercase; letter-spacing:2px; min-height:64px; display:flex; align-items:center; justify-content:center; text-align:center; padding:12px; border-radius:14px;}
 .showdown-match.pending {color:rgba(255,255,255,0.62); background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));}
 .showdown-match.revealed {color:#ffeacf; font-weight:600;}
+/* Undead tinting on playoffs cards (revealed fights) */
+.showdown-card.undead-present::after{content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background:radial-gradient(100% 60% at 0% 50%, rgba(156,126,252,0.35), rgba(0,0,0,0) 55%), radial-gradient(100% 60% at 100% 50%, rgba(156,126,252,0.35), rgba(0,0,0,0) 55%);} 
 .showdown-footer {margin-top:18px; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.6); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
 .champion-note {color:#ffd36b; font-weight:600; display:flex; align-items:center; gap:10px;}
 
