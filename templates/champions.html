@@ -46,14 +46,8 @@
                 <span>{{formatDate .ScheduledTime}}</span>
                 <span>·</span>
                 <a href="/fighter/{{.FighterID}}">{{.FighterName}}</a>
-                <span class="award">+{{.StatDelta}} {{toTitle .StatAwarded}}</span>
+                <span class="award">Awarded +{{.StatDelta}} {{toTitle .StatAwarded}}</span>
               </div>
-            </div>
-            <div class="record-stats">
-              <span title="Total wagered">Bets: {{commas .TotalWagered}}</span>
-              <span title="Total paid out">Payout: {{commas .TotalPayout}}</span>
-              <span title="Blessings applied">Blessings: {{.BlessingsCount}}</span>
-              <span title="Curses applied">Curses: {{.CursesCount}}</span>
             </div>
             <div class="record-fightline">
               <span class="fighters">{{.Fighter1Name}} vs {{.Fighter2Name}}</span>
