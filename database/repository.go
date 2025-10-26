@@ -1084,10 +1084,10 @@ func (r *Repository) CreateChampionLegacyRecord(rec ChampionLegacyRecord) error 
 	return err
 }
 
-func (r *Repository) BackfillChampionLegacyStats() (int, error) {
+func (r *Repository) BackfillChampionLegacyStats() error {
 	rows, err := r.db.Query(`SELECT id, fight_id FROM champion_legacy_records`)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer rows.Close()
 
@@ -1100,34 +1100,32 @@ func (r *Repository) BackfillChampionLegacyStats() (int, error) {
 	for rows.Next() {
 		var item rec
 		if err := rows.Scan(&item.ID, &item.FightID); err != nil {
-			return 0, err
+			return err
 		}
 		targets = append(targets, item)
 	}
 	if err := rows.Err(); err != nil {
-		return 0, err
+		return err
 	}
 
-	updated := 0
 	for _, item := range targets {
 		totalWagered, totalPayout, err := r.SumChampionFightBets(item.FightID)
 		if err != nil {
-			return updated, err
+			return err
 		}
 		blessings, curses, err := r.CountEffectsForFightDay(item.FightID)
 		if err != nil {
-			return updated, err
+			return err
 		}
 		if _, err := r.db.Exec(`
 			UPDATE champion_legacy_records
 			SET total_wagered = ?, total_payout = ?, blessings_count = ?, curses_count = ?
 			WHERE id = ?`, totalWagered, totalPayout, blessings, curses, item.ID); err != nil {
-			return updated, err
+			return err
 		}
-		updated++
 	}
 
-	return updated, nil
+	return nil
 }
 
 func (r *Repository) GetRecentChampionLegacyRecords(limit int) ([]ChampionLegacyEntry, error) {

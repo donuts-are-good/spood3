@@ -5,16 +5,15 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"ogithub.com/mattn/go-sqlite3"
+	"time"
 
-	"spoodblort/database"
-	"spoodblort/scheduler"
-	"spoodblort/web""
+	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
+	_ "github.com/mattn/go-sqlite3"
 
 	"spoodblort/database"
 	"spoodblort/scheduler"
 	"spoodblort/web"
-	"spoodblort/wiki
 	"spoodblort/wiki"
 )
 
@@ -79,10 +78,8 @@ func main() {
 	repo := database.NewRepository(db)
 	sched := scheduler.NewScheduler(repo)
 
-	if updated, err := repo.BackfillChampionLegacyStats(); err != nil {
+	if err := repo.BackfillChampionLegacyStats(); err != nil {
 		log.Printf("[Legacy] Backfill error: %v", err)
-	} else if updated > 0 {
-		log.Printf("[Legacy] Backfilled %d champion records", updated)
 	}
 
 	// Ensure any missing/unknown genomes are backfilled (idempotent)
