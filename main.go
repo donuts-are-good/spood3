@@ -77,6 +77,10 @@ func main() {
 	repo := database.NewRepository(db)
 	sched := scheduler.NewScheduler(repo)
 
+	if err := repo.BackfillChampionLegacyStats(); err != nil {
+		log.Printf("[Legacy] Backfill error: %v", err)
+	}
+
 	// Ensure any missing/unknown genomes are backfilled (idempotent)
 	if err := repo.BackfillFighterGenomes(); err != nil {
 		log.Printf("[Genome] Backfill error: %v", err)

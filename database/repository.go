@@ -1046,6 +1046,9 @@ func (r *Repository) IncrementFighterCombatStat(fighterID int, stat string, delt
 }
 
 func (r *Repository) CreateChampionLegacyRecord(rec ChampionLegacyRecord) error {
+	if rec.CreatedAt.IsZero() {
+		rec.CreatedAt = time.Now().UTC()
+	}
 	rec.StatAwarded = strings.ToLower(rec.StatAwarded)
 	_, err := r.db.NamedExec(`
 		INSERT OR IGNORE INTO champion_legacy_records (
@@ -1056,7 +1059,12 @@ func (r *Repository) CreateChampionLegacyRecord(rec ChampionLegacyRecord) error 
 			tournament_name,
 			stat_awarded,
 			stat_delta,
-			awarded_at
+			total_wagered,
+			total_payout,
+			blessings_count,
+			curses_count,
+			awarded_at,
+			created_at
 		) VALUES (
 			:fight_id,
 			:fighter_id,
@@ -1065,10 +1073,59 @@ func (r *Repository) CreateChampionLegacyRecord(rec ChampionLegacyRecord) error 
 			:tournament_name,
 			:stat_awarded,
 			:stat_delta,
-			:awarded_at
+			:total_wagered,
+			:total_payout,
+			:blessings_count,
+			:curses_count,
+			:awarded_at,
+			:created_at
 		)
 	`, rec)
 	return err
+}
+
+func (r *Repository) BackfillChampionLegacyStats() error {
+	rows, err := r.db.Query(`SELECT id, fight_id FROM champion_legacy_records`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	type rec struct {
+		ID      int
+		FightID int
+	}
+
+	var targets []rec
+	for rows.Next() {
+		var item rec
+		if err := rows.Scan(&item.ID, &item.FightID); err != nil {
+			return err
+		}
+		targets = append(targets, item)
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	for _, item := range targets {
+		totalWagered, totalPayout, err := r.SumChampionFightBets(item.FightID)
+		if err != nil {
+			return err
+		}
+		blessings, curses, err := r.CountEffectsForFightDay(item.FightID)
+		if err != nil {
+			return err
+		}
+		if _, err := r.db.Exec(`
+			UPDATE champion_legacy_records
+			SET total_wagered = ?, total_payout = ?, blessings_count = ?, curses_count = ?
+			WHERE id = ?`, totalWagered, totalPayout, blessings, curses, item.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *Repository) GetRecentChampionLegacyRecords(limit int) ([]ChampionLegacyEntry, error) {
