@@ -5,15 +5,17 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"ogithub.com/mattn/go-sqlite3"
+
+	"spoodblort/database"
+	"spoodblort/scheduler"
+	"spoodblort/web""
+
 	"spoodblort/database"
 	"spoodblort/scheduler"
 	"spoodblort/web"
+	"spoodblort/wiki
 	"spoodblort/wiki"
-	"time"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 // IPMaskingWriter wraps an io.Writer to mask IP addresses in log output
@@ -77,8 +79,10 @@ func main() {
 	repo := database.NewRepository(db)
 	sched := scheduler.NewScheduler(repo)
 
-	if err := repo.BackfillChampionLegacyStats(); err != nil {
+	if updated, err := repo.BackfillChampionLegacyStats(); err != nil {
 		log.Printf("[Legacy] Backfill error: %v", err)
+	} else if updated > 0 {
+		log.Printf("[Legacy] Backfilled %d champion records", updated)
 	}
 
 	// Ensure any missing/unknown genomes are backfilled (idempotent)
