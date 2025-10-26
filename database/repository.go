@@ -1,16 +1,15 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 
 	"spoodblort/utils"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type Repository struct {
@@ -604,54 +603,47 @@ func (r *Repository) PurchaseItem(userID, itemID, quantity int, totalCost int) e
 		return err
 	}
 
-	// Check if user already has this item (using SUM to handle multiple rows)
-	var existingQuantity int
+	// Check if user already has this item, keeping the oldest row as canonical
+	var oldestID sql.NullInt64
 	err = tx.QueryRow(`
-		SELECT COALESCE(SUM(quantity), 0) FROM user_inventory 
-		WHERE user_id = ? AND shop_item_id = ?`,
-		userID, itemID).Scan(&existingQuantity)
-
-	if err != nil {
+        SELECT id FROM user_inventory 
+        WHERE user_id = ? AND shop_item_id = ? 
+        ORDER BY created_at ASC 
+        LIMIT 1`,
+		userID, itemID).Scan(&oldestID)
+	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 
-	if existingQuantity > 0 {
-		// User has this item - consolidate all existing rows into one
-		// First, get the oldest inventory entry ID for this item
-		var oldestID int
-		err = tx.QueryRow(`
-			SELECT id FROM user_inventory 
-			WHERE user_id = ? AND shop_item_id = ? 
-			ORDER BY created_at ASC 
-			LIMIT 1`,
-			userID, itemID).Scan(&oldestID)
-		if err != nil {
+	if oldestID.Valid {
+		var existingTotal int
+		if err := tx.QueryRow(`
+            SELECT COALESCE(SUM(quantity), 0) FROM user_inventory 
+            WHERE user_id = ? AND shop_item_id = ?`,
+			userID, itemID).Scan(&existingTotal); err != nil {
 			return err
 		}
 
-		// Update the oldest entry with the total quantity
-		_, err = tx.Exec(`
-			UPDATE user_inventory 
-			SET quantity = ? 
-			WHERE id = ?`,
-			existingQuantity+quantity, oldestID)
-		if err != nil {
+		newTotal := existingTotal + quantity
+		if _, err := tx.Exec(`
+            UPDATE user_inventory 
+            SET quantity = ? 
+            WHERE id = ?`,
+			newTotal, oldestID.Int64); err != nil {
 			return err
 		}
 
-		// Delete any other duplicate entries for this item
-		_, err = tx.Exec(`
-			DELETE FROM user_inventory 
-			WHERE user_id = ? AND shop_item_id = ? AND id != ?`,
-			userID, itemID, oldestID)
-		if err != nil {
+		if _, err := tx.Exec(`
+            DELETE FROM user_inventory 
+            WHERE user_id = ? AND shop_item_id = ? AND id != ?`,
+			userID, itemID, oldestID.Int64); err != nil {
 			return err
 		}
 	} else {
 		// Insert new inventory item
 		_, err = tx.Exec(`
-			INSERT INTO user_inventory (user_id, shop_item_id, quantity, created_at) 
-			VALUES (?, ?, ?, datetime('now'))`,
+            INSERT INTO user_inventory (user_id, shop_item_id, quantity, created_at) 
+            VALUES (?, ?, ?, datetime('now'))`,
 			userID, itemID, quantity)
 		if err != nil {
 			return err
@@ -668,7 +660,7 @@ func (r *Repository) GetUserInventory(userID int) ([]UserInventoryItem, error) {
 		       si.name, si.description, si.emoji, si.item_type, si.effect_value
 		FROM user_inventory ui 
 		JOIN shop_items si ON ui.shop_item_id = si.id
-		WHERE ui.user_id = ? AND ui.quantity > 0
+        WHERE ui.user_id = ? AND ui.quantity > 0
 		ORDER BY si.item_type, si.name`,
 		userID)
 	return items, err
@@ -727,11 +719,12 @@ func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error)
 
 	// Validate inventory
 	var qty int
-	if err := tx.QueryRow(`SELECT quantity FROM user_inventory WHERE user_id = ? AND shop_item_id = ?`, userID, shopItemID).Scan(&qty); err != nil {
-		return false, err
-	}
-	if qty <= 0 {
-		return false, fmt.Errorf("no serum in inventory")
+	invErr := tx.QueryRow(`SELECT quantity FROM user_inventory WHERE user_id = ? AND shop_item_id = ? AND quantity > 0`, userID, shopItemID).Scan(&qty)
+	if invErr != nil {
+		if invErr == sql.ErrNoRows {
+			return false, fmt.Errorf("no serum in inventory")
+		}
+		return false, invErr
 	}
 
 	// Enforce one serum per user per day based on Central Time day window
@@ -757,6 +750,9 @@ func (r *Repository) ApplySerum(userID, shopItemID, fighterID int) (bool, error)
 
 	// Decrement inventory
 	if _, err := tx.Exec(`UPDATE user_inventory SET quantity = quantity - 1 WHERE user_id = ? AND shop_item_id = ? AND quantity > 0`, userID, shopItemID); err != nil {
+		return false, err
+	}
+	if _, err := tx.Exec(`DELETE FROM user_inventory WHERE user_id = ? AND shop_item_id = ? AND quantity <= 0`, userID, shopItemID); err != nil {
 		return false, err
 	}
 	// 2-in-3 success roll, server authoritative
