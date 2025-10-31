@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Necro-Lattice Demo 2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg: #0b0918;
+            --panel: #161329;
+            --panel-soft: rgba(22, 19, 41, 0.82);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.21);
+            --text: #f7f3ff;
+            --muted: rgba(247, 243, 255, 0.68);
+            --accent: #ff8f1f;
+            --accent-soft: rgba(255, 143, 31, 0.18);
+            --accent-strong: #ff6b36;
+            --success: #45f0c5;
+            --danger: #ff4f6d;
+            --warning: #ffd447;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(117, 59, 255, 0.27), transparent 46%),
+                radial-gradient(circle at 82% 12%, rgba(255, 143, 31, 0.36), transparent 48%),
+                linear-gradient(160deg, #05030d 0%, #110d24 38%, #04020b 100%);
+            color: var(--text);
+            padding: clamp(18px, 4vw, 42px);
+            display: flex;
+            justify-content: center;
+        }
+
+        .app {
+            width: min(1220px, 100%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(16px, 3vw, 26px);
+        }
+
+        .hero {
+            display: flex;
+            flex-wrap: wrap;
+            gap: clamp(16px, 4vw, 32px);
+            align-items: stretch;
+        }
+
+        .hero-text {
+            flex: 1 1 320px;
+            padding: clamp(18px, 4vw, 32px);
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(38, 32, 66, 0.92) 0%, rgba(19, 15, 38, 0.92) 65%);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .eyebrow {
+            margin: 0;
+            font-size: 0.78rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: clamp(10px, 2vw, 16px) 0 6px;
+            font-size: clamp(2.2rem, 5vw, 2.9rem);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            margin: 0;
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+            line-height: 1.6;
+            color: var(--muted);
+        }
+
+        .cta-row {
+            margin-top: clamp(16px, 2.5vw, 24px);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .hero-cta {
+            background: linear-gradient(130deg, var(--accent) 0%, var(--accent-strong) 100%);
+            color: #200a02;
+            border: none;
+            border-radius: 999px;
+            padding: 14px 24px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 14px 38px rgba(255, 143, 31, 0.45);
+            transition: transform 160ms ease;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+        }
+
+        .cta-caption {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .summary-card {
+            flex: 1 1 280px;
+            min-width: 260px;
+            border-radius: 22px;
+            background: var(--panel);
+            border: 1px solid var(--border-strong);
+            padding: clamp(18px, 3vw, 28px);
+            display: grid;
+            gap: 18px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-card::before {
+            content: "";
+            position: absolute;
+            inset: -40% 20% auto -40%;
+            height: 140%;
+            background: radial-gradient(circle, rgba(255, 143, 31, 0.18) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        .summary-header {
+            font-size: 0.86rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .summary-value {
+            font-size: clamp(2.2rem, 4.8vw, 2.8rem);
+            font-weight: 800;
+        }
+
+        .summary-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .summary-item {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: grid;
+            gap: 4px;
+        }
+
+        .summary-item span:first-child {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-item span:last-child {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+            gap: clamp(18px, 3vw, 24px);
+        }
+
+        @media (max-width: 1020px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--panel-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: clamp(18px, 3vw, 26px);
+            display: grid;
+            gap: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .card header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 1.08rem;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .chip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .chip {
+            display: grid;
+            gap: 6px;
+            padding: 14px 12px 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: 160ms ease;
+            text-align: left;
+        }
+
+        .chip span:first-child {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+        }
+
+        .chip span:last-child {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .chip:hover {
+            border-color: rgba(255, 143, 31, 0.45);
+            background: rgba(255, 143, 31, 0.12);
+        }
+
+        .chip.active {
+            border-color: rgba(255, 143, 31, 0.9);
+            background: radial-gradient(circle, rgba(255, 143, 31, 0.25), rgba(255, 143, 31, 0.08));
+            box-shadow: 0 10px 30px rgba(255, 143, 31, 0.28);
+        }
+
+        .glyph-board {
+            display: grid;
+            gap: 14px;
+        }
+
+        .glyph-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 94px);
+            gap: 12px;
+            justify-content: center;
+            padding: 18px;
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .glyph {
+            width: 94px;
+            height: 94px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: rgba(255, 255, 255, 0.45);
+            transition: 160ms ease;
+        }
+
+        .glyph.lit {
+            border-color: var(--warning);
+            background: radial-gradient(circle, rgba(255, 212, 71, 0.28) 0%, rgba(255, 212, 71, 0.08) 70%);
+            color: var(--warning);
+            box-shadow: 0 0 24px rgba(255, 212, 71, 0.28);
+        }
+
+        .glyph.obelisk {
+            font-size: 1.8rem;
+        }
+
+        .glyph.obelisk.lit {
+            border-color: var(--accent-strong);
+            color: var(--accent-strong);
+            box-shadow: 0 0 28px rgba(255, 107, 54, 0.35);
+        }
+
+        .line-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .line-chip {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px dashed rgba(255, 255, 255, 0.16);
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.03);
+            transition: 160ms ease;
+        }
+
+        .line-chip span:first-child {
+            font-weight: 600;
+        }
+
+        .line-chip span:last-child {
+            font-size: 0.78rem;
+            color: var(--muted);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .line-chip:hover {
+            border-color: rgba(255, 143, 31, 0.45);
+            background: rgba(255, 143, 31, 0.09);
+        }
+
+        .line-chip.active {
+            border-style: solid;
+            border-color: rgba(255, 143, 31, 0.85);
+            background: rgba(255, 143, 31, 0.16);
+            box-shadow: 0 8px 28px rgba(255, 143, 31, 0.24);
+        }
+
+        .planner-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: grid;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .stake-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            font-size: 1.05rem;
+        }
+
+        .stake-input:focus {
+            outline: none;
+            border-color: rgba(255, 143, 31, 0.6);
+            box-shadow: 0 0 0 3px rgba(255, 143, 31, 0.22);
+        }
+
+        .quick-row {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .quick-row button {
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            transition: 140ms ease;
+        }
+
+        .quick-row button:hover {
+            background: rgba(255, 143, 31, 0.12);
+            border-color: rgba(255, 143, 31, 0.45);
+        }
+
+        .summary-bar {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .summary-bar div {
+            display: grid;
+            gap: 4px;
+        }
+
+        .summary-bar span:first-child {
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-bar span:last-child {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .cta-button {
+            padding: 16px 20px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(130deg, var(--accent) 0%, var(--accent-strong) 100%);
+            color: #200a02;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 16px 40px rgba(255, 143, 31, 0.35);
+            transition: transform 160ms ease;
+        }
+
+        .cta-button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .cta-button:not(:disabled):hover {
+            transform: translateY(-2px);
+        }
+
+        .extortion-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(255, 79, 109, 0.12);
+            border: 1px solid rgba(255, 79, 109, 0.35);
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .extortion-banner strong {
+            color: var(--danger);
+        }
+
+        .outcome-card {
+            position: relative;
+            padding: clamp(18px, 3vw, 24px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(18, 15, 33, 0.9);
+            display: grid;
+            gap: 16px;
+        }
+
+        .outcome-card h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .outcome-card .net {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .outcome-card.win {
+            border-color: rgba(69, 240, 197, 0.45);
+            box-shadow: 0 18px 48px rgba(69, 240, 197, 0.18);
+        }
+
+        .outcome-card.win .net {
+            color: var(--success);
+        }
+
+        .outcome-card.loss {
+            border-color: rgba(255, 79, 109, 0.38);
+            box-shadow: 0 18px 48px rgba(255, 79, 109, 0.16);
+        }
+
+        .outcome-card.loss .net {
+            color: var(--danger);
+        }
+
+        .outcome-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .history-list {
+            max-height: 240px;
+            overflow-y: auto;
+            display: grid;
+            gap: 10px;
+        }
+
+        .history-item {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.5;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .history-item strong {
+            color: var(--text);
+        }
+
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(12, 10, 28, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text);
+            font-size: 0.95rem;
+            opacity: 0;
+            transform: translateY(-6px);
+            transition: 200ms ease;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast"></div>
+    <div class="app">
+        <div class="hero">
+            <div class="hero-text">
+                <p class="eyebrow">Commissioner's private circuit</p>
+                <h1>Necro-Lattice</h1>
+                <p class="tagline">Stake sectors, bind glyph prophecies, then slam the trigger to see whose bones align. Wins glow neon. Losses bleed red. No guesswork, just ritual clarity.</p>
+                <div class="cta-row">
+                    <button class="hero-cta" id="heroSpin">Spin the ritual wheel</button>
+                    <span class="cta-caption">Need guidance? Pick a few sectors on the left, set a stake, then fire.</span>
+                </div>
+            </div>
+            <div class="summary-card" id="summaryCard">
+                <div class="summary-header">Spin Readiness</div>
+                <div>
+                    <div class="summary-value" id="summaryRisk">0 VC</div>
+                    <div class="summary-label">Risked when you spin</div>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span>Sectors armed</span>
+                        <span id="summarySectors">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Glyph lines bound</span>
+                        <span id="summaryLines">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Base stake</span>
+                        <span id="summaryStake">100 VC</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Balance</span>
+                        <span id="summaryBalance">5,000 VC</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main class="layout">
+            <section class="board card">
+                <header>
+                    <h2>Sectors · Roulette bones</h2>
+                    <span class="cta-caption">Direct hit pays 10× · Adjacent pays 3×</span>
+                </header>
+                <div class="chip-grid" id="sectorGrid"></div>
+
+                <div class="glyph-board">
+                    <header>
+                        <h2>Doom grid · Glyph prophecies</h2>
+                        <span class="cta-caption">Rows/columns 5× · Diagonals 8× · Obelisk unlocks bonus</span>
+                    </header>
+                    <div class="glyph-grid" id="glyphGrid"></div>
+                    <div class="line-list" id="lineGrid"></div>
+                </div>
+            </section>
+
+            <section class="sidebar">
+                <div class="card">
+                    <header>
+                        <h2>Wager planner</h2>
+                        <span class="cta-caption">Set stake · confirm risk · spin loud</span>
+                    </header>
+                    <div class="planner-grid">
+                        <div class="input-group">
+                            <label for="stakeInput">Base stake per selection</label>
+                            <input type="number" id="stakeInput" class="stake-input" min="10" step="10" value="100">
+                        </div>
+                        <div class="quick-row">
+                            <button type="button" data-stake="50">50</button>
+                            <button type="button" data-stake="100">100</button>
+                            <button type="button" data-stake="250">250</button>
+                            <button type="button" data-stake="500">500</button>
+                            <button type="button" id="maxStake">MAX</button>
+                        </div>
+                        <div class="summary-bar" id="summaryBar">
+                            <div>
+                                <span>Total selections</span>
+                                <span id="summarySelections">0</span>
+                            </div>
+                            <div>
+                                <span>Total risk</span>
+                                <span id="summaryTotal">0 VC</span>
+                            </div>
+                        </div>
+                        <button class="cta-button" id="spinBtn">
+                            <span>Spin ritual wheel</span>
+                        </button>
+                        <div class="extortion-banner" id="extortionBanner" hidden>
+                            <strong>Extortion active.</strong>
+                            10% skim on next win. Keep spinning to clear the goons.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="outcome-card" id="outcomeCard">
+                    <h3>Awaiting your command</h3>
+                    <div>
+                        <div class="net" id="outcomeNet">—</div>
+                        <p id="outcomeCopy">Lock in some bets then hammer the ritual wheel to log outcomes here.</p>
+                    </div>
+                    <div class="outcome-tags" id="outcomeTags"></div>
+                </div>
+
+                <div class="card">
+                    <header>
+                        <h2>Ledger · last 8 spins</h2>
+                    </header>
+                    <div class="history-list" id="history"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const toastEl = document.getElementById('toast');
+        const stakeInput = document.getElementById('stakeInput');
+        const spinBtn = document.getElementById('spinBtn');
+        const heroSpin = document.getElementById('heroSpin');
+        const summaryRisk = document.getElementById('summaryRisk');
+        const summarySectors = document.getElementById('summarySectors');
+        const summaryLines = document.getElementById('summaryLines');
+        const summaryStake = document.getElementById('summaryStake');
+        const summaryBalance = document.getElementById('summaryBalance');
+        const summarySelections = document.getElementById('summarySelections');
+        const summaryTotal = document.getElementById('summaryTotal');
+        const outcomeCard = document.getElementById('outcomeCard');
+        const outcomeNet = document.getElementById('outcomeNet');
+        const outcomeCopy = document.getElementById('outcomeCopy');
+        const outcomeTags = document.getElementById('outcomeTags');
+        const historyEl = document.getElementById('history');
+        const extortionBanner = document.getElementById('extortionBanner');
+
+        const balanceState = {
+            balance: 5000,
+            consecutiveBusts: 0
+        };
+
+        const SECTORS = [
+            { id: 0, name: 'Acid Fog' },
+            { id: 1, name: 'Bone Hail' },
+            { id: 2, name: 'Witch Tide' },
+            { id: 3, name: 'Gospel Static' },
+            { id: 4, name: 'Spinal Bloom' },
+            { id: 5, name: 'Ritual Ash' },
+            { id: 6, name: 'Blunt Singularity' },
+            { id: 7, name: 'Plasma Dirge' },
+            { id: 8, name: 'Mire Choir' },
+            { id: 9, name: 'Vanta Gale' },
+            { id: 10, name: 'Copium Surge' },
+            { id: 11, name: 'Axe Eclipse' },
+            { id: 12, name: 'Cathedral Feedback' }
+        ];
+
+        const GLYPH_INDICES = Array.from({ length: 9 }, (_, i) => i);
+        const LINES = [
+            { id: 'row0', label: 'Row · North Veil', cells: [0, 1, 2], multiplier: 5 },
+            { id: 'row1', label: 'Row · Mid Vein', cells: [3, 4, 5], multiplier: 5 },
+            { id: 'row2', label: 'Row · Grave Floor', cells: [6, 7, 8], multiplier: 5 },
+            { id: 'col0', label: 'Column · Spine', cells: [0, 3, 6], multiplier: 5 },
+            { id: 'col1', label: 'Column · Larynx', cells: [1, 4, 7], multiplier: 5 },
+            { id: 'col2', label: 'Column · Maw', cells: [2, 5, 8], multiplier: 5 },
+            { id: 'diag0', label: 'Sigil Diagonal ↘', cells: [0, 4, 8], multiplier: 8 },
+            { id: 'diag1', label: 'Sigil Diagonal ↙', cells: [2, 4, 6], multiplier: 8 }
+        ];
+
+        const selectedSectors = new Set();
+        const selectedLines = new Set();
+
+        function showToast(message, duration = 2600) {
+            toastEl.textContent = message;
+            toastEl.classList.add('show');
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(() => toastEl.classList.remove('show'), duration);
+        }
+
+        function formatCredits(n) {
+            return n.toLocaleString() + ' VC';
+        }
+
+        function updateBalanceDisplay() {
+            summaryBalance.textContent = formatCredits(balanceState.balance);
+        }
+
+        function updateSummary() {
+            const stake = Number(stakeInput.value) || 0;
+            const selectionCount = selectedSectors.size + selectedLines.size;
+            const totalRisk = selectionCount * stake;
+            summarySectors.textContent = selectedSectors.size;
+            summaryLines.textContent = selectedLines.size;
+            summaryStake.textContent = formatCredits(stake);
+            summarySelections.textContent = selectionCount;
+            summaryTotal.textContent = formatCredits(totalRisk);
+            summaryRisk.textContent = formatCredits(totalRisk);
+            spinBtn.disabled = selectionCount === 0 || stake <= 0;
+        }
+
+        function buildSectorGrid() {
+            const grid = document.getElementById('sectorGrid');
+            SECTORS.forEach(({ id, name }) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chip';
+                btn.dataset.id = id;
+                btn.innerHTML = `<span>${id.toString().padStart(2, '0')}</span><span>${name}</span>`;
+                btn.addEventListener('click', () => {
+                    if (selectedSectors.has(id)) {
+                        selectedSectors.delete(id);
+                        btn.classList.remove('active');
+                    } else {
+                        selectedSectors.add(id);
+                        btn.classList.add('active');
+                    }
+                    updateSummary();
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        function buildGlyphGrid() {
+            const grid = document.getElementById('glyphGrid');
+            GLYPH_INDICES.forEach(idx => {
+                const div = document.createElement('div');
+                div.className = 'glyph' + (idx === 4 ? ' obelisk' : '');
+                div.id = `glyph-${idx}`;
+                div.textContent = idx === 4 ? '☗' : '✶';
+                grid.appendChild(div);
+            });
+        }
+
+        function buildLines() {
+            const list = document.getElementById('lineGrid');
+            LINES.forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'line-chip';
+                div.dataset.id = line.id;
+                div.innerHTML = `<span>${line.label}</span><span>${line.multiplier}× payout</span>`;
+                div.addEventListener('click', () => {
+                    if (selectedLines.has(line.id)) {
+                        selectedLines.delete(line.id);
+                        div.classList.remove('active');
+                    } else {
+                        selectedLines.add(line.id);
+                        div.classList.add('active');
+                    }
+                    updateSummary();
+                });
+                list.appendChild(div);
+            });
+        }
+
+        function randomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function drawGlyphs(count = 3) {
+            const pool = [...GLYPH_INDICES];
+            const drawn = [];
+            while (drawn.length < count && pool.length) {
+                const idx = randomInt(pool.length);
+                drawn.push(pool.splice(idx, 1)[0]);
+            }
+            return drawn;
+        }
+
+        function highlightGlyphs(indices) {
+            GLYPH_INDICES.forEach(idx => {
+                document.getElementById(`glyph-${idx}`).classList.toggle('lit', indices.includes(idx));
+            });
+        }
+
+        function sectorNeighbors(id) {
+            const len = SECTORS.length;
+            return [ (id + len - 1) % len, (id + 1) % len ];
+        }
+
+        function evaluateSpin({ sectorResult, glyphs, stake, bonusSpin = false }) {
+            let totalPayout = 0;
+            const winDetails = [];
+
+            selectedSectors.forEach(sel => {
+                if (sel === sectorResult) {
+                    const payout = stake * 10;
+                    totalPayout += payout;
+                    winDetails.push(`Sector ${sel.toString().padStart(2, '0')} direct hit · +${formatCredits(payout)}`);
+                } else if (sectorNeighbors(sectorResult).includes(sel)) {
+                    const payout = stake * 3;
+                    totalPayout += payout;
+                    winDetails.push(`Sector ${sel.toString().padStart(2, '0')} adjacent · +${formatCredits(payout)}`);
+                }
+            });
+
+            selectedLines.forEach(lineId => {
+                const line = LINES.find(l => l.id === lineId);
+                if (!line) return;
+                const complete = line.cells.every(idx => glyphs.includes(idx));
+                if (complete) {
+                    const payout = stake * line.multiplier;
+                    totalPayout += payout;
+                    winDetails.push(`${line.label} sealed · +${formatCredits(payout)}`);
+                }
+            });
+
+            const totalCost = stake * (selectedSectors.size + selectedLines.size);
+            const net = totalPayout - totalCost;
+
+            const descriptor = bonusSpin ? 'Obelisk bonus resolved' : 'Ritual spin resolved';
+            const outcome = {
+                descriptor,
+                sectorLabel: `${sectorResult.toString().padStart(2, '0')} · ${SECTORS[sectorResult].name}`,
+                glyphLabel: glyphs.map(idx => idx === 4 ? 'Obelisk' : `Sigil ${idx + 1}`).join(', '),
+                net,
+                wins: winDetails
+            };
+
+            renderOutcome(outcome);
+            pushHistory(outcome);
+            return net;
+        }
+
+        function renderOutcome({ descriptor, sectorLabel, glyphLabel, net, wins }) {
+            outcomeCard.classList.remove('win', 'loss');
+            if (net > 0) {
+                outcomeCard.classList.add('win');
+            } else if (net < 0) {
+                outcomeCard.classList.add('loss');
+            }
+
+            outcomeCard.querySelector('h3').textContent = descriptor;
+            outcomeNet.textContent = net === 0 ? '0 VC' : `${net > 0 ? '+' : ''}${formatCredits(Math.abs(net))}`;
+            if (net > 0) {
+                outcomeCopy.textContent = 'Payout dispatched. Violence Credits routed to your ledger.';
+            } else if (net < 0) {
+                outcomeCopy.textContent = 'House grins. That burn you feel is the Commissioner’s tithe.';
+            } else {
+                outcomeCopy.textContent = 'A perfect balance. Ritual takes nothing, grants nothing.';
+            }
+
+            outcomeTags.innerHTML = '';
+            const sectorTag = document.createElement('span');
+            sectorTag.className = 'tag';
+            sectorTag.textContent = `Sector: ${sectorLabel}`;
+            outcomeTags.appendChild(sectorTag);
+
+            const glyphTag = document.createElement('span');
+            glyphTag.className = 'tag';
+            glyphTag.textContent = `Glyphs: ${glyphLabel}`;
+            outcomeTags.appendChild(glyphTag);
+
+            wins.forEach(text => {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.textContent = text;
+                outcomeTags.appendChild(tag);
+            });
+        }
+
+        function pushHistory({ descriptor, sectorLabel, glyphLabel, net }) {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <strong>${net > 0 ? 'Win' : net < 0 ? 'Loss' : 'Even'}</strong> · ${descriptor}<br>
+                Sector ${sectorLabel} · Glyphs ${glyphLabel} · Net ${net > 0 ? '+' : ''}${formatCredits(net)}
+            `;
+            historyEl.prepend(item);
+            if (historyEl.children.length > 8) {
+                historyEl.removeChild(historyEl.lastElementChild);
+            }
+        }
+
+        function performSpin({ stake, bonusOnly = false }) {
+            const sectorResult = randomInt(SECTORS.length);
+            const glyphs = drawGlyphs(3);
+            highlightGlyphs(glyphs);
+            return { sectorResult, glyphs, stake, bonusSpin: bonusOnly };
+        }
+
+        function triggerExtortion() {
+            showToast('Extortion goons caught your scent. Next win loses 10%.', 3200);
+            triggerExtortion.tax = 0.10;
+            extortionBanner.hidden = false;
+            setTimeout(() => {
+                triggerExtortion.tax = 0;
+                extortionBanner.hidden = true;
+                showToast('Extortion crew got bored. Winnings now clean.');
+            }, 90000);
+        }
+
+        function applyExtortion(net) {
+            const tax = triggerExtortion.tax || 0;
+            if (!tax || net <= 0) return net;
+            const skimmed = Math.floor(net * (1 - tax));
+            showToast(`Goons skimmed ${formatCredits(net - skimmed)}.`);
+            triggerExtortion.tax = 0;
+            extortionBanner.hidden = true;
+            return skimmed;
+        }
+
+        function handleSpin() {
+            const stake = Math.max(Number(stakeInput.value) || 0, 0);
+            const selectionCount = selectedSectors.size + selectedLines.size;
+            if (selectionCount === 0 || stake <= 0) {
+                showToast('Queue at least one sector or glyph line and set a stake.');
+                return;
+            }
+
+            const totalCost = stake * selectionCount;
+            if (totalCost > balanceState.balance) {
+                showToast('Insufficient Violence Credits. Lower stake or deselect bets.');
+                return;
+            }
+
+            balanceState.balance -= totalCost;
+            updateBalanceDisplay();
+
+            const spinState = performSpin({ stake });
+            const primaryNet = evaluateSpin(spinState);
+            let net = primaryNet;
+
+            const obeliskHit = spinState.glyphs.includes(4) && selectedLines.size > 0;
+            if (obeliskHit) {
+                showToast('Obelisk lights up! Half-stake glyph bonus incoming.');
+                const bonusStake = Math.max(Math.floor(stake / 2), 10);
+                const savedSectors = new Set(selectedSectors);
+                selectedSectors.clear();
+                const bonusSpin = performSpin({ stake: bonusStake, bonusOnly: true });
+                const glyphNet = evaluateSpin(bonusSpin);
+                net += glyphNet;
+                selectedSectors.clear();
+                savedSectors.forEach(id => selectedSectors.add(id));
+            }
+
+            const finalNet = net > 0 ? applyExtortion(net) : net;
+            balanceState.balance += finalNet;
+            updateBalanceDisplay();
+
+            balanceState.consecutiveBusts = finalNet <= 0 ? balanceState.consecutiveBusts + 1 : 0;
+            if (balanceState.consecutiveBusts >= 2 && !triggerExtortion.tax) {
+                triggerExtortion();
+                balanceState.consecutiveBusts = 0;
+            }
+
+            updateSummary();
+        }
+
+        function init() {
+            buildSectorGrid();
+            buildGlyphGrid();
+            buildLines();
+            updateSummary();
+            updateBalanceDisplay();
+
+            document.querySelectorAll('.quick-row button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.id === 'maxStake') {
+                        const selections = Math.max(1, selectedSectors.size + selectedLines.size);
+                        stakeInput.value = Math.max(10, Math.floor(balanceState.balance / selections));
+                    } else {
+                        stakeInput.value = btn.dataset.stake;
+                    }
+                    updateSummary();
+                });
+            });
+
+            stakeInput.addEventListener('input', updateSummary);
+            spinBtn.addEventListener('click', handleSpin);
+            heroSpin.addEventListener('click', () => {
+                window.scrollTo({ top: spinBtn.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth' });
+                spinBtn.classList.add('pulse');
+                setTimeout(() => spinBtn.classList.remove('pulse'), 1000);
+            });
+
+            const observer = new MutationObserver(() => {
+                spinBtn.disabled = selectedSectors.size + selectedLines.size === 0 || (Number(stakeInput.value) || 0) <= 0;
+            });
+            observer.observe(spinBtn, { attributes: true, attributeFilter: ['disabled'] });
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
+

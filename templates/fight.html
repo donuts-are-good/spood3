@@ -38,9 +38,11 @@
 
 		<div class="fighter-matchup">
 			{{/* Tale of the Tape (shown before betting and before the cards) */}}
-			{{if and .Fighter1 .Fighter2}}
-			<div class="fight-section-card">
-			<div class="tale-of-tape">
+		{{if and .Fighter1 .Fighter2}}
+		{{$undeadLeft := and .Fighter1 .Fighter1.IsUndead}}
+		{{$undeadRight := and .Fighter2 .Fighter2.IsUndead}}
+		<div class="fight-section-card">
+		<div class="tale-of-tape{{if or $undeadLeft $undeadRight}} undead-present{{end}}{{if $undeadLeft}} undead-left{{end}}{{if $undeadRight}} undead-right{{end}}">
 				<div class="tot-col left">
                     <div class="tot-fighter-avatar">
                         <img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="tot-avatar-img">
@@ -52,8 +54,8 @@
                             {{end}}
                         {{end}}
                     </div>
-                    <h4 class="fighter-name" style="margin-bottom:8px;">
-                        <a href="/fighter/{{.Fight.Fighter1ID}}">{{.Fight.Fighter1Name}}</a>
+				<h4 class="fighter-name" style="margin-bottom:8px;">
+					<a href="/fighter/{{.Fight.Fighter1ID}}"{{if $undeadLeft}} class="undead-name"{{end}}>{{.Fight.Fighter1Name}}</a>
                     </h4>
                     {{if and .User (eq .Fight.Status "scheduled")}}
                         {{if not .UserBet}}
@@ -96,8 +98,8 @@
                             {{end}}
                         {{end}}
                     </div>
-                    <h4 class="fighter-name" style="margin-bottom:8px;">
-                        <a href="/fighter/{{.Fight.Fighter2ID}}">{{.Fight.Fighter2Name}}</a>
+				<h4 class="fighter-name" style="margin-bottom:8px;">
+					<a href="/fighter/{{.Fight.Fighter2ID}}"{{if $undeadRight}} class="undead-name"{{end}}>{{.Fight.Fighter2Name}}</a>
                     </h4>
                     {{if and .User (eq .Fight.Status "scheduled")}}
                         {{if not .UserBet}}
