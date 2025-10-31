@@ -5,6 +5,7 @@
     --idx-dim:#bdbdbd;
     --idx-accent:#ffaa00;
     --idx-danger:#ff4444;
+    --cursor-zombie:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Ctext x='18' y='24' font-size='24' text-anchor='middle'%3E%26%23129503%3B%3C/text%3E%3C/svg%3E") 18 18, auto;
 }
 
 .fight-container {
@@ -934,6 +935,16 @@
         radial-gradient(circle at 42% 40%, rgba(173, 132, 255, 0.38) 0%, rgba(173, 132, 255, 0) 60%),
         radial-gradient(circle at 66% 78%, rgba(198, 174, 255, 0.32) 0%, rgba(198, 174, 255, 0) 60%);
     animation: undeadParticleDriftRight 14s ease-in-out infinite;
+}
+
+.tale-of-tape.undead-left .tot-col.left,
+.tale-of-tape.undead-right .tot-col.right {
+    cursor: var(--cursor-zombie);
+}
+
+.tale-of-tape.undead-left .fighter-betting input,
+.tale-of-tape.undead-right .fighter-betting input {
+    cursor: text;
 }
 
 .tot-col {
