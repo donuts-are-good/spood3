@@ -105,6 +105,20 @@
         </nav>
     </header>
     <main>
+        {{block "weather_advisory" .}}
+        <div id="chaosWeatherAdvisory" class="chaos-weather-advisory">
+            <div class="advisory-content">
+                <div class="advisory-icon" aria-hidden="true">⚠️</div>
+                <div class="advisory-text">
+                    <div class="advisory-title">TEMPORAL WEATHER WARNING</div>
+                    <p class="advisory-body" data-echo="An unknown temporal displacement agent blew in on the eastern tradewinds, causing microwave dinners to explode as they're stuck in time dilation, making wives age prematurely, and giving everyone a queasy feeling in their giblets with incontrollable shits. One engineer said he took on coffee poop, and before he could exit the copy room he had to take another coffeeshit, and Brenda the receptionist watched her Irish coffee evaporate before her eyes.">
+                        An unknown temporal displacement agent blew in on the eastern tradewinds, causing microwave dinners to explode as they're stuck in time dilation, making wives age prematurely, and giving everyone a queasy feeling in their giblets with incontrollable shits. One engineer said he took on coffee poop, and before he could exit the copy room he had to take another coffeeshit, and Brenda the receptionist watched her Irish coffee evaporate before her eyes.
+                    </p>
+                </div>
+                <button type="button" class="advisory-dismiss" aria-label="Dismiss temporal weather warning" onclick="dismissWeatherAdvisory()">×</button>
+            </div>
+        </div>
+        {{end}}
         {{template "content" .}}
     </main>
     
