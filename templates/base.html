@@ -104,8 +104,8 @@
             {{end}}
         </nav>
     </header>
+    <div id="temporalLightning" class="temporal-lightning" aria-hidden="true"></div>
     <main>
-        {{block "weather_advisory" .}}
         <div id="chaosWeatherAdvisory" class="chaos-weather-advisory">
             <div class="advisory-content">
                 <div class="advisory-icon" aria-hidden="true">⚠️</div>
@@ -118,7 +118,6 @@
                 <button type="button" class="advisory-dismiss" aria-label="Dismiss temporal weather warning" onclick="dismissWeatherAdvisory()">×</button>
             </div>
         </div>
-        {{end}}
         {{template "content" .}}
     </main>
     

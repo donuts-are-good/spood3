@@ -227,6 +227,81 @@ header {
     transform-origin: center center;
 }
 
+.temporal-lightning {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1500;
+    mix-blend-mode: screen;
+    transition: opacity 0.2s ease;
+}
+
+.temporal-lightning::before,
+.temporal-lightning::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+}
+
+.temporal-lightning::before {
+    background: radial-gradient(circle at 40% 25%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 252, 210, 0.75) 8%, rgba(255, 255, 255, 0.05) 58%), radial-gradient(circle at 70% 60%, rgba(173, 216, 255, 0.7) 0%, rgba(173, 216, 255, 0) 60%);
+    filter: blur(2px);
+}
+
+.temporal-lightning::after {
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 70%);
+    clip-path: polygon(52% 0%, 58% 12%, 47% 30%, 60% 45%, 49% 72%, 56% 90%, 46% 100%, 41% 84%, 52% 62%, 41% 46%, 52% 18%, 40% 0%);
+    transform-origin: 50% 0;
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8));
+}
+
+.temporal-lightning.strike {
+    animation: temporalLightningFlash 0.6s ease-in-out forwards;
+}
+
+.temporal-lightning.strike::before {
+    opacity: 1;
+    animation: temporalHaloPulse 0.6s ease-out forwards;
+}
+
+.temporal-lightning.strike::after {
+    opacity: 1;
+    animation: temporalBoltFlicker 0.6s steps(3, end) forwards;
+}
+
+@keyframes temporalLightningFlash {
+    0% { opacity: 0; }
+    5% { opacity: 1; }
+    15% { opacity: 0.65; }
+    40% { opacity: 0.12; }
+    100% { opacity: 0; }
+}
+
+@keyframes temporalHaloPulse {
+    0% { opacity: 0; transform: scale(1); }
+    8% { opacity: 1; transform: scale(1.03); }
+    25% { opacity: 0.85; transform: scale(1.08); }
+    45% { opacity: 0.3; transform: scale(1.12); }
+    100% { opacity: 0; transform: scale(1.2); }
+}
+
+@keyframes temporalBoltFlicker {
+    0% { opacity: 1; transform: scaleY(1.1) translateX(-1%); }
+    10% { transform: scaleY(1.05) translateX(2%); }
+    20% { transform: scaleY(1.2) translateX(-3%); }
+    35% { opacity: 0.6; transform: scaleY(0.9) translateX(1%); }
+    60% { opacity: 0.25; transform: scaleY(0.8) translateX(-2%); }
+    100% { opacity: 0; transform: scaleY(0.7) translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .temporal-lightning {
+        display: none !important;
+    }
+}
+
 .chaos-weather-advisory .advisory-content {
     max-width: 1200px;
     margin: 0 auto;

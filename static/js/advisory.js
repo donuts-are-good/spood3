@@ -1,6 +1,10 @@
 // Shared temporal weather advisory controls
 (function () {
   const STORAGE_KEY = 'weatherAdvisoryDismissed';
+  const MOTION_QUERY = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false, addEventListener: null, addListener: null };
+  let lightningTimer = null;
 
   function getElements() {
     return {
@@ -65,8 +69,67 @@
     }
   };
 
+  function scheduleLightning() {
+    if (MOTION_QUERY.matches || document.hidden) {
+      return;
+    }
+    const overlay = document.getElementById('temporalLightning');
+    if (!overlay) {
+      return;
+    }
+    if (lightningTimer) {
+      clearTimeout(lightningTimer);
+    }
+    const delay = 7000 + Math.random() * 8000;
+    lightningTimer = window.setTimeout(triggerLightning, delay);
+  }
+
+  function triggerLightning() {
+    const overlay = document.getElementById('temporalLightning');
+    if (!overlay) {
+      return;
+    }
+    overlay.classList.remove('strike');
+    void overlay.offsetWidth; // force reflow so animation restarts
+    overlay.classList.add('strike');
+    window.setTimeout(function () {
+      overlay.classList.remove('strike');
+      scheduleLightning();
+    }, 700);
+  }
+
+  function cancelLightning() {
+    if (lightningTimer) {
+      clearTimeout(lightningTimer);
+      lightningTimer = null;
+    }
+  }
+
+  function handleMotionPreferenceChange(event) {
+    if (event.matches) {
+      cancelLightning();
+    } else {
+      scheduleLightning();
+    }
+  }
+
+  if (MOTION_QUERY.addEventListener) {
+    MOTION_QUERY.addEventListener('change', handleMotionPreferenceChange);
+  } else if (MOTION_QUERY.addListener) {
+    MOTION_QUERY.addListener(handleMotionPreferenceChange);
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      cancelLightning();
+    } else {
+      scheduleLightning();
+    }
+  });
+
   document.addEventListener('DOMContentLoaded', function () {
     window.checkWeatherAdvisoryDismissal();
+    scheduleLightning();
   });
 })();
 
