@@ -21,6 +21,9 @@ func NewRepository(db *sqlx.DB) *Repository {
 	if err := repo.runLineageMigrations(); err != nil {
 		log.Printf("lineage migration warning: %v", err)
 	}
+	if err := repo.ensureHybridShopItems(); err != nil {
+		log.Printf("hybrid shop ensure warning: %v", err)
+	}
 	return repo
 }
 
@@ -112,6 +115,48 @@ func (r *Repository) ensureFighterLineageColumns() error {
 			if _, err := r.db.Exec(c.DDL); err != nil {
 				return fmt.Errorf("add column %s: %w", c.Name, err)
 			}
+		}
+	}
+	return nil
+}
+
+func (r *Repository) ensureHybridShopItems() error {
+	items := []struct {
+		ItemType    string
+		Name        string
+		Description string
+		Emoji       string
+		Price       int
+	}{
+		{
+			ItemType:    "fighter_sponsorship",
+			Name:        "Research Permit",
+			Description: "Funds a fighter's training camp fees.",
+			Emoji:       "📜",
+			Price:       1000000,
+		},
+		{
+			ItemType:    "genetic_splicer",
+			Name:        "Lab Equipment",
+			Description: "An assortment of beakers and test tubes.",
+			Emoji:       "🔬",
+			Price:       10000000,
+		},
+	}
+
+	for _, item := range items {
+		var count int
+		if err := r.db.Get(&count, `SELECT COUNT(*) FROM shop_items WHERE item_type = ?`, item.ItemType); err != nil {
+			return err
+		}
+		if count > 0 {
+			continue
+		}
+		if _, err := r.db.Exec(`
+            INSERT INTO shop_items (name, description, emoji, price, item_type, effect_value, created_at)
+            VALUES (?, ?, ?, ?, ?, 0, ?)
+        `, item.Name, item.Description, item.Emoji, item.Price, item.ItemType, time.Now()); err != nil {
+			return err
 		}
 	}
 	return nil
