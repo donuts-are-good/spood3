@@ -199,17 +199,22 @@ header {
 /* Weather Advisory Indicator */
 .weather-indicator {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     margin: 18px 20px 0 auto;
-    background: linear-gradient(135deg, #ff4444, #ff6666);
+    padding: 6px 10px;
+    border-radius: 999px;
     border: 2px solid #ff0000;
-    border-radius: 6px;
-    padding: 8px 12px;
+    background: linear-gradient(135deg, #ff3b3b, #ff6a6a);
     cursor: pointer;
-    transition: all 0.3s ease;
-    animation: weatherIndicatorPulse 1.2s ease-in-out infinite, indicatorFlicker 4s linear infinite;
-    box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+    transition: opacity 0.3s ease, box-shadow 0.3s ease;
+    animation: weatherIndicatorPulse 1.6s ease-in-out infinite, indicatorFlicker 5s linear infinite;
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.4);
     z-index: 1000;
     display: none; /* Hidden by default, shown when advisory is dismissed */
+    width: auto;
+    max-width: 260px;
 }
 /* Chaos Weather Advisory */
 .chaos-weather-advisory {
