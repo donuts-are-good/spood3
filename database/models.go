@@ -62,6 +62,18 @@ type Sponsorship struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+type LicensedFighterInfo struct {
+	SponsorshipID int       `db:"sponsorship_id"`
+	FighterID     int       `db:"fighter_id"`
+	Name          string    `db:"name"`
+	Team          string    `db:"team"`
+	Wins          int       `db:"wins"`
+	Losses        int       `db:"losses"`
+	Draws         int       `db:"draws"`
+	AvatarURL     string    `db:"avatar_url"`
+	LicensedAt    time.Time `db:"licensed_at"`
+}
+
 type ChampionLegacyRecord struct {
 	ID             int       `db:"id"`
 	FightID        int       `db:"fight_id"`

@@ -160,6 +160,22 @@
     margin-top: 30px;
 }
 
+.back-alley-note {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px dashed rgba(255,255,255,0.15);
+    font-size: 0.9rem;
+}
+
+.back-alley-note .locked {
+    color: rgba(255,255,255,0.6);
+}
+
+.back-alley-note .unlocked {
+    color: #90ffbf;
+}
+
 .shop-item {
     background: #000000;
     border: 3px solid;

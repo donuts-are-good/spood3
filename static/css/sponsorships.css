@@ -1,0 +1,206 @@
+body {
+    background: #020202;
+    color: #f7f7f7;
+}
+
+.sponsor-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+}
+
+.sponsor-header h1 {
+    font-size: 2.5rem;
+    margin: 0 0 12px;
+    letter-spacing: 0.12em;
+}
+
+.sponsor-header .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 6px;
+}
+
+.sponsor-header .lede {
+    color: rgba(255,255,255,0.85);
+    max-width: 720px;
+}
+
+.sponsor-header .disclaimer {
+    margin-top: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    background: rgba(255,0,72,0.08);
+    color: rgba(255,255,255,0.8);
+}
+
+.permit-status {
+    margin-top: 32px;
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(120deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));
+}
+
+.permit-status.active {
+    border-color: rgba(255,96,136,0.5);
+    box-shadow: 0 0 25px rgba(255,96,136,0.2);
+}
+
+.status-actions .cta {
+    display: inline-block;
+    padding: 10px 22px;
+    background: #ff5c7e;
+    border-radius: 999px;
+    color: #000;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.status-actions .pill {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+}
+
+.licensed-panel,
+.eligible-panel {
+    margin-top: 32px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 24px;
+    background: rgba(0,0,0,0.55);
+}
+
+.panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.panel-head .count {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+}
+
+.licensed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.licensed-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.02);
+}
+
+.licensed-card img {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.15);
+}
+
+.licensed-card .name {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.licensed-card .meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+}
+
+.licensed-card .badge {
+    margin-left: auto;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    padding: 4px 10px;
+    color: rgba(255,255,255,0.6);
+}
+
+.eligible-panel .search input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #fff;
+    width: 240px;
+}
+
+.eligible-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.eligible-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+}
+
+.card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-left img {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.assign-btn {
+    background: #ff5c7e;
+    border: none;
+    color: #000;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.assign-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 0;
+    color: rgba(255,255,255,0.6);
+}
+

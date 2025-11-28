@@ -156,8 +156,11 @@
                     <h3>🎒 YOUR CHAOS INVENTORY</h3>
                     <div class="inventory-grid">
                         {{range .UserInventory}}
-                        <div class="inventory-item {{if eq .ItemType "fighter_creation"}}clickable-license{{end}} {{if eq .ItemType "serum"}}{{if $.SerumUsedToday}}serum-disabled{{else}}clickable-serum{{end}}{{end}}" 
-                             {{if eq .ItemType "fighter_creation"}}onclick="window.location.href='/user/create-fighter'"{{end}}
+                        {{ $isCombat := eq .ItemType "fighter_creation" }}
+                        {{ $isSponsorship := eq .ItemType "fighter_sponsorship" }}
+                        {{ $isLicense := or $isCombat $isSponsorship }}
+                        <div class="inventory-item {{if $isLicense}}clickable-license{{end}} {{if eq .ItemType "serum"}}{{if $.SerumUsedToday}}serum-disabled{{else}}clickable-serum{{end}}{{end}}" 
+                             {{if $isCombat}}onclick="window.location.href='/user/create-fighter'"{{else if $isSponsorship}}onclick="window.location.href='/user/sponsorships'"{{end}}
                              {{if and (eq .ItemType "serum") (not $.SerumUsedToday)}}data-shop-item-id="{{.ShopItemID}}" onclick="openSerumModal({{.ShopItemID}}, '{{.Name}}')"{{end}}>
                             <div class="inventory-emoji">{{.Emoji}}</div>
                             <div class="inventory-name">{{.Name}}</div>
@@ -165,8 +168,10 @@
                             {{if and (eq .ItemType "serum") $.SerumUsedToday}}
                                 <div class="serum-disabled-hint">Daily limit reached</div>
                             {{end}}
-                            {{if eq .ItemType "fighter_creation"}}
+                            {{if $isCombat}}
                                 <div class="license-hint">Click to create fighter!</div>
+                            {{else if $isSponsorship}}
+                                <div class="license-hint">Assign sponsorship</div>
                             {{end}}
                         </div>
                         {{end}}

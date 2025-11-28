@@ -139,20 +139,27 @@ function updateShopInventoryItem(inv) {
             }) || null;
         }
 
-        const isLicense = inv.item_type === 'fighter_creation';
+        const isCombatLicense = inv.item_type === 'fighter_creation';
+        const isSponsorship = inv.item_type === 'fighter_sponsorship';
+        const isLicense = isCombatLicense || isSponsorship;
         if (!itemEl) {
             // Create a new inventory card if not present
             itemEl = document.createElement('div');
             itemEl.className = 'inventory-item' + (isLicense ? ' clickable-license' : '');
             itemEl.setAttribute('data-shop-item-id', String(inv.shop_item_id));
-            if (isLicense) {
+            if (isCombatLicense) {
                 itemEl.setAttribute('onclick', "window.location.href='/user/create-fighter'");
+            } else if (isSponsorship) {
+                itemEl.setAttribute('onclick', "window.location.href='/user/sponsorships'");
             }
+            const hintHTML = isCombatLicense
+                ? '<div class="license-hint">Click to create fighter!</div>'
+                : (isSponsorship ? '<div class="license-hint">Click to assign sponsorship</div>' : '');
             itemEl.innerHTML = `
                 <div class="inventory-emoji"></div>
                 <div class="inventory-name"></div>
                 <div class="inventory-quantity"></div>
-                ${isLicense ? '<div class="license-hint">Click to create fighter!</div>' : ''}
+                ${hintHTML}
             `;
             grid.prepend(itemEl);
         }
@@ -165,14 +172,12 @@ function updateShopInventoryItem(inv) {
         }
         if (isLicense) {
             itemEl.classList.add('clickable-license');
-            itemEl.setAttribute('onclick', "window.location.href='/user/create-fighter'");
-            let hint = itemEl.querySelector('.license-hint');
-            if (!hint) {
-                hint = document.createElement('div');
-                hint.className = 'license-hint';
-                hint.textContent = 'Click to create fighter!';
-                itemEl.appendChild(hint);
+            if (isCombatLicense) {
+                itemEl.setAttribute('onclick', "window.location.href='/user/create-fighter'");
+            } else if (isSponsorship) {
+                itemEl.setAttribute('onclick', "window.location.href='/user/sponsorships'");
             }
+            updateLicenseHint(itemEl, isCombatLicense, isSponsorship);
         }
         if (emojiEl) emojiEl.textContent = inv.emoji || '';
         if (nameEl) nameEl.textContent = inv.name || '';
@@ -211,5 +216,19 @@ function disableUniqueIfNeeded(itemId) {
     if (btn) {
         btn.disabled = true;
         btn.textContent = 'ALREADY OWNED';
+    }
+}
+
+function updateLicenseHint(card, isCombatLicense, isSponsorship) {
+    let hint = card.querySelector('.license-hint');
+    if (!hint) {
+        hint = document.createElement('div');
+        hint.className = 'license-hint';
+        card.appendChild(hint);
+    }
+    if (isCombatLicense) {
+        hint.textContent = 'Click to create fighter!';
+    } else if (isSponsorship) {
+        hint.textContent = 'Click to assign sponsorship';
     }
 }

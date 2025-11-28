@@ -108,25 +108,29 @@ type PageData struct {
 	UserBets        []database.BetWithFight
 	UserBetFightIDs map[int]bool
 	// Meta tags for social media
-	MetaDescription    string
-	MetaImage          string
-	MetaType           string
-	ViewerCount        int
-	Fighter1           *database.Fighter
-	Fighter2           *database.Fighter
-	ShopItems          []database.ShopItem
-	UserInventory      []database.UserInventoryItem // Added for user inventory
-	Fighter1Effects    []database.AppliedEffect
-	Fighter2Effects    []database.AppliedEffect
-	Fighter1Curses     int
-	Fighter1Blessings  int
-	Fighter2Curses     int
-	Fighter2Blessings  int
-	UserEffectsOnFight []database.AppliedEffectWithUser // New field for user effects
-	FighterLegacy      []database.ChampionLegacyRecord
-	FighterLegacyCount int
-	FighterKillCount   int
-	FighterPastFights  []database.Fight
+	MetaDescription             string
+	MetaImage                   string
+	MetaType                    string
+	ViewerCount                 int
+	Fighter1                    *database.Fighter
+	Fighter2                    *database.Fighter
+	ShopItems                   []database.ShopItem
+	UserInventory               []database.UserInventoryItem // Added for user inventory
+	LicensedFighters            []database.LicensedFighterInfo
+	EligibleSponsorshipFighters []database.Fighter
+	PendingSponsorshipCount     int
+	HasLicensedFighters         bool
+	Fighter1Effects             []database.AppliedEffect
+	Fighter2Effects             []database.AppliedEffect
+	Fighter1Curses              int
+	Fighter1Blessings           int
+	Fighter2Curses              int
+	Fighter2Blessings           int
+	UserEffectsOnFight          []database.AppliedEffectWithUser // New field for user effects
+	FighterLegacy               []database.ChampionLegacyRecord
+	FighterLegacyCount          int
+	FighterKillCount            int
+	FighterPastFights           []database.Fight
 	// MVP-related fields
 	CurrentMVP   *database.UserSetting
 	CanChangeMVP bool
@@ -261,6 +265,8 @@ func (s *Server) setupRoutes() {
 	// Fighter creation route (requires auth)
 	protected.HandleFunc("/create-fighter", s.handleCreateFighter).Methods("GET")
 	protected.HandleFunc("/create-fighter", s.handleCreateFighterPost).Methods("POST")
+	protected.HandleFunc("/sponsorships", s.handleSponsorships).Methods("GET")
+	protected.HandleFunc("/sponsorships/assign", s.handleSponsorshipAssign).Methods("POST")
 
 	// Casino routes (requires auth)
 	protected.HandleFunc("/casino", s.handleCasino).Methods("GET")
@@ -1977,6 +1983,13 @@ func (s *Server) handleShop(w http.ResponseWriter, r *http.Request) {
 		primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
 		data.PrimaryColor = primaryColor
 		data.SecondaryColor = secondaryColor
+
+		if licensedCount, err := s.repo.UserLicensedFighterCount(user.ID); err == nil {
+			data.HasLicensedFighters = licensedCount > 0
+		}
+		if pending, err := s.repo.GetPendingSponsorshipCount(user.ID); err == nil {
+			data.PendingSponsorshipCount = pending
+		}
 	}
 
 	s.renderTemplate(w, "shop.html", data)
@@ -2064,6 +2077,18 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"success": false,
 				"error":   "This item is limited to 1 per account",
+			})
+			return
+		}
+	}
+
+	if item.ItemType == "fighter_sponsorship" {
+		if pending, err := s.repo.GetPendingSponsorshipCount(user.ID); err == nil && pending > 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "You already have an unassigned Fighter Sponsorship. Visit the Sponsorship desk to use it first.",
 			})
 			return
 		}
@@ -2580,28 +2605,32 @@ func (s *Server) handleCreateFighterPost(w http.ResponseWriter, r *http.Request)
 	// Create the fighter
 	now := time.Now()
 	fighterID, err := s.repo.CreateCustomFighter(database.Fighter{
-		Name:              req.Name,
-		Team:              "Custom Fighters",
-		Strength:          req.Stats.Strength,
-		Speed:             req.Stats.Speed,
-		Endurance:         req.Stats.Endurance,
-		Technique:         req.Stats.Technique,
-		BloodType:         bloodType,
-		Horoscope:         horoscope,
-		MolecularDensity:  molecularDensity,
-		ExistentialDread:  existentialDread,
-		Fingers:           fingers,
-		Toes:              toes,
-		Ancestors:         ancestors,
-		FighterClass:      fighterClass,
-		Wins:              0,
-		Losses:            0,
-		Draws:             0,
-		IsDead:            false,
-		CreatedByUserID:   &user.ID,
-		IsCustom:          true,
-		CreationDate:      &now,
-		CustomDescription: nil, // Could be added later
+		Name:                      req.Name,
+		Team:                      "Custom Fighters",
+		Strength:                  req.Stats.Strength,
+		Speed:                     req.Stats.Speed,
+		Endurance:                 req.Stats.Endurance,
+		Technique:                 req.Stats.Technique,
+		BloodType:                 bloodType,
+		Horoscope:                 horoscope,
+		MolecularDensity:          molecularDensity,
+		ExistentialDread:          existentialDread,
+		Fingers:                   fingers,
+		Toes:                      toes,
+		Ancestors:                 ancestors,
+		FighterClass:              fighterClass,
+		Wins:                      0,
+		Losses:                    0,
+		Draws:                     0,
+		IsDead:                    false,
+		CreatedByUserID:           &user.ID,
+		IsCustom:                  true,
+		CreationDate:              &now,
+		CustomDescription:         nil, // Could be added later
+		Ancestor1ID:               0,
+		Ancestor2ID:               0,
+		HybridCreatedByUserID:     0,
+		HybridRogueLabInventoryID: 0,
 	})
 
 	if err != nil {
@@ -2632,6 +2661,128 @@ func (s *Server) handleCreateFighterPost(w http.ResponseWriter, r *http.Request)
 		"fighter_id": fighterID,
 		"message":    fmt.Sprintf("Successfully created %s! Your fighter will join the violence arena soon.", req.Name),
 	})
+}
+
+func (s *Server) handleSponsorships(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Redirect(w, r, "/auth", http.StatusSeeOther)
+		return
+	}
+
+	primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
+
+	pendingCount, _ := s.repo.GetPendingSponsorshipCount(user.ID)
+	licensedFighters, _ := s.repo.GetLicensedFightersForUser(user.ID)
+
+	eligible, err := s.repo.GetEligibleSponsorshipFighters()
+	if err != nil {
+		eligible = nil
+	}
+
+	licensedMap := map[int]struct{}{}
+	for _, lf := range licensedFighters {
+		licensedMap[lf.FighterID] = struct{}{}
+	}
+	filtered := make([]database.Fighter, 0, len(eligible))
+	for _, f := range eligible {
+		if _, ok := licensedMap[f.ID]; ok {
+			continue
+		}
+		filtered = append(filtered, f)
+	}
+
+	data := PageData{
+		User:                        user,
+		Title:                       "Fighter Sponsorships",
+		PrimaryColor:                primaryColor,
+		SecondaryColor:              secondaryColor,
+		LicensedFighters:            licensedFighters,
+		EligibleSponsorshipFighters: filtered,
+		PendingSponsorshipCount:     pendingCount,
+		HasLicensedFighters:         len(licensedFighters) > 0,
+		RequiredCSS:                 []string{"sponsorships.css"},
+	}
+
+	s.renderTemplate(w, "sponsorships.html", data)
+}
+
+func (s *Server) handleSponsorshipAssign(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		FighterID int `json:"fighter_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+	if req.FighterID <= 0 {
+		http.Error(w, "Missing fighter", http.StatusBadRequest)
+		return
+	}
+
+	pendingCount, err := s.repo.GetPendingSponsorshipCount(user.ID)
+	if err != nil || pendingCount <= 0 {
+		http.Error(w, "No sponsorship permits available. Purchase one in the shop.", http.StatusBadRequest)
+		return
+	}
+
+	fighter, err := s.repo.GetFighter(req.FighterID)
+	if err != nil || fighter == nil {
+		http.Error(w, "Fighter not found", http.StatusBadRequest)
+		return
+	}
+	if fighter.IsDead || fighter.IsUndead {
+		http.Error(w, "Only active fighters can be sponsored", http.StatusBadRequest)
+		return
+	}
+
+	has, err := s.repo.UserHasSponsorship(user.ID, fighter.ID)
+	if err != nil {
+		http.Error(w, "Failed to check sponsorships", http.StatusInternalServerError)
+		return
+	}
+	if has {
+		http.Error(w, "You already sponsor this fighter", http.StatusBadRequest)
+		return
+	}
+
+	item, err := s.repo.GetShopItemByType("fighter_sponsorship")
+	if err != nil || item == nil {
+		http.Error(w, "Sponsorship item missing", http.StatusInternalServerError)
+		return
+	}
+
+	if err := s.repo.AssignSponsorship(user.ID, fighter.ID, item.ID); err != nil {
+		log.Printf("assign sponsorship failed: %v", err)
+		if strings.Contains(strings.ToLower(err.Error()), "unique") {
+			http.Error(w, "You already sponsor that fighter.", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Failed to assign sponsorship", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"success":       true,
+		"pending_count": pendingCount - 1,
+		"licensed": map[string]interface{}{
+			"fighter_id":  fighter.ID,
+			"name":        fighter.Name,
+			"team":        fighter.Team,
+			"record":      fmt.Sprintf("%dW-%dL-%dD", fighter.Wins, fighter.Losses, fighter.Draws),
+			"avatar":      fighter.AvatarURL,
+			"licensed_at": time.Now().Format(time.RFC3339),
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 // Helper functions for generating additional chaos stats

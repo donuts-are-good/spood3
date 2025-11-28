@@ -1,0 +1,94 @@
+{{define "content"}}
+<div class="sponsor-wrap">
+    <header class="sponsor-header">
+        <p class="eyebrow">Department of Recreational Violence · Patron Desk</p>
+        <h1>Fighter Sponsorships</h1>
+        <p class="lede">
+            Cover training-camp fees, hydration paste, and morale enrichment for your chosen fighter. 
+            As a token of gratitude, the Department archives a copy of their genome for your <em>keepsake</em> collection.
+        </p>
+        <div class="disclaimer">
+            ⚠️ Keepsake clause: genome access is non-exclusive and for commemorative purposes only. Unauthorized splicing, resale, hybridizing, or fetish applications remain punishable under Ordinance 12-Q.
+        </div>
+    </header>
+
+    <section class="permit-status {{if gt .PendingSponsorshipCount 0}}active{{end}}">
+        <div class="status-copy">
+            {{if gt .PendingSponsorshipCount 0}}
+                <h2>Pending Sponsorship Permit</h2>
+                <p>You currently hold <strong>{{.PendingSponsorshipCount}}</strong> unused Fighter Sponsorship{{if gt .PendingSponsorshipCount 1}}s{{end}}. Assign it below to activate genome rights.</p>
+            {{else}}
+                <h2>No Sponsorships in Queue</h2>
+                <p>Purchase a Fighter Sponsorship from the shop to unlock genome keepsakes and hybrid privileges.</p>
+            {{end}}
+        </div>
+        <div class="status-actions">
+            <a class="cta" href="/shop">Visit Shop</a>
+            <span class="pill">Genomes archived for keepsake value only</span>
+        </div>
+    </section>
+
+    <section class="licensed-panel">
+        <div class="panel-head">
+            <h3>Licensed Fighters</h3>
+            <span class="count">{{len .LicensedFighters}} total</span>
+        </div>
+        {{if .LicensedFighters}}
+        <div class="licensed-grid">
+            {{range .LicensedFighters}}
+            <div class="licensed-card">
+                <img src="{{.AvatarURL}}" alt="{{.Name}}">
+                <div class="licensed-body">
+                    <a class="name" href="/fighter/{{.FighterID}}">{{.Name}}</a>
+                    <div class="meta">
+                        Record: {{.Wins}}W-{{.Losses}}L-{{.Draws}}D · Licensed {{.LicensedAt.Format "Jan 2, 2006"}}
+                    </div>
+                </div>
+                <div class="badge">Genome archived</div>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="empty-state">
+            <p>🤝 You haven’t sponsored any fighters yet.</p>
+            <small>Sponsor an active fighter to unlock their genome dossier.</small>
+        </div>
+        {{end}}
+    </section>
+
+    <section class="eligible-panel">
+        <div class="panel-head">
+            <h3>Eligible Fighters</h3>
+            <div class="search">
+                <input type="text" id="fighter-search" placeholder="Search fighters..." autocomplete="off">
+            </div>
+        </div>
+        {{if .EligibleSponsorshipFighters}}
+        <div class="eligible-grid" id="eligible-grid">
+            {{range .EligibleSponsorshipFighters}}
+            <div class="eligible-card" data-name="{{.Name}}">
+                <div class="card-left">
+                    <img src="{{.AvatarURL}}" alt="{{.Name}}">
+                    <div class="info">
+                        <a class="name" href="/fighter/{{.ID}}">{{.Name}}</a>
+                        <div class="meta">{{.Team}} · {{.Wins}}W-{{.Losses}}L-{{.Draws}}D</div>
+                    </div>
+                </div>
+                <button class="assign-btn" data-fighter-id="{{.ID}}" data-fighter-name="{{.Name}}" {{if eq $.PendingSponsorshipCount 0}}disabled{{end}}>
+                    Sponsor {{.Name}}
+                </button>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="empty-state">
+            <p>All active fighters already have your sponsorships.</p>
+            <small>Check back later when new talent enters the roster.</small>
+        </div>
+        {{end}}
+    </section>
+</div>
+
+<script src="/static/js/sponsorships.js"></script>
+{{end}}
+

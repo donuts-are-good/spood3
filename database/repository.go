@@ -123,6 +123,129 @@ func (r *Repository) tableExists(name string) (bool, error) {
 	return count > 0, err
 }
 
+func (r *Repository) GetUserSponsorships(userID int) ([]Sponsorship, error) {
+	var rows []Sponsorship
+	err := r.db.Select(&rows, "SELECT * FROM sponsorships WHERE user_id = ? ORDER BY created_at DESC", userID)
+	return rows, err
+}
+
+func (r *Repository) CreateSponsorship(userID int, fighterID int) error {
+	_, err := r.db.Exec(`INSERT INTO sponsorships (user_id, fighter_id) VALUES (?, ?)`, userID, fighterID)
+	return err
+}
+
+func (r *Repository) UserLicensedFighterCount(userID int) (int, error) {
+	var count int
+	err := r.db.Get(&count, "SELECT COUNT(*) FROM sponsorships WHERE user_id = ?", userID)
+	return count, err
+}
+
+func (r *Repository) HasPendingSponsorshipPermit(userID int) (bool, error) {
+	var count int
+	err := r.db.Get(&count, `
+        SELECT COUNT(*) 
+        FROM user_inventory ui 
+        JOIN shop_items si ON ui.shop_item_id = si.id 
+        WHERE ui.user_id = ? 
+          AND si.item_type = 'fighter_sponsorship' 
+          AND ui.quantity > 0
+    `, userID)
+	return count > 0, err
+}
+
+func (r *Repository) GetEligibleSponsorshipFighters() ([]Fighter, error) {
+	var fighters []Fighter
+	err := r.db.Select(&fighters, `
+        SELECT * FROM fighters 
+        WHERE is_dead = FALSE 
+          AND (is_undead = FALSE OR is_undead IS NULL)
+        ORDER BY wins DESC, id ASC
+    `)
+	if err == nil {
+		ensureFightersDefaults(fighters)
+	}
+	return fighters, err
+}
+
+func (r *Repository) GetLicensedFightersForUser(userID int) ([]LicensedFighterInfo, error) {
+	var out []LicensedFighterInfo
+	err := r.db.Select(&out, `
+        SELECT 
+            s.id AS sponsorship_id,
+            f.id AS fighter_id,
+            f.name,
+            f.team,
+            f.wins,
+            f.losses,
+            f.draws,
+            f.avatar_url,
+            s.created_at AS licensed_at
+        FROM sponsorships s
+        JOIN fighters f ON f.id = s.fighter_id
+        WHERE s.user_id = ?
+        ORDER BY s.created_at DESC`, userID)
+	return out, err
+}
+
+func (r *Repository) GetPendingSponsorshipCount(userID int) (int, error) {
+	var count int
+	err := r.db.Get(&count, `
+        SELECT COALESCE(SUM(ui.quantity), 0) 
+        FROM user_inventory ui 
+        JOIN shop_items si ON ui.shop_item_id = si.id 
+        WHERE ui.user_id = ? 
+          AND si.item_type = 'fighter_sponsorship'`, userID)
+	return count, err
+}
+
+func (r *Repository) UserHasSponsorship(userID, fighterID int) (bool, error) {
+	var count int
+	err := r.db.Get(&count, `SELECT COUNT(*) FROM sponsorships WHERE user_id = ? AND fighter_id = ?`, userID, fighterID)
+	return count > 0, err
+}
+
+func (r *Repository) GetShopItemByType(itemType string) (*ShopItem, error) {
+	var item ShopItem
+	err := r.db.Get(&item, `SELECT * FROM shop_items WHERE item_type = ? LIMIT 1`, itemType)
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
+func (r *Repository) AssignSponsorship(userID, fighterID, shopItemID int) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(`INSERT INTO sponsorships (user_id, fighter_id) VALUES (?, ?)`, userID, fighterID); err != nil {
+		return err
+	}
+
+	res, err := tx.Exec(`
+        UPDATE user_inventory 
+        SET quantity = quantity - 1 
+        WHERE user_id = ? AND shop_item_id = ? AND quantity > 0`, userID, shopItemID)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return fmt.Errorf("no sponsorship permit available to consume")
+	}
+
+	if _, err := tx.Exec(`DELETE FROM user_inventory WHERE user_id = ? AND shop_item_id = ? AND quantity <= 0`, userID, shopItemID); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func (r *Repository) columnExists(table, column string) (bool, error) {
 	query := fmt.Sprintf(`SELECT COUNT(*) FROM pragma_table_info('%s') WHERE name = ?`, table)
 	var count int
