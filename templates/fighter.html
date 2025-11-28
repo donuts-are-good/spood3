@@ -208,6 +208,64 @@
 					.genome-empty { font-style: italic; opacity: .7; padding: 8px 0; }
 				</style>
 			</div>
+			<div class="stats-card lineage-card">
+				<div class="card-header lineage-header">
+					<h3>Genome Lineage</h3>
+					<div class="license-pill {{if .LineageLicensedBy}}active{{else}}pending{{end}}">
+						{{if .LineageLicensedBy}}
+							Licensed by 
+							<a href="/user/@{{if .LineageLicensedBy.CustomUsername}}{{.LineageLicensedBy.CustomUsername}}{{else}}{{.LineageLicensedBy.Username}}{{end}}">
+								@{{getDisplayName .LineageLicensedBy.Username .LineageLicensedBy.CustomUsername}}
+							</a>
+						{{else if .LineageAncestors}}
+							Heritage logged via Department registry
+						{{else}}
+							Awaiting sponsorship
+						{{end}}
+					</div>
+				</div>
+				<div class="lineage-tree">
+					<div class="lineage-column ancestors">
+						<div class="column-label">Genetic Ancestors</div>
+						{{if .LineageAncestors}}
+						<ul class="lineage-list">
+							{{range .LineageAncestors}}
+							<li>
+								<div class="lineage-node ancestor">
+									<a href="/fighter/{{.ID}}" class="node-link">{{.Name}}</a>
+									<span class="node-meta">{{.Team}} · {{.Wins}}W-{{.Losses}}L-{{.Draws}}D</span>
+								</div>
+							</li>
+							{{end}}
+						</ul>
+						{{else}}
+						<div class="lineage-empty">No ancestral filings. Either this fighter is OG DNA or the paperwork burned.</div>
+						{{end}}
+					</div>
+					<div class="lineage-column hybrid-focus">
+						<div class="column-label">Hybrid Record</div>
+						<div class="hybrid-node">
+							<span class="hybrid-name">{{.Fighter.Name}}</span>
+							<span class="node-meta">Filed {{formatDate .Fighter.CreatedAt}} · Genome sig {{printf \"%.12s\" .Fighter.Genome}}…</span>
+						</div>
+						{{if .LineageDescendants}}
+						<div class="column-label child-label">Descendant Hybrids</div>
+						<ul class="lineage-list descendants">
+							{{range .LineageDescendants}}
+							<li>
+								<div class="lineage-node descendant">
+									<a href="/fighter/{{.ID}}" class="node-link">{{.Name}}</a>
+									<span class="node-meta">Bred {{formatDate .CreatedAt}} · {{.Wins}}W-{{.Losses}}L-{{.Draws}}D</span>
+								</div>
+							</li>
+							{{end}}
+						</ul>
+						{{else}}
+						<div class="lineage-empty">No offspring recorded. Rogue Lab still cooling.</div>
+						{{end}}
+					</div>
+				</div>
+			</div>
         </div><!-- End fighter-content-grid -->
         
         <div class="fighter-actions">

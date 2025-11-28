@@ -198,6 +198,28 @@ body {
     cursor: not-allowed;
 }
 
+.cta-panel {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cta-panel .cta {
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #ff5c7e;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.8rem;
+}
+
 .empty-state {
     text-align: center;
     padding: 40px 0;

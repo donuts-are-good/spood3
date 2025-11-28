@@ -246,6 +246,61 @@ func (r *Repository) AssignSponsorship(userID, fighterID, shopItemID int) error 
 	return tx.Commit()
 }
 
+func (r *Repository) GetInventoryCountByItemType(userID int, itemType string) (int, error) {
+	var count int
+	err := r.db.Get(&count, `
+        SELECT COALESCE(SUM(ui.quantity), 0)
+        FROM user_inventory ui
+        JOIN shop_items si ON ui.shop_item_id = si.id
+        WHERE ui.user_id = ? AND si.item_type = ?`, userID, itemType)
+	return count, err
+}
+
+func (r *Repository) GetFighterDescendants(fighterID int) ([]Fighter, error) {
+	var fighters []Fighter
+	err := r.db.Select(&fighters, `
+        SELECT * FROM fighters 
+        WHERE ancestor1_id = ? OR ancestor2_id = ?
+        ORDER BY created_at DESC`, fighterID, fighterID)
+	if err == nil {
+		ensureFightersDefaults(fighters)
+	}
+	return fighters, err
+}
+
+type sqlExecutor interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+func insertFighterRecord(exec sqlExecutor, fighter Fighter, now time.Time) (int, error) {
+	result, err := exec.Exec(`
+        INSERT INTO fighters (
+            name, team, strength, speed, endurance, technique, 
+            blood_type, horoscope, molecular_density, existential_dread, 
+            fingers, toes, ancestors, fighter_class, wins, losses, draws, 
+            is_dead, created_by_user_id, is_custom, creation_date, 
+            custom_description, avatar_url, created_at, genome,
+            ancestor1_id, ancestor2_id, hybrid_created_by_user_id, hybrid_rogue_lab_inventory_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		fighter.Name, fighter.Team, fighter.Strength, fighter.Speed,
+		fighter.Endurance, fighter.Technique, fighter.BloodType,
+		fighter.Horoscope, fighter.MolecularDensity, fighter.ExistentialDread,
+		fighter.Fingers, fighter.Toes, fighter.Ancestors, fighter.FighterClass,
+		fighter.Wins, fighter.Losses, fighter.Draws, fighter.IsDead,
+		fighter.CreatedByUserID, fighter.IsCustom, fighter.CreationDate,
+		fighter.CustomDescription, fighter.AvatarURL, now, fighter.Genome,
+		fighter.Ancestor1ID, fighter.Ancestor2ID, fighter.HybridCreatedByUserID, fighter.HybridRogueLabInventoryID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	fighterID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(fighterID), nil
+}
+
 func (r *Repository) columnExists(table, column string) (bool, error) {
 	query := fmt.Sprintf(`SELECT COUNT(*) FROM pragma_table_info('%s') WHERE name = ?`, table)
 	var count int
@@ -1523,43 +1578,64 @@ func (r *Repository) GetFighterByName(name string) (*Fighter, error) {
 
 // CreateCustomFighter creates a new custom fighter and returns the fighter ID
 func (r *Repository) CreateCustomFighter(fighter Fighter) (int, error) {
-	// Ensure default avatar if not set
 	ensureFighterDefaults(&fighter)
-
-	// Use a single timestamp for deterministic hashing and storage
 	now := time.Now()
 	fighter.CreatedAt = now
-	// Compute genome (256 hex) from fighter fields
-	genome := fighter.DeriveGenome()
+	fighter.Genome = fighter.DeriveGenome()
+	return insertFighterRecord(r.db, fighter, now)
+}
 
-	result, err := r.db.Exec(`
-        INSERT INTO fighters (
-            name, team, strength, speed, endurance, technique, 
-            blood_type, horoscope, molecular_density, existential_dread, 
-            fingers, toes, ancestors, fighter_class, wins, losses, draws, 
-            is_dead, created_by_user_id, is_custom, creation_date, 
-            custom_description, avatar_url, created_at, genome,
-            ancestor1_id, ancestor2_id, hybrid_created_by_user_id, hybrid_rogue_lab_inventory_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		fighter.Name, fighter.Team, fighter.Strength, fighter.Speed,
-		fighter.Endurance, fighter.Technique, fighter.BloodType,
-		fighter.Horoscope, fighter.MolecularDensity, fighter.ExistentialDread,
-		fighter.Fingers, fighter.Toes, fighter.Ancestors, fighter.FighterClass,
-		fighter.Wins, fighter.Losses, fighter.Draws, fighter.IsDead,
-		fighter.CreatedByUserID, fighter.IsCustom, fighter.CreationDate,
-		fighter.CustomDescription, fighter.AvatarURL, now, genome,
-		fighter.Ancestor1ID, fighter.Ancestor2ID, fighter.HybridCreatedByUserID, fighter.HybridRogueLabInventoryID,
-	)
+func (r *Repository) CreateHybridFighter(userID int, fighter Fighter) (int, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	type invRow struct {
+		ID         int
+		Quantity   int
+		ShopItemID int
+	}
+	var row invRow
+	err = tx.QueryRow(`
+        SELECT ui.id, ui.quantity, ui.shop_item_id
+        FROM user_inventory ui
+        JOIN shop_items si ON ui.shop_item_id = si.id
+        WHERE ui.user_id = ? AND si.item_type = 'genetic_splicer'
+        ORDER BY ui.created_at ASC
+        LIMIT 1`, userID).Scan(&row.ID, &row.Quantity, &row.ShopItemID)
 	if err != nil {
 		return 0, err
 	}
 
-	fighterID, err := result.LastInsertId()
-	if err != nil {
+	if row.Quantity <= 0 {
+		return 0, fmt.Errorf("rogue lab inventory empty")
+	}
+
+	if _, err := tx.Exec(`UPDATE user_inventory SET quantity = quantity - 1 WHERE id = ? AND quantity > 0`, row.ID); err != nil {
+		return 0, err
+	}
+	if _, err := tx.Exec(`DELETE FROM user_inventory WHERE id = ? AND quantity <= 0`, row.ID); err != nil {
 		return 0, err
 	}
 
-	return int(fighterID), nil
+	ensureFighterDefaults(&fighter)
+	now := time.Now()
+	fighter.CreatedAt = now
+	fighter.Genome = fighter.DeriveGenome()
+	if fighter.CreatedByUserID == nil {
+		fighter.CreatedByUserID = &userID
+	}
+	fighter.IsCustom = true
+	fighter.HybridCreatedByUserID = userID
+	fighter.HybridRogueLabInventoryID = row.ID
+
+	fighterID, err := insertFighterRecord(tx, fighter, now)
+	if err != nil {
+		return 0, err
+	}
+	return fighterID, tx.Commit()
 }
 
 // UpdateFighterLore updates the lore text for a fighter

@@ -176,6 +176,19 @@
     color: #90ffbf;
 }
 
+.back-alley-note .mini-cta {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #000;
+    background: #90ffbf;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
 .shop-item {
     background: #000000;
     border: 3px solid;

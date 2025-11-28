@@ -120,6 +120,10 @@ type PageData struct {
 	EligibleSponsorshipFighters []database.Fighter
 	PendingSponsorshipCount     int
 	HasLicensedFighters         bool
+	RogueLabCount               int
+	LineageAncestors            []database.Fighter
+	LineageDescendants          []database.Fighter
+	LineageLicensedBy           *database.User
 	Fighter1Effects             []database.AppliedEffect
 	Fighter2Effects             []database.AppliedEffect
 	Fighter1Curses              int
@@ -214,6 +218,7 @@ func (s *Server) setupRoutes() {
 	public.HandleFunc("/weather", s.handleWeather).Methods("GET")
 	public.HandleFunc("/fighters", s.handleFighters).Methods("GET")
 	public.HandleFunc("/fighter/{id}", s.handleFighter).Methods("GET")
+	public.HandleFunc("/fighter/{id}/lineage", s.handleFighterLineage).Methods("GET")
 	public.HandleFunc("/fight/{id}", s.handleFight).Methods("GET")
 	public.HandleFunc("/champions", s.handleChampions).Methods("GET")
 	public.HandleFunc("/leaderboard", s.handleLeaderboard).Methods("GET")
@@ -267,6 +272,8 @@ func (s *Server) setupRoutes() {
 	protected.HandleFunc("/create-fighter", s.handleCreateFighterPost).Methods("POST")
 	protected.HandleFunc("/sponsorships", s.handleSponsorships).Methods("GET")
 	protected.HandleFunc("/sponsorships/assign", s.handleSponsorshipAssign).Methods("POST")
+	protected.HandleFunc("/hybrids", s.handleHybrids).Methods("GET")
+	protected.HandleFunc("/hybrids", s.handleHybridCreate).Methods("POST")
 
 	// Casino routes (requires auth)
 	protected.HandleFunc("/casino", s.handleCasino).Methods("GET")
@@ -431,6 +438,14 @@ func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
 	// Template helpers for date navigation are defined in renderTemplate funcMap
 
 	s.renderTemplate(w, "weather.html", data)
+}
+
+func getDisplayName(username, customUsername string) string {
+	customUsername = strings.TrimSpace(customUsername)
+	if customUsername != "" {
+		return customUsername
+	}
+	return username
 }
 
 // isAdmin checks if a user is an admin based on allowed Discord IDs from env
@@ -1137,6 +1152,26 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 			metaImage = fmt.Sprintf("%s://%s%s", scheme, host, metaImage)
 		}
 		data.MetaImage = metaImage
+
+		lineageAncestors := make([]database.Fighter, 0, 2)
+		if fighter.Ancestor1ID > 0 {
+			if anc, err := s.repo.GetFighter(fighter.Ancestor1ID); err == nil && anc != nil {
+				lineageAncestors = append(lineageAncestors, *anc)
+			}
+		}
+		if fighter.Ancestor2ID > 0 {
+			if anc, err := s.repo.GetFighter(fighter.Ancestor2ID); err == nil && anc != nil {
+				lineageAncestors = append(lineageAncestors, *anc)
+			}
+		}
+		descendants, _ := s.repo.GetFighterDescendants(fighter.ID)
+		var lineageOwner *database.User
+		if fighter.HybridCreatedByUserID > 0 {
+			lineageOwner, _ = s.repo.GetUser(fighter.HybridCreatedByUserID)
+		}
+		data.LineageAncestors = lineageAncestors
+		data.LineageDescendants = descendants
+		data.LineageLicensedBy = lineageOwner
 	} else {
 		data.MetaDescription = "💀 FIGHTER NOT FOUND IN THE VIOLENCE DATABASE. THEY MAY HAVE BEEN ABSORBED INTO THE CHAOS VOID. 💀"
 	}
@@ -1162,6 +1197,110 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 	// Add fighter page JS
 	// The template base loads CSS only; we add a small inline registration via MetaType to let the base know which JS to load
 	s.renderTemplate(w, "fighter.html", data)
+}
+
+type lineageNode struct {
+	ID            int       `json:"id"`
+	Name          string    `json:"name"`
+	Team          string    `json:"team"`
+	Wins          int       `json:"wins"`
+	Losses        int       `json:"losses"`
+	Draws         int       `json:"draws"`
+	AvatarURL     string    `json:"avatar_url"`
+	Ancestor1ID   int       `json:"ancestor1_id"`
+	Ancestor2ID   int       `json:"ancestor2_id"`
+	CreatedAt     time.Time `json:"created_at"`
+	HybridCreated int       `json:"hybrid_created_by_user_id"`
+}
+
+type lineageUser struct {
+	ID             int    `json:"id"`
+	Username       string `json:"username"`
+	CustomUsername string `json:"custom_username"`
+	DisplayName    string `json:"display_name"`
+}
+
+func (s *Server) handleFighterLineage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	fighterID, err := strconv.Atoi(vars["id"])
+	if err != nil || fighterID <= 0 {
+		http.Error(w, "invalid fighter id", http.StatusBadRequest)
+		return
+	}
+
+	fighter, err := s.repo.GetFighter(fighterID)
+	if err != nil || fighter == nil {
+		http.Error(w, "fighter not found", http.StatusNotFound)
+		return
+	}
+
+	ancestors := s.collectLineageAncestors(fighter)
+	descendants, _ := s.repo.GetFighterDescendants(fighter.ID)
+	descendantNodes := make([]lineageNode, 0, len(descendants))
+	for _, d := range descendants {
+		descendantNodes = append(descendantNodes, lineageNodeFromFighter(&d))
+	}
+
+	var licensedBy *lineageUser
+	if fighter.HybridCreatedByUserID > 0 {
+		if creator, err := s.repo.GetUser(fighter.HybridCreatedByUserID); err == nil && creator != nil {
+			licensedBy = &lineageUser{
+				ID:             creator.ID,
+				Username:       creator.Username,
+				CustomUsername: creator.CustomUsername,
+				DisplayName:    getDisplayName(creator.Username, creator.CustomUsername),
+			}
+		}
+	}
+
+	response := map[string]interface{}{
+		"fighter":     lineageNodeFromFighter(fighter),
+		"ancestors":   ancestors,
+		"descendants": descendantNodes,
+		"licensed_by": licensedBy,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("lineage encode error: %v", err)
+	}
+}
+
+func (s *Server) collectLineageAncestors(fighter *database.Fighter) []lineageNode {
+	nodes := make([]lineageNode, 0, 2)
+	if fighter == nil {
+		return nodes
+	}
+	if fighter.Ancestor1ID > 0 {
+		if anc, err := s.repo.GetFighter(fighter.Ancestor1ID); err == nil && anc != nil {
+			nodes = append(nodes, lineageNodeFromFighter(anc))
+		}
+	}
+	if fighter.Ancestor2ID > 0 {
+		if anc, err := s.repo.GetFighter(fighter.Ancestor2ID); err == nil && anc != nil {
+			nodes = append(nodes, lineageNodeFromFighter(anc))
+		}
+	}
+	return nodes
+}
+
+func lineageNodeFromFighter(f *database.Fighter) lineageNode {
+	if f == nil {
+		return lineageNode{}
+	}
+	return lineageNode{
+		ID:            f.ID,
+		Name:          f.Name,
+		Team:          f.Team,
+		Wins:          f.Wins,
+		Losses:        f.Losses,
+		Draws:         f.Draws,
+		AvatarURL:     f.AvatarURL,
+		Ancestor1ID:   f.Ancestor1ID,
+		Ancestor2ID:   f.Ancestor2ID,
+		CreatedAt:     f.CreatedAt,
+		HybridCreated: f.HybridCreatedByUserID,
+	}
 }
 
 func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
@@ -1990,6 +2129,9 @@ func (s *Server) handleShop(w http.ResponseWriter, r *http.Request) {
 		if pending, err := s.repo.GetPendingSponsorshipCount(user.ID); err == nil {
 			data.PendingSponsorshipCount = pending
 		}
+		if labs, err := s.repo.GetInventoryCountByItemType(user.ID, "genetic_splicer"); err == nil {
+			data.RogueLabCount = labs
+		}
 	}
 
 	s.renderTemplate(w, "shop.html", data)
@@ -2674,6 +2816,7 @@ func (s *Server) handleSponsorships(w http.ResponseWriter, r *http.Request) {
 
 	pendingCount, _ := s.repo.GetPendingSponsorshipCount(user.ID)
 	licensedFighters, _ := s.repo.GetLicensedFightersForUser(user.ID)
+	rogueLabs, _ := s.repo.GetInventoryCountByItemType(user.ID, "genetic_splicer")
 
 	eligible, err := s.repo.GetEligibleSponsorshipFighters()
 	if err != nil {
@@ -2701,6 +2844,7 @@ func (s *Server) handleSponsorships(w http.ResponseWriter, r *http.Request) {
 		EligibleSponsorshipFighters: filtered,
 		PendingSponsorshipCount:     pendingCount,
 		HasLicensedFighters:         len(licensedFighters) > 0,
+		RogueLabCount:               rogueLabs,
 		RequiredCSS:                 []string{"sponsorships.css"},
 	}
 
@@ -2783,6 +2927,199 @@ func (s *Server) handleSponsorshipAssign(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) handleHybrids(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Redirect(w, r, "/auth", http.StatusSeeOther)
+		return
+	}
+
+	primaryColor, secondaryColor := utils.GenerateUserColors(user.DiscordID)
+
+	licensed, _ := s.repo.GetLicensedFightersForUser(user.ID)
+	rogueCount, _ := s.repo.GetInventoryCountByItemType(user.ID, "genetic_splicer")
+	pendingPermits, _ := s.repo.GetPendingSponsorshipCount(user.ID)
+
+	data := PageData{
+		User:                    user,
+		Title:                   "Rogue Gene Lab",
+		PrimaryColor:            primaryColor,
+		SecondaryColor:          secondaryColor,
+		LicensedFighters:        licensed,
+		HasLicensedFighters:     len(licensed) > 0,
+		RogueLabCount:           rogueCount,
+		PendingSponsorshipCount: pendingPermits,
+		RequiredCSS:             []string{"hybrids.css"},
+	}
+
+	s.renderTemplate(w, "hybrids.html", data)
+}
+
+func (s *Server) handleHybridCreate(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		Name        string `json:"name"`
+		Ancestor1ID int    `json:"ancestor1_id"`
+		Ancestor2ID int    `json:"ancestor2_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+	req.Name = strings.TrimSpace(req.Name)
+	if len(req.Name) < 3 || len(req.Name) > 50 {
+		http.Error(w, "Name must be between 3 and 50 characters.", http.StatusBadRequest)
+		return
+	}
+	if req.Ancestor1ID <= 0 || req.Ancestor2ID <= 0 || req.Ancestor1ID == req.Ancestor2ID {
+		http.Error(w, "Select two different fighters.", http.StatusBadRequest)
+		return
+	}
+
+	if existing, err := s.repo.GetFighterByName(req.Name); err == nil && existing != nil {
+		http.Error(w, "Fighter name already taken.", http.StatusBadRequest)
+		return
+	}
+
+	rogueCount, err := s.repo.GetInventoryCountByItemType(user.ID, "genetic_splicer")
+	if err != nil || rogueCount <= 0 {
+		http.Error(w, "You need a Rogue Lab to proceed.", http.StatusBadRequest)
+		return
+	}
+
+	hasLicense1, err := s.repo.UserHasSponsorship(user.ID, req.Ancestor1ID)
+	if err != nil || !hasLicense1 {
+		http.Error(w, "You do not sponsor that fighter.", http.StatusBadRequest)
+		return
+	}
+	hasLicense2, err := s.repo.UserHasSponsorship(user.ID, req.Ancestor2ID)
+	if err != nil || !hasLicense2 {
+		http.Error(w, "You do not sponsor that fighter.", http.StatusBadRequest)
+		return
+	}
+
+	parent1, err := s.repo.GetFighter(req.Ancestor1ID)
+	if err != nil || parent1 == nil {
+		http.Error(w, "Ancestor not found.", http.StatusBadRequest)
+		return
+	}
+	parent2, err := s.repo.GetFighter(req.Ancestor2ID)
+	if err != nil || parent2 == nil {
+		http.Error(w, "Ancestor not found.", http.StatusBadRequest)
+		return
+	}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	str, spd, end, tec := blendCombatStats(rng, parent1, parent2)
+	bloodType := pickChaosString(rng, parent1.BloodType, parent2.BloodType)
+	horoscope := pickChaosString(rng, parent1.Horoscope, parent2.Horoscope)
+	fighterClass := pickChaosString(rng, parent1.FighterClass, parent2.FighterClass)
+	molecular := (parent1.MolecularDensity + parent2.MolecularDensity) / 2
+	exDread := blendInt(parent1.ExistentialDread, parent2.ExistentialDread)
+	fingers := blendInt(parent1.Fingers, parent2.Fingers)
+	toes := blendInt(parent1.Toes, parent2.Toes)
+	ancestors := blendInt(parent1.Ancestors, parent2.Ancestors)
+
+	team := parent1.Team
+	if strings.TrimSpace(team) == "" {
+		team = parent2.Team
+	}
+	if strings.TrimSpace(team) == "" {
+		team = "Hybrid Collective"
+	}
+
+	now := time.Now()
+	description := fmt.Sprintf("Lab-bred hybrid of %s and %s. Licensed by @%s.", parent1.Name, parent2.Name, getDisplayName(user.Username, user.CustomUsername))
+	lore := fmt.Sprintf("%s + %s were compelled to share genetic materials in an unlit warehouse. The result is %s.", parent1.Name, parent2.Name, req.Name)
+	fighter := database.Fighter{
+		Name:                      req.Name,
+		Team:                      team,
+		Strength:                  str,
+		Speed:                     spd,
+		Endurance:                 end,
+		Technique:                 tec,
+		BloodType:                 bloodType,
+		Horoscope:                 horoscope,
+		MolecularDensity:          molecular,
+		ExistentialDread:          exDread,
+		Fingers:                   fingers,
+		Toes:                      toes,
+		Ancestors:                 ancestors,
+		FighterClass:              fighterClass,
+		Wins:                      0,
+		Losses:                    0,
+		Draws:                     0,
+		IsDead:                    false,
+		IsUndead:                  false,
+		CreatedByUserID:           &user.ID,
+		IsCustom:                  true,
+		CreationDate:              &now,
+		CustomDescription:         &description,
+		Lore:                      lore,
+		AvatarURL:                 parent1.AvatarURL,
+		Ancestor1ID:               parent1.ID,
+		Ancestor2ID:               parent2.ID,
+		HybridCreatedByUserID:     user.ID,
+		HybridRogueLabInventoryID: 0, // set during repo insertion
+	}
+
+	fighterID, err := s.repo.CreateHybridFighter(user.ID, fighter)
+	if err != nil {
+		log.Printf("create hybrid failed: %v", err)
+		http.Error(w, "Failed to create hybrid fighter", http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"success":    true,
+		"fighter_id": fighterID,
+		"redirect":   fmt.Sprintf("/fighter/%d", fighterID),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func blendCombatStats(rng *rand.Rand, a, b *database.Fighter) (int, int, int, int) {
+	stats := []int{
+		blendInt(a.Strength, b.Strength),
+		blendInt(a.Speed, b.Speed),
+		blendInt(a.Endurance, b.Endurance),
+		blendInt(a.Technique, b.Technique),
+	}
+	for i := 0; i < 10; i++ {
+		idx := rng.Intn(len(stats))
+		stats[idx]++
+	}
+	return stats[0], stats[1], stats[2], stats[3]
+}
+
+func blendInt(a, b int) int {
+	return (a + b + 1) / 2
+}
+
+func pickChaosString(rng *rand.Rand, a, b string) string {
+	aa := strings.TrimSpace(a)
+	bb := strings.TrimSpace(b)
+	if aa == "" && bb == "" {
+		return ""
+	}
+	if aa == "" {
+		return bb
+	}
+	if bb == "" {
+		return aa
+	}
+	if rng.Intn(2) == 0 {
+		return aa
+	}
+	return bb
 }
 
 // Helper functions for generating additional chaos stats

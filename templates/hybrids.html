@@ -1,0 +1,75 @@
+{{define "content"}}
+<div class="hybrid-wrap">
+    <header class="hybrid-header">
+        <p class="eyebrow">Back Alley Genome Exchange — Authorized Researchers Only</p>
+        <h1>Rogue Gene Lab</h1>
+        <p class="lede">
+            Licensed fighters can be blended here under dim lighting and questionable paperwork. 
+            Present two sponsored genomes and one Rogue Lab kit to mint a new monstrosity.
+        </p>
+        <div class="policy">
+            ⚠️ Legal reminder: Hybrid output is for sanctioned entertainment only. Export, resale, fetish use, or spiritual awakenings are discouraged by the Department of Recreational Violence.
+        </div>
+    </header>
+
+    <section class="requirements">
+        <div class="req-pill {{if ge (len .LicensedFighters) 2}}met{{end}}">
+            <span>Licensed Fighters</span>
+            <strong>{{len .LicensedFighters}}</strong>
+            <small>Need at least 2</small>
+        </div>
+        <div class="req-pill {{if gt .RogueLabCount 0}}met{{end}}">
+            <span>Rogue Lab Kits</span>
+            <strong>{{.RogueLabCount}}</strong>
+            <small>Consumed per hybrid</small>
+        </div>
+        <div class="req-actions">
+            <a href="/user/sponsorships">👊 Visit Sponsorship Desk</a>
+            <a href="/shop">🧪 Buy Rogue Lab</a>
+        </div>
+    </section>
+
+    {{if lt (len .LicensedFighters) 2}}
+    <div class="warning">
+        You need at least two sponsored fighters before attempting a hybrid. Acquire additional sponsorships first.
+    </div>
+    {{else if eq .RogueLabCount 0}}
+    <div class="warning">
+        You have no Rogue Lab kits on hand. Visit the shop’s back alley vendor to purchase one.
+    </div>
+    {{end}}
+
+    <section class="hybrid-lab {{if or (lt (len .LicensedFighters) 2) (eq .RogueLabCount 0)}}locked{{end}}">
+        <div class="lab-columns">
+            <div class="lab-panel">
+                <h3>Select Two Licensed Fighters</h3>
+                <p>Click to select. The lab will automatically clear the oldest selection if you pick a third.</p>
+                <div class="licensed-grid" id="hybrid-licensed-grid">
+                    {{range .LicensedFighters}}
+                    <div class="licensed-card" data-id="{{.FighterID}}" data-name="{{.Name}}">
+                        <img src="{{.AvatarURL}}" alt="{{.Name}}">
+                        <div class="info">
+                            <div class="name">{{.Name}}</div>
+                            <div class="meta">{{.Team}} · {{.Wins}}W-{{.Losses}}L-{{.Draws}}D</div>
+                        </div>
+                        <button class="select-btn" type="button">Select</button>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+            <div class="lab-panel">
+                <h3>Hybrid Blueprint</h3>
+                <label for="hybrid-name">Hybrid Name</label>
+                <input id="hybrid-name" type="text" placeholder="Name your creation (3-50 chars)" maxlength="50">
+                <div class="name-hint" id="hybrid-name-hint">Waiting for a respectable name...</div>
+                <div class="selection-summary" id="selection-summary">
+                    Select two fighters to generate the lab report.
+                </div>
+                <button id="mix-button" class="cta" type="button" disabled>⚗️ Run Hybridization</button>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="/static/js/hybrids.js"></script>
+{{end}}
+
