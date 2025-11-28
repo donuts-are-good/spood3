@@ -3,9 +3,10 @@ package fight
 import (
 	"fmt"
 	"sort"
+	"time"
+
 	"spoodblort/database"
 	"spoodblort/utils"
-	"time"
 )
 
 type Generator struct {
@@ -23,16 +24,65 @@ func (g *Generator) SelectDailyFighters(fighters []database.Fighter, date time.T
 	available := make([]database.Fighter, len(fighters))
 	copy(available, fighters)
 
-	for i := len(available) - 1; i > 0; i-- {
+	var prioritized []database.Fighter
+	prioritizedIDs := make(map[int]struct{})
+
+	if date.Weekday() != time.Saturday {
+		var zeroes []database.Fighter
+		for _, f := range available {
+			if f.Wins == 0 && f.Losses == 0 && f.Draws == 0 {
+				zeroes = append(zeroes, f)
+			}
+		}
+
+		sort.Slice(zeroes, func(i, j int) bool {
+			ai := zeroes[i].CreatedAt
+			aj := zeroes[j].CreatedAt
+			if ai.IsZero() && aj.IsZero() {
+				return zeroes[i].ID < zeroes[j].ID
+			}
+			if ai.IsZero() {
+				return false
+			}
+			if aj.IsZero() {
+				return true
+			}
+			if ai.Equal(aj) {
+				return zeroes[i].ID < zeroes[j].ID
+			}
+			return ai.Before(aj)
+		})
+
+		if len(zeroes) > 4 {
+			zeroes = zeroes[:4]
+		}
+
+		for _, f := range zeroes {
+			prioritized = append(prioritized, f)
+			prioritizedIDs[f.ID] = struct{}{}
+		}
+	}
+
+	rest := make([]database.Fighter, 0, len(available))
+	for _, f := range available {
+		if _, ok := prioritizedIDs[f.ID]; ok {
+			continue
+		}
+		rest = append(rest, f)
+	}
+
+	for i := len(rest) - 1; i > 0; i-- {
 		j := rng.Intn(i + 1)
-		available[i], available[j] = available[j], available[i]
+		rest[i], rest[j] = rest[j], rest[i]
 	}
 
-	if len(available) > 48 {
-		available = available[:48]
+	selected := append(prioritized, rest...)
+
+	if len(selected) > 48 {
+		selected = selected[:48]
 	}
 
-	return available
+	return selected
 }
 
 func (g *Generator) GenerateFightSchedule(tournament *database.Tournament, fighters []database.Fighter, date time.Time) ([]database.Fight, error) {
