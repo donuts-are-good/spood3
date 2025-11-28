@@ -89,6 +89,7 @@ type PageData struct {
 	User            *database.User
 	Title           string
 	MetaTitle       string
+	CanApplyEffects bool
 	Tournament      *database.Tournament
 	Fights          []database.Fight
 	LegacyRecords   []database.ChampionLegacyEntry
@@ -1172,11 +1173,13 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := GetUserFromContext(r.Context())
+	now := time.Now()
 	data := PageData{
 		User:        user,
 		Title:       "Fight Details",
 		Fight:       fight,
 		RequiredCSS: []string{"fight.css"},
+		Now:         now,
 	}
 
 	if fight != nil {
@@ -1192,6 +1195,7 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 		data.MetaDescription = fmt.Sprintf("💥 VIOLENCE BREAKDOWN 💥 %s VS %s (%s). IMPOSSIBLE STATS COLLIDE. BLOOD WILL BE SPILLED. CREDITS WILL BE LOST. BET ON THE CHAOS.",
 			strings.ToUpper(fight.Fighter1Name), strings.ToUpper(fight.Fighter2Name), statusText)
 		data.MetaType = "article"
+		data.CanApplyEffects = fight.Status == "scheduled" && now.Before(fight.ScheduledTime)
 	} else {
 		data.MetaDescription = "💀 FIGHT NOT FOUND IN THE VIOLENCE DATABASE. IT MAY HAVE NEVER EXISTED. 💀"
 	}
@@ -2210,19 +2214,31 @@ func (s *Server) handleApplyEffect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Determine the correct date window for counting based on fight status
-	fight, _ := s.repo.GetFight(req.FightID)
+	fight, fightErr := s.repo.GetFight(req.FightID)
+	if fightErr != nil || fight == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Fight not found",
+		})
+		return
+	}
+	if fight.Status != "scheduled" || time.Now().After(fight.ScheduledTime) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Too late — violence already in progress.",
+		})
+		return
+	}
 	var effectDate time.Time
-	if fight != nil {
-		if fight.Status == "active" || fight.Status == "scheduled" {
-			centralTime, _ := time.LoadLocation("America/Chicago")
-			effectDate = time.Now().In(centralTime)
-		} else {
-			effectDate = fight.ScheduledTime
-		}
-	} else {
-		// Fallback to today's date if fight not found
+	if fight.Status == "active" || fight.Status == "scheduled" {
 		centralTime, _ := time.LoadLocation("America/Chicago")
 		effectDate = time.Now().In(centralTime)
+	} else {
+		effectDate = fight.ScheduledTime
 	}
 	startDate := time.Date(effectDate.Year(), effectDate.Month(), effectDate.Day(), 0, 0, 0, 0, effectDate.Location())
 	endDate := startDate.Add(24 * time.Hour)

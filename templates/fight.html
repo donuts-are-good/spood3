@@ -134,7 +134,7 @@
 		</div>
 
         {{/* Bless/Curse Section */}}
-        {{if and .User (eq .Fight.Status "scheduled") .UserInventory}}
+        {{if and .User .CanApplyEffects .UserInventory}}
             <div class="effects-section">
                 <h4>🔮 MANIPULATE THE CHAOS 🔮</h4>
                 <div class="effects-row">

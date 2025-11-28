@@ -1,3 +1,17 @@
+### Schema Parity Check
+
+**Similarities with existing patterns**
+- Mirrors `user_inventory` consumption flow already used for Combat Licenses and serums (pending inventory row consumed by dedicated table write).
+- Uses familiar `(user_id, fighter_id)` uniqueness constraint like betting or MVP records to keep one-row-per-relationship semantics.
+- `fighter_hybrids` structure parallels `fighter_kills`/`champion_legacy` tables by storing FK references plus metadata (`created_by_user_id`, timestamps) for audit trails.
+- API request/response shapes follow existing JSON endpoints (`/fight/apply-effect`, shop purchase) that validate ownership, check inventory, then mutate DB inside a transaction.
+
+**Intentional differences**
+- Introduces explicit lineage tracking (`ancestor1_id`, `ancestor2_id`) which is new versus other features; needed to render genealogy graphs and prevent re-parenting.
+- Links Rogue Lab consumption back to the specific `user_inventory` row for compliance/auditing—other items typically just decrement quantity without logging the inventory row id.
+- Adds read-only lineage endpoint exposed publicly; most current user tools are private. This one leaks structured ancestry data to front-end widgets.
+- Research Permit licensing requires fighter status validation (ACTIVE only) which is stricter than other items (e.g., blessings/curses can target undead). This ensures lore consistency.
+- Fighters use sentinel defaults (zero IDs) instead of NULLs, same as other tables—no lingering NullTypes in structs.
 # Hybrid Fighter Program
 
 ## Lore / Fantasy
@@ -97,6 +111,59 @@
    - Updated view would simply denormalize the new fighter columns to fetch ancestor names/usernames quickly for UI graphs.
 
 Existing tables continue to handle inventory: purchasing a Research Permit inserts into `user_inventory`; assigning a fighter deletes that inventory row and inserts into `sponsorships`. Rogue Labs live in `user_inventory` until consumed; upon hybrid creation, decrement quantity and log the `user_inventory.id` in `fighter_hybrids.rogue_lab_inventory_id`.
+
+## Touch Points to Update
+
+Only two write paths touch the `fighters` rows today, and both will need explicit awareness of the new lineage columns so we never leak NULLs.
+
+### 1. Fighter creation request → struct construction  
+`web/server.go:2564-2589` (inside `handleCreateFighterPost`) builds the `database.Fighter` that gets inserted:
+
+```2564:2590:web/server.go
+// Create the fighter
+now := time.Now()
+fighterID, err := s.repo.CreateCustomFighter(database.Fighter{
+    Name:              req.Name,
+    Team:              "Custom Fighters",
+    Strength:          req.Stats.Strength,
+    ...
+    CustomDescription: nil,
+})
+```
+
+When we add the ancestry/audit fields, this literal must populate them with the sentinel defaults (0 / epoch). Otherwise the struct’s zero values might not match whatever default we declare in SQL, and future refactors could accidentally set them to NULL.
+
+### 2. Repository insert statement  
+`database/repository.go:1317-1331` is the only `INSERT INTO fighters`:
+
+```1317:1331:database/repository.go
+result, err := r.db.Exec(`
+    INSERT INTO fighters (
+        name, team, strength, speed, endurance, technique,
+        blood_type, horoscope, molecular_density, existential_dread,
+        fingers, toes, ancestors, fighter_class, wins, losses, draws,
+        is_dead, created_by_user_id, is_custom, creation_date,
+        custom_description, avatar_url, created_at, genome
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ...)
+```
+
+Once the new columns exist, this column list must grow to include them (explicit `?, ?, ?` values set to the sentinel defaults). If we rely solely on table defaults here, any future schema tweak that forgets to set `NOT NULL DEFAULT 0` would immediately let NULLs in.
+
+### 3. Defaulting after reads  
+`database/repository.go:23-28` (`ensureFighterDefaults`) currently only sets `AvatarURL`. After adding the lineage columns, it should also coerce any zero/non-zero expectations:
+
+```23:28:database/repository.go
+func ensureFighterDefaults(f *Fighter) {
+    if f.AvatarURL == "" {
+        f.AvatarURL = DefaultFighterAvatarPath
+    }
+}
+```
+
+Extending this helper guarantees that even if some legacy rows slip through before the backfill runs, loading them via `GetFighter`/`GetEligibleFighters` will still yield the sentinel zeros and keep template logic simple.
+
+Those are the only touchpoints. All other fighter mutations are `UPDATE` statements that operate on existing rows (wins/losses, lore updates, kill flags, etc.) and don’t touch the new columns, so they won’t introduce NULLs.
 
 ### Schema Parity Check
 
