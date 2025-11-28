@@ -210,8 +210,7 @@ All endpoints live behind authentication (except the read-only lineage endpoint)
 
 ## Next Steps
 
-1. Build migrations for new fighter lineage columns + sponsorship table and backfill sentinels.  
-2. Add API + templates for licensing wizard (assign permit, list licensed fighters).  
-3. Implement hybrid creation flow (backend mixing logic + frontend modal).  
-4. Ship lineage UI (fighter pages, schedule snippets) and write the lore blog post.
+1. **Deploy + backfill** — run the lineage column migration and sponsorship table creation on production, then backfill zeros so hybrid detection stays sane.
+2. **Seed comms + monitoring** — drop the compliance PSA elements (schedule banners/copied copy) and wire up logging around hybrid creation so we can spot abuse.
+3. **Live-fire QA** — walk through the full path (permit purchase → sponsorship assignment → rogue lab mix → lineage card) with a real account once prod data is migrated, capture screenshots for the public recap.
 
