@@ -57,6 +57,72 @@
 - Templates show “Genome licensed to @username for Fighter A + Fighter B” (single owner because both permits must be in one inventory).  
 - Maintain ancestry list to show hybrid trees on fighter pages for genetic ancestors and hybrid offspring. Use a directed acylic graph family tree or sankey.
 
+## Database Schema
+
+1. **sponsorships**  
+   - Go struct:
+     ```go
+     type Sponsorship struct {
+         ID        int       `db:"id"`
+         UserID    int       `db:"user_id"`
+         FighterID int       `db:"fighter_id"`
+         CreatedAt time.Time `db:"created_at"`
+     }
+     ```
+   - Unique `(user_id, fighter_id)` constraint prevents duplicate licenses.
+   - Fighters must be `status = ACTIVE` at time of insertion; no undead or dead ids allowed.
+   - Drives “licensed fighters” list in the UI; deleting rows is verboten unless fighter is purged.
+
+2. **fighters table augmentation**  
+   - Add lineage columns directly to existing `fighters` table to keep parity with current model. No NULLs—use sentinel defaults so templates can rely on zero checks:
+     - `ancestor1_id` (int, default **0** meaning “no ancestor”)  
+     - `ancestor2_id` (int, default **0**)  
+     - `hybrid_created_by_user_id` (int, default **0**)  
+     - `hybrid_rogue_lab_inventory_id` (int, default **0**)  
+   - Corresponding Go struct additions:
+     ```go
+     type Fighter struct {
+         // existing fields...
+         Ancestor1ID               int       `db:"ancestor1_id"`
+         Ancestor2ID               int       `db:"ancestor2_id"`
+         HybridCreatedByUserID     int       `db:"hybrid_created_by_user_id"`
+         HybridRogueLabInventoryID int       `db:"hybrid_rogue_lab_inventory_id"`
+     }
+     ```
+   - Hybrid creation time piggybacks on the existing `fighters.created_at` field, so no extra timestamp column is required.
+   - Backfill historical fighters with the sentinel defaults (0) so hybrid detection logic is a simple `if fighter.Ancestor1ID == 0` check.
+   - This keeps hybrids as first-class fighters, avoids extra join tables, and matches prior patterns (e.g., `CreatedByUserID` already lives on fighters).
+
+3. **fighter_lineage_view** (optional materialized view)  
+   - Updated view would simply denormalize the new fighter columns to fetch ancestor names/usernames quickly for UI graphs.
+
+Existing tables continue to handle inventory: purchasing a Research Permit inserts into `user_inventory`; assigning a fighter deletes that inventory row and inserts into `sponsorships`. Rogue Labs live in `user_inventory` until consumed; upon hybrid creation, decrement quantity and log the `user_inventory.id` in `fighter_hybrids.rogue_lab_inventory_id`.
+
+### Schema Parity Check
+
+**Similarities with existing patterns**
+- Mirrors `user_inventory` consumption flow already used for Combat Licenses and serums (pending inventory row consumed by dedicated table write).
+- Uses familiar `(user_id, fighter_id)` uniqueness constraint like betting or MVP records to keep one-row-per-relationship semantics.
+- `fighter_hybrids` structure parallels `fighter_kills`/`champion_legacy` tables by storing FK references plus metadata (`created_by_user_id`, timestamps) for audit trails.
+- API request/response shapes follow existing JSON endpoints (`/fight/apply-effect`, shop purchase) that validate ownership, check inventory, then mutate DB inside a transaction.
+
+**Intentional differences**
+- Introduces explicit lineage tracking (`ancestor1_id`, `ancestor2_id`) which is new versus other features; needed to render genealogy graphs and prevent re-parenting.
+- Links Rogue Lab consumption back to the specific `user_inventory` row for compliance/auditing—other items typically just decrement quantity without logging the inventory row id.
+- Adds read-only lineage endpoint exposed publicly; most current user tools are private. This one leaks structured ancestry data to front-end widgets.
+- Research Permit licensing requires fighter status validation (ACTIVE only) which is stricter than other items (e.g., blessings/curses can target undead). This ensures lore consistency.
+- Fighters use sentinel defaults (zero IDs) instead of NULLs, same as other tables—no lingering NullTypes in structs.
+
+## API Surface
+
+- `GET /user/licenses` — returns pending permits, count of licensed fighters, and roster of eligible fighters (active only). Powers the wizard list.
+- `POST /user/licenses` — body `{ "fighter_id": <int> }`. Validates ownership of an unused permit, fighter eligibility, and uniqueness, then consumes the permit and creates the sponsorship row.
+- `GET /user/hybrids/options` — returns `{ licensed_fighters: [...], rogue_labs_available: <int> }` for the hybrid modal. Used to gate the “mix” button.
+- `POST /user/hybrids` — body `{ "ancestor1_id": <int>, "ancestor2_id": <int> }`. Checks both IDs belong to the requesting user, ensures at least one Rogue Lab in inventory, runs the stat-mixing routine, creates the fighter + `fighter_hybrids` entry, and decrements inventory. Response returns new fighter payload for redirect.
+- `GET /fighter/{id}/lineage` (public) — JSON describing ancestors/descendants for the fighter page widget; pulls from the view/table above.
+
+All endpoints live behind authentication (except the read-only lineage endpoint) and reuse existing middleware so that only the owner can create licenses or hybrids.
+
 ## Incentives
 
 - Hybrid stats average parent's stats and gain a +10 infusion randomly distributed across stats, making them slightly stronger than baseline custom created fighters.  
