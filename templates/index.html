@@ -3,11 +3,11 @@
 	<div class="tournament-header">
 		{{if .Tournament}}
 			<div class="tournament-banner">
-				{{$month := .Now.Month}}
+				{{$monthName := .Now.Format "January"}}
 				{{$season := "WINTER"}}
-				{{if and (ge (int $month) 3) (le (int $month) 5)}}{{$season = "SPRING"}}{{end}}
-				{{if and (ge (int $month) 6) (le (int $month) 8)}}{{$season = "SUMMER"}}{{end}}
-				{{if and (ge (int $month) 9) (le (int $month) 11)}}{{$season = "FALL"}}{{end}}
+				{{if or (eq $monthName "March") (eq $monthName "April") (eq $monthName "May")}}{{$season = "SPRING"}}{{end}}
+				{{if or (eq $monthName "June") (eq $monthName "July") (eq $monthName "August")}}{{$season = "SUMMER"}}{{end}}
+				{{if or (eq $monthName "September") (eq $monthName "October") (eq $monthName "November")}}{{$season = "FALL"}}{{end}}
 				<h1 style="font-size: 2em; font-weight: bold;">{{.Now.Year}} <span style="color: #ff0000;">{{$season}}</span> SEASON</h1>
 				<h2 class="tournament-title"><center>{{.Tournament.Name}}</center></h2>
 				<p class="sponsor"><center>Sponsored by <strong title="Spoodblort Inc. is not affiliated with {{.Tournament.Sponsor}}, for legal reasons. - Spoodblort Inc. Legal Team">{{.Tournament.Sponsor}}</strong></center></p>
