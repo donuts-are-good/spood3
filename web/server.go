@@ -10,19 +10,19 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
-	"spoodblort/database"
-	"spoodblort/scheduler"
-	"spoodblort/utils"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"math/rand"
-	"os"
-
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+
+	"spoodblort/database"
+	"spoodblort/scheduler"
+	"spoodblort/utils"
 )
 
 type Server struct {
@@ -88,6 +88,7 @@ func (s *Server) verifyBytes(secret []byte, payload []byte, b64sig string) bool 
 type PageData struct {
 	User            *database.User
 	Title           string
+	MetaTitle       string
 	Tournament      *database.Tournament
 	Fights          []database.Fight
 	LegacyRecords   []database.ChampionLegacyEntry
@@ -1098,9 +1099,37 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 
 	if fighter != nil {
 		data.Title = fighter.Name
-		data.MetaDescription = fmt.Sprintf("⚔️ %s ⚔️ %s CLASS FIGHTER OF PURE CHAOS. %d WINS, %d LOSSES. BLOOD TYPE: %s. HOROSCOPE: %s. EXISTENTIAL DREAD LEVEL: %d. MOLECULAR DENSITY UNKNOWN TO SCIENCE.",
-			fighter.Name, strings.ToUpper(fighter.FighterClass), fighter.Wins, fighter.Losses, strings.ToUpper(fighter.BloodType), strings.ToUpper(fighter.Horoscope), fighter.ExistentialDread)
+		data.MetaTitle = fmt.Sprintf("Spoodblort: %s", fighter.Name)
+
+		metaDescription := strings.TrimSpace(fighter.Lore)
+		if metaDescription == "" {
+			metaDescription = fmt.Sprintf("%s has no filed lore entry yet.", fighter.Name)
+		}
+		data.MetaDescription = metaDescription
 		data.MetaType = "profile"
+
+		metaImage := fighter.AvatarURL
+		if metaImage != "" && !strings.HasPrefix(strings.ToLower(metaImage), "http") {
+			scheme := "https"
+			if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+				scheme = proto
+			} else if r.URL != nil && r.URL.Scheme != "" {
+				scheme = r.URL.Scheme
+			} else if strings.Contains(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.") {
+				scheme = "http"
+			}
+
+			host := r.Host
+			if host == "" {
+				host = "spoodblort.com"
+			}
+
+			if !strings.HasPrefix(metaImage, "/") {
+				metaImage = "/" + metaImage
+			}
+			metaImage = fmt.Sprintf("%s://%s%s", scheme, host, metaImage)
+		}
+		data.MetaImage = metaImage
 	} else {
 		data.MetaDescription = "💀 FIGHTER NOT FOUND IN THE VIOLENCE DATABASE. THEY MAY HAVE BEEN ABSORBED INTO THE CHAOS VOID. 💀"
 	}

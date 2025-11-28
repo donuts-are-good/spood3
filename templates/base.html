@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}} - Spoodblort</title>
+    <title>{{if .MetaTitle}}{{.MetaTitle}}{{else if .Title}}{{.Title}} - Spoodblort{{else}}Spoodblort{{end}}</title>
     
     <!-- Meta tags for social media unfurls -->
     <meta name="description" content="{{if .MetaDescription}}{{.MetaDescription}}{{else}}🥊 SPOODBLORT 🥊 THE MOST DEGENERATE GAMBLING SIMULATOR IN THE KNOWN UNIVERSE. {{end}}">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="{{.Title}} - Spoodblort">
+    <meta property="og:title" content="{{if .MetaTitle}}{{.MetaTitle}}{{else if .Title}}{{.Title}} - Spoodblort{{else}}Spoodblort{{end}}">
     <meta property="og:description" content="{{if .MetaDescription}}{{.MetaDescription}}{{else}}🥊 SPOODBLORT 🥊 THE MOST DEGENERATE GAMBLING SIMULATOR IN THE KNOWN UNIVERSE.{{end}}">
     <meta property="og:type" content="{{if .MetaType}}{{.MetaType}}{{else}}website{{end}}">
     <meta property="og:image" content="{{if .MetaImage}}{{.MetaImage}}{{else}}/favicon.ico{{end}}">
@@ -17,7 +17,7 @@
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="{{.Title}} - Spoodblort">
+    <meta name="twitter:title" content="{{if .MetaTitle}}{{.MetaTitle}}{{else if .Title}}{{.Title}} - Spoodblort{{else}}Spoodblort{{end}}">
     <meta name="twitter:description" content="{{if .MetaDescription}}{{.MetaDescription}}{{else}}🥊 SPOODBLORT 🥊 THE MOST DEGENERATE GAMBLING SIMULATOR IN THE KNOWN UNIVERSE.{{end}}">
     <meta name="twitter:image" content="{{if .MetaImage}}{{.MetaImage}}{{else}}/favicon.ico{{end}}">
     
