@@ -388,13 +388,6 @@ header {
     100% { top: calc(100% + 2px); }
 }
 
-.weather-indicator:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
-}
-
-
-
 .weather-emoji {
     font-size: 1rem;
 }
@@ -408,8 +401,8 @@ header {
 }
 
 @keyframes weatherIndicatorPulse {
-    0%, 100% { box-shadow: 0 4px 12px rgba(255, 64, 64, 0.25); transform: translateY(0); }
-    45% { box-shadow: 0 8px 20px rgba(255, 92, 92, 0.35); transform: translateY(-1px); }
+    0%, 100% { box-shadow: 0 4px 12px rgba(255, 64, 64, 0.25); }
+    45% { box-shadow: 0 8px 20px rgba(255, 92, 92, 0.35); }
 }
 
 @keyframes indicatorFlicker {
