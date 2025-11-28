@@ -7,18 +7,19 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sync"
+	"time"
+
 	"spoodblort/database"
 	"spoodblort/discord"
 	"spoodblort/utils"
 	"spoodblort/wiki"
-	"sync"
-	"time"
 )
 
 // Fight engine constants - adjust these to tune gameplay
 const (
-	TICK_DURATION_SECONDS = 5
-	DEATH_CHANCE          = 100000 // 1 in 100000 chance per damage tick
+	TICK_DURATION_SECONDS = 1
+	DEATH_CHANCE          = 100    // 1 in 100000 chance per damage tick
 	CRIT_CHANCE           = 2      // 1 in 2 chance per tick for the losing fighter to attempt a crit
 	STARTING_HEALTH       = 100000 // Increased from 100k for longer fights
 	MIN_DAMAGE            = 10
