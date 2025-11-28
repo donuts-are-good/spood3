@@ -201,20 +201,21 @@ header {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin: 18px 20px 0 auto;
-    padding: 6px 10px;
+    gap: 8px;
+    margin: 16px 20px 0 auto;
+    padding: 6px 14px;
     border-radius: 999px;
-    border: 2px solid #ff0000;
-    background: linear-gradient(135deg, #ff3b3b, #ff6a6a);
+    border: 1px solid rgba(255, 102, 102, 0.75);
+    background: linear-gradient(140deg, rgba(255, 74, 74, 0.9), rgba(255, 120, 120, 0.82));
     cursor: pointer;
-    transition: opacity 0.3s ease, box-shadow 0.3s ease;
-    animation: weatherIndicatorPulse 1.6s ease-in-out infinite, indicatorFlicker 5s linear infinite;
-    box-shadow: 0 0 12px rgba(255, 68, 68, 0.4);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    animation: weatherIndicatorPulse 2.4s ease-in-out infinite;
+    box-shadow: 0 6px 18px rgba(255, 64, 64, 0.28);
     z-index: 1000;
     display: none; /* Hidden by default, shown when advisory is dismissed */
     width: auto;
-    max-width: 260px;
+    max-width: none;
+    white-space: nowrap;
 }
 /* Chaos Weather Advisory */
 .chaos-weather-advisory {
@@ -439,28 +440,20 @@ header {
 
 
 .weather-emoji {
-    font-size: 1.1rem;
-    margin-right: 6px;
+    font-size: 1rem;
 }
 
 .weather-text {
     color: #ffffff;
     font-weight: bold;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 @keyframes weatherIndicatorPulse {
-    0% { 
-        box-shadow: 0 0 15px rgba(255, 68, 68, 0.45);
-    }
-    50% { 
-        box-shadow: 0 0 28px rgba(255, 68, 68, 0.95);
-    }
-    100% { 
-        box-shadow: 0 0 15px rgba(255, 68, 68, 0.45);
-    }
+    0%, 100% { box-shadow: 0 4px 12px rgba(255, 64, 64, 0.25); transform: translateY(0); }
+    45% { box-shadow: 0 8px 20px rgba(255, 92, 92, 0.35); transform: translateY(-1px); }
 }
 
 @keyframes indicatorFlicker {
