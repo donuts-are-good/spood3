@@ -69,7 +69,17 @@
 ### Lineage Display
 - Extend fighter metadata with ancestor IDs and the username of the owner of the permits used.  
 - Templates show “Genome licensed to @username for Fighter A + Fighter B” (single owner because both permits must be in one inventory).  
-- Maintain ancestry list to show hybrid trees on fighter pages for genetic ancestors and hybrid offspring. Use a directed acylic graph family tree or sankey.
+- Maintain ancestry list to show hybrid trees on fighter pages for genetic ancestors and hybrid offspring. Located immediately under the “Genomic Sigils” card on `fighter.html`, using the **lineage3** text layout:
+  - Dark card matching existing theme (`background: #000000`, subtle glow, same border radius as other fighter cards)
+  - Header row with “Genome Lineage” title and a pill reading “Licensed by @username”
+  - Nested text tree (unordered list) showing:
+    - Ancestors as top-level list items (each fighter name links to `/fighter/{id}`)
+    - Beneath one ancestor, the hybrid fighter (name links to their page, styled with accent color)
+    - Under the hybrid, child fighters (descendants) with metadata lines (“Descendant · Bred … · Owned by @user”) where user handles link to `/user/@handle`
+  - Typography retains our high-contrast style (white text, accent pink for hybrids, muted gray metadata)
+  - The entire module fits within the column width so it aligns under the Genomic Sigils grid without requiring horizontal scroll.
+- Display idea (no new top-level nav):
+  1. `fighter.html` gets a “Genome Lineage” card under the existing Genomic Sigils grid: show parent avatars + names (clickable) as a sankey or dag chart to show lineage. 
 
 ## Database Schema
 
@@ -200,8 +210,8 @@ All endpoints live behind authentication (except the read-only lineage endpoint)
 
 ## Next Steps
 
-1. Design sponsorship DB schema & API.  
-2. Implement hybrid wizard (backend + frontend).  
-3. Update templates to show lineage badges.  
-4. Draft lore blog post once mechanics land.
+1. Build migrations for new fighter lineage columns + sponsorship table and backfill sentinels.  
+2. Add API + templates for licensing wizard (assign permit, list licensed fighters).  
+3. Implement hybrid creation flow (backend mixing logic + frontend modal).  
+4. Ship lineage UI (fighter pages, schedule snippets) and write the lore blog post.
 

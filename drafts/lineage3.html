@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spoodblort · Text Lineage Mock (Style 3)</title>
+  <style>
+    :root {
+      --bg: #030303;
+      --panel: #0c0c0c;
+      --text: #f5f5f5;
+      --muted: rgba(255,255,255,0.55);
+      --accent: #ff3366;
+      --border: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; font-family: "Mozilla Headline","Space Grotesk",system-ui,sans-serif; }
+    body {
+      margin: 0;
+      padding: 36px;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+    h1 { margin: 0 0 4px; letter-spacing: 0.08em; }
+    p { margin: 4px 0 24px; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; font-size: 11px; }
+    .card {
+      max-width: 780px;
+      margin: 0 auto;
+      background: linear-gradient(140deg, rgba(255,255,255,0.03), rgba(255,255,255,0.05));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.55);
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--accent);
+      border: 1px solid rgba(255,51,102,0.4);
+      border-radius: 999px;
+      padding: 4px 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+      font-size: 15px;
+    }
+    ul ul {
+      padding-left: 28px;
+      margin-top: 8px;
+      border-left: 1px dashed rgba(255,255,255,0.2);
+    }
+    li {
+      margin: 10px 0;
+      position: relative;
+      padding-left: 10px;
+    }
+    li::before {
+      content: "•";
+      position: absolute;
+      left: -10px;
+      color: var(--accent);
+    }
+    .meta {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .hybrid {
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>BO BAX JR FACT</h1>
+  <p>GENOME LINEAGE · TEXT STYLE</p>
+
+  <section class="card">
+    <div class="badge">Licensed by @puggy</div>
+    <ul>
+      <li>
+        <a href="/fighter/134">Scrungo Apologist</a>
+        <span class="meta">Genome #134 · Sponsor <a href="/user/@slug">@slug</a></span>
+        <ul>
+          <li>
+            <a href="/fighter/999" class="hybrid">Bo Bax Jr Fact</a>
+            <span class="meta">Hybridized Nov 28 · Chaos Tier 7</span>
+            <ul>
+              <li>
+                <a href="/fighter/1101">Factory Reset</a>
+                <span class="meta">Descendant · Bred Dec 01 · Owned by <a href="/user/@zune">@zune</a></span>
+              </li>
+              <li>
+                <a href="/fighter/1102">Galaxy Fax</a>
+                <span class="meta">Descendant · Bred Dec 02 · Owned by <a href="/user/@tremor">@tremor</a></span>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="/fighter/256">Bo Bax Sr</a>
+        <span class="meta">Genome #256 · Sponsor <a href="/user/@cricket">@cricket</a></span>
+      </li>
+    </ul>
+  </section>
+</body>
+</html>
+

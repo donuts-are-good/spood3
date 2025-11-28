@@ -17,13 +17,29 @@ type Repository struct {
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
-	return &Repository{db: db}
+	repo := &Repository{db: db}
+	if err := repo.runLineageMigrations(); err != nil {
+		log.Printf("lineage migration warning: %v", err)
+	}
+	return repo
 }
 
 // ensureFighterDefaults applies default values to fighter fields if not set
 func ensureFighterDefaults(f *Fighter) {
 	if f.AvatarURL == "" {
 		f.AvatarURL = DefaultFighterAvatarPath
+	}
+	if f.Ancestor1ID < 0 {
+		f.Ancestor1ID = 0
+	}
+	if f.Ancestor2ID < 0 {
+		f.Ancestor2ID = 0
+	}
+	if f.HybridCreatedByUserID < 0 {
+		f.HybridCreatedByUserID = 0
+	}
+	if f.HybridRogueLabInventoryID < 0 {
+		f.HybridRogueLabInventoryID = 0
 	}
 }
 
@@ -32,6 +48,86 @@ func ensureFightersDefaults(fighters []Fighter) {
 	for i := range fighters {
 		ensureFighterDefaults(&fighters[i])
 	}
+}
+
+func (r *Repository) runLineageMigrations() error {
+	if err := r.ensureSponsorshipsTable(); err != nil {
+		return err
+	}
+	if err := r.ensureFighterLineageColumns(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) ensureSponsorshipsTable() error {
+	exists, err := r.tableExists("sponsorships")
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	_, err = r.db.Exec(`
+        CREATE TABLE sponsorships (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            fighter_id INTEGER NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, fighter_id)
+        );
+    `)
+	if err != nil {
+		return err
+	}
+
+	if _, err = r.db.Exec(`CREATE INDEX idx_sponsorships_user ON sponsorships(user_id)`); err != nil {
+		return err
+	}
+	if _, err = r.db.Exec(`CREATE INDEX idx_sponsorships_fighter ON sponsorships(fighter_id)`); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) ensureFighterLineageColumns() error {
+	type col struct {
+		Name string
+		DDL  string
+	}
+	columns := []col{
+		{"ancestor1_id", "ALTER TABLE fighters ADD COLUMN ancestor1_id INTEGER NOT NULL DEFAULT 0"},
+		{"ancestor2_id", "ALTER TABLE fighters ADD COLUMN ancestor2_id INTEGER NOT NULL DEFAULT 0"},
+		{"hybrid_created_by_user_id", "ALTER TABLE fighters ADD COLUMN hybrid_created_by_user_id INTEGER NOT NULL DEFAULT 0"},
+		{"hybrid_rogue_lab_inventory_id", "ALTER TABLE fighters ADD COLUMN hybrid_rogue_lab_inventory_id INTEGER NOT NULL DEFAULT 0"},
+	}
+
+	for _, c := range columns {
+		exists, err := r.columnExists("fighters", c.Name)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			if _, err := r.db.Exec(c.DDL); err != nil {
+				return fmt.Errorf("add column %s: %w", c.Name, err)
+			}
+		}
+	}
+	return nil
+}
+
+func (r *Repository) tableExists(name string) (bool, error) {
+	var count int
+	err := r.db.Get(&count, `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?`, name)
+	return count > 0, err
+}
+
+func (r *Repository) columnExists(table, column string) (bool, error) {
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM pragma_table_info('%s') WHERE name = ?`, table)
+	var count int
+	err := r.db.Get(&count, query, column)
+	return count > 0, err
 }
 
 func (r *Repository) GetTournamentByWeek(weekNumber int) (*Tournament, error) {
@@ -1319,8 +1415,9 @@ func (r *Repository) CreateCustomFighter(fighter Fighter) (int, error) {
             blood_type, horoscope, molecular_density, existential_dread, 
             fingers, toes, ancestors, fighter_class, wins, losses, draws, 
             is_dead, created_by_user_id, is_custom, creation_date, 
-            custom_description, avatar_url, created_at, genome
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            custom_description, avatar_url, created_at, genome,
+            ancestor1_id, ancestor2_id, hybrid_created_by_user_id, hybrid_rogue_lab_inventory_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		fighter.Name, fighter.Team, fighter.Strength, fighter.Speed,
 		fighter.Endurance, fighter.Technique, fighter.BloodType,
 		fighter.Horoscope, fighter.MolecularDensity, fighter.ExistentialDread,
@@ -1328,6 +1425,7 @@ func (r *Repository) CreateCustomFighter(fighter Fighter) (int, error) {
 		fighter.Wins, fighter.Losses, fighter.Draws, fighter.IsDead,
 		fighter.CreatedByUserID, fighter.IsCustom, fighter.CreationDate,
 		fighter.CustomDescription, fighter.AvatarURL, now, genome,
+		fighter.Ancestor1ID, fighter.Ancestor2ID, fighter.HybridCreatedByUserID, fighter.HybridRogueLabInventoryID,
 	)
 	if err != nil {
 		return 0, err

@@ -42,13 +42,24 @@ type Fighter struct {
 	ReanimatedBy     *int      `db:"reanimated_by"`
 	CreatedAt        time.Time `db:"created_at"`
 	// Custom fighter fields
-	CreatedByUserID   *int       `db:"created_by_user_id"`
-	IsCustom          bool       `db:"is_custom"`
-	CreationDate      *time.Time `db:"creation_date"`
-	CustomDescription *string    `db:"custom_description"`
-	Lore              string     `db:"lore"`
-	AvatarURL         string     `db:"avatar_url"`
-	Genome            string     `db:"genome"`
+	CreatedByUserID           *int       `db:"created_by_user_id"`
+	IsCustom                  bool       `db:"is_custom"`
+	CreationDate              *time.Time `db:"creation_date"`
+	CustomDescription         *string    `db:"custom_description"`
+	Lore                      string     `db:"lore"`
+	AvatarURL                 string     `db:"avatar_url"`
+	Genome                    string     `db:"genome"`
+	Ancestor1ID               int        `db:"ancestor1_id"`
+	Ancestor2ID               int        `db:"ancestor2_id"`
+	HybridCreatedByUserID     int        `db:"hybrid_created_by_user_id"`
+	HybridRogueLabInventoryID int        `db:"hybrid_rogue_lab_inventory_id"`
+}
+
+type Sponsorship struct {
+	ID        int       `db:"id"`
+	UserID    int       `db:"user_id"`
+	FighterID int       `db:"fighter_id"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type ChampionLegacyRecord struct {
