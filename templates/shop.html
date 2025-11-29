@@ -104,13 +104,7 @@
         </div>
         {{end}}
     </div>
-    <div class="back-alley-note">
-        {{if .HasLicensedFighters}}
-            <div class="unlocked">
-                <small>π</small>
-            </div>
-        {{end}}
-    </div>
+
     {{else}}
     <div class="login-required">
         <h3>🔒 AUTHENTICATION REQUIRED 🔒</h3>
@@ -146,7 +140,9 @@
     </div>
 
 <script src="/static/js/shop.js"></script>
-
+{{if .HasLicensedFighters}}
+<small>π</small>
+{{end}}
 <style>
 /* Modal base */
 .hidden { display: none; }
