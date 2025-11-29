@@ -2239,6 +2239,27 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if item.ItemType == "genetic_splicer" {
+		if req.Quantity != 1 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "These kits are sold one at a time.",
+			})
+			return
+		}
+		if count, err := s.repo.GetInventoryCountByItemType(user.ID, "genetic_splicer"); err == nil && count > 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "You already have lab equipment in your inventory. Use it before buying another.",
+			})
+			return
+		}
+	}
+
 	// Calculate total cost
 	totalCost := item.Price * req.Quantity
 

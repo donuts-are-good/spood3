@@ -79,7 +79,7 @@
             </button>
             
             {{/* Quick buy buttons - hide for unique items (MVP, fighter_creation, high_roller) */}}
-            {{if and $.User (ne $shopItem.ItemType "mvp_player") (ne $shopItem.ItemType "fighter_creation") (ne $shopItem.ItemType "high_roller") (ne $shopItem.ItemType "fighter_sponsorship")}}
+            {{if and $.User (ne $shopItem.ItemType "mvp_player") (ne $shopItem.ItemType "fighter_creation") (ne $shopItem.ItemType "high_roller") (ne $shopItem.ItemType "fighter_sponsorship") (ne $shopItem.ItemType "genetic_splicer")}}
                 <div class="quick-buy-section">
                     <div class="quick-buy-label">BULK BUY:</div>
                     <div class="quick-buy-buttons">
