@@ -476,6 +476,19 @@ func (n *Notifier) AnnounceLabInvestigation(user *database.User) error {
 	return n.sendTextViaBot(n.generalChannelID, content)
 }
 
+// AnnounceFighterContract posts when a fighter officially joins the organization
+func (n *Notifier) AnnounceFighterContract(fighterName string) error {
+	if n.botToken == "" || n.generalChannelID == "" {
+		return nil
+	}
+	name := strings.TrimSpace(fighterName)
+	if name == "" {
+		name = "A new fighter"
+	}
+	content := fmt.Sprintf("%s has signed a contract with the Spoodblort organization.", name)
+	return n.sendTextViaBot(n.generalChannelID, content)
+}
+
 // NotifyActionSummary posts a terse, plaintext settlement summary to the action channel
 // Only called for fights that had wagers and a decisive result (non-draw)
 func (n *Notifier) NotifyActionSummary(fightData database.Fight, winnerID int) error {

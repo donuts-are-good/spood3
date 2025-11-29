@@ -2826,6 +2826,12 @@ func (s *Server) handleCreateFighterPost(w http.ResponseWriter, r *http.Request)
 
 	log.Printf("User %s created custom fighter '%s' (ID: %d)", user.Username, req.Name, fighterID)
 
+	if s.notifier != nil {
+		if err := s.notifier.AnnounceFighterContract(req.Name); err != nil {
+			log.Printf("failed to announce fighter contract: %v", err)
+		}
+	}
+
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -3111,6 +3117,11 @@ func (s *Server) handleHybridCreate(w http.ResponseWriter, r *http.Request) {
 		"success":    true,
 		"fighter_id": fighterID,
 		"redirect":   fmt.Sprintf("/fighter/%d", fighterID),
+	}
+	if s.notifier != nil {
+		if err := s.notifier.AnnounceFighterContract(fighter.Name); err != nil {
+			log.Printf("failed to announce fighter contract: %v", err)
+		}
 	}
 	if s.scheduler != nil {
 		if eng := s.scheduler.GetEngine(); eng != nil {

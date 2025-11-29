@@ -85,6 +85,8 @@
 .time-display{ color:var(--idx-dim); font-weight:700; }
 .match{ display:grid; gap:4px; }
 .names{ font-family:'Mozilla Headline',sans-serif; letter-spacing:1px; }
+.fight-winner{ color:#6bffb1 !important; text-shadow:0 0 10px rgba(107,255,177,0.45),0 0 18px rgba(0,128,0,0.25); }
+.fight-loser{ color:#ff6b6b !important; text-shadow:0 0 6px rgba(255,107,107,0.35); opacity:0.9; }
 .undead-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:#c4b5fd; box-shadow:0 0 8px rgba(196,181,253,.6); vertical-align:middle; margin-left:6px; }
 .status{ font-size:.85rem; font-weight:700; letter-spacing:1px; padding:6px 10px; border-radius:999px; border:1px solid #242424; position:absolute; right:12px; bottom:10px; pointer-events:none; }
 .status.upcoming{ color:#fff; }
