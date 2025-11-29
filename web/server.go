@@ -2266,6 +2266,12 @@ func (s *Server) handleShopPurchase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if item.ItemType == "genetic_splicer" && s.notifier != nil {
+		if err := s.notifier.AnnounceLabInvestigation(user); err != nil {
+			log.Printf("failed to announce lab investigation: %v", err)
+		}
+	}
+
 	// Reload fresh balance and inventory for live-update
 	updatedUser, _ := s.repo.GetUser(user.ID)
 	newBalance := 0

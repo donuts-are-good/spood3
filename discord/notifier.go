@@ -460,6 +460,22 @@ func (n *Notifier) AnnounceSponsorship(user *database.User, fighter database.Fig
 	return n.sendTextViaBot(n.generalChannelID, content)
 }
 
+// AnnounceLabInvestigation alerts general chat when someone buys restricted lab gear
+func (n *Notifier) AnnounceLabInvestigation(user *database.User) error {
+	if n.botToken == "" || n.generalChannelID == "" || user == nil {
+		return nil
+	}
+	display := strings.TrimSpace(user.CustomUsername)
+	if display == "" {
+		display = strings.TrimSpace(user.Username)
+	}
+	if display == "" {
+		display = "Unknown Patron"
+	}
+	content := fmt.Sprintf("%s is being investigated for Ordinance 12-Q and Protocol 7-Alpha compliance. Form L-3 has been issued.", display)
+	return n.sendTextViaBot(n.generalChannelID, content)
+}
+
 // NotifyActionSummary posts a terse, plaintext settlement summary to the action channel
 // Only called for fights that had wagers and a decisive result (non-draw)
 func (n *Notifier) NotifyActionSummary(fightData database.Fight, winnerID int) error {
