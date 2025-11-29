@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"os"
 	"sort"
-	"spoodblort/database"
 	"strconv"
 	"strings"
 	"time"
+
+	"spoodblort/database"
 )
 
 // FightState represents the final state of a completed fight
@@ -440,6 +441,22 @@ func (n *Notifier) AnnounceNecromancer(user *database.User, fighter database.Fig
 		display = user.Username
 	}
 	content := fmt.Sprintf("🧟 %s has become a NECROMANCER by reanimating %s!", display, fighter.Name)
+	return n.sendTextViaBot(n.generalChannelID, content)
+}
+
+// AnnounceSponsorship posts when a user sponsors a fighter
+func (n *Notifier) AnnounceSponsorship(user *database.User, fighter database.Fighter) error {
+	if n.botToken == "" || n.generalChannelID == "" || user == nil {
+		return nil
+	}
+	display := strings.TrimSpace(user.CustomUsername)
+	if display == "" {
+		display = strings.TrimSpace(user.Username)
+	}
+	if display == "" {
+		display = "Unknown Patron"
+	}
+	content := fmt.Sprintf("%s has sponsored %s!", display, fighter.Name)
 	return n.sendTextViaBot(n.generalChannelID, content)
 }
 

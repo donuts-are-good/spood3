@@ -21,6 +21,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"spoodblort/database"
+	"spoodblort/discord"
 	"spoodblort/scheduler"
 	"spoodblort/utils"
 )
@@ -32,6 +33,7 @@ type Server struct {
 	authMW      *AuthMiddleware
 	authH       *AuthHandler
 	broadcaster *FightBroadcaster
+	notifier    *discord.Notifier
 }
 
 type scheduleFightDTO struct {
@@ -175,6 +177,7 @@ func NewServer(repo *database.Repository, scheduler *scheduler.Scheduler, sessio
 		authMW:      authMW,
 		authH:       authH,
 		broadcaster: NewFightBroadcaster(repo),
+		notifier:    discord.NewNotifier(repo),
 	}
 
 	// Derive HMAC key from sessionSecret; reuse sessionSecret bytes directly
@@ -2910,6 +2913,12 @@ func (s *Server) handleSponsorshipAssign(w http.ResponseWriter, r *http.Request)
 		}
 		http.Error(w, "Failed to assign sponsorship", http.StatusInternalServerError)
 		return
+	}
+
+	if s.notifier != nil {
+		if err := s.notifier.AnnounceSponsorship(user, *fighter); err != nil {
+			log.Printf("failed to announce sponsorship: %v", err)
+		}
 	}
 
 	response := map[string]interface{}{

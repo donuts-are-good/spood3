@@ -37,7 +37,6 @@
         <div class="licensed-grid">
             {{range .LicensedFighters}}
             <div class="licensed-card">
-                <img src="{{.AvatarURL}}" alt="{{.Name}}">
                 <div class="licensed-body">
                     <a class="name" href="/fighter/{{.FighterID}}">{{.Name}}</a>
                     <div class="meta">
@@ -53,12 +52,12 @@
             <p>You have enough sponsored fighters to attempt a hybrid.</p>
             <a href="/user/hybrids" class="cta">⚗️ Visit Rogue Gene Lab</a>
         </div>
+        {{end}}
         {{else}}
         <div class="empty-state">
             <p>🤝 You haven’t sponsored any fighters yet.</p>
             <small>Sponsor an active fighter to unlock their genome dossier.</small>
         </div>
-        {{end}}
         {{end}}
     </section>
 
@@ -74,7 +73,6 @@
             {{range .EligibleSponsorshipFighters}}
             <div class="eligible-card" data-name="{{.Name}}">
                 <div class="card-left">
-                    <img src="{{.AvatarURL}}" alt="{{.Name}}">
                     <div class="info">
                         <a class="name" href="/fighter/{{.ID}}">{{.Name}}</a>
                         <div class="meta">{{.Team}} · {{.Wins}}W-{{.Losses}}L-{{.Draws}}D</div>

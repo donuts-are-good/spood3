@@ -114,14 +114,6 @@ body {
     background: rgba(255,255,255,0.02);
 }
 
-.licensed-card img {
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255,255,255,0.15);
-}
-
 .licensed-card .name {
     color: #fff;
     font-weight: 600;
@@ -173,13 +165,6 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-}
-
-.card-left img {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    object-fit: cover;
 }
 
 .assign-btn {
