@@ -329,7 +329,7 @@ func insertFighterRecord(exec sqlExecutor, fighter Fighter, now time.Time) (int,
             is_dead, created_by_user_id, is_custom, creation_date, 
             custom_description, avatar_url, created_at, genome,
             ancestor1_id, ancestor2_id, hybrid_created_by_user_id, hybrid_rogue_lab_inventory_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		fighter.Name, fighter.Team, fighter.Strength, fighter.Speed,
 		fighter.Endurance, fighter.Technique, fighter.BloodType,
 		fighter.Horoscope, fighter.MolecularDensity, fighter.ExistentialDread,
