@@ -77,7 +77,7 @@ function moveFighterToLicensed(card, licensedInfo) {
   const record = licensedInfo.record || '';
   div.className = 'licensed-card';
   div.innerHTML = `
-    <img src="${licensedInfo.avatar || '/img-cdn/default.png'}" alt="${licensedInfo.name}">
+    <img src="${licensedInfo.avatar || '/img-cdn/default.png'}" alt="${licensedInfo.name}" width="24" height="24">
     <div class="licensed-body">
       <a class="name" href="/fighter/${licensedInfo.fighter_id}">${licensedInfo.name}</a>
       <div class="meta">${record} · Licensed just now</div>

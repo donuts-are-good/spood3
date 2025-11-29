@@ -3063,13 +3063,7 @@ func (s *Server) handleHybridCreate(w http.ResponseWriter, r *http.Request) {
 	toes := blendInt(parent1.Toes, parent2.Toes)
 	ancestors := blendInt(parent1.Ancestors, parent2.Ancestors)
 
-	team := parent1.Team
-	if strings.TrimSpace(team) == "" {
-		team = parent2.Team
-	}
-	if strings.TrimSpace(team) == "" {
-		team = "Hybrid Collective"
-	}
+	team := "Free Agent"
 
 	now := time.Now()
 	description := fmt.Sprintf("Lab-bred hybrid of %s and %s. Licensed by @%s.", parent1.Name, parent2.Name, getDisplayName(user.Username, user.CustomUsername))
