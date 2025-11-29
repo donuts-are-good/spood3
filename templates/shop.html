@@ -106,11 +106,6 @@
     </div>
     {{if .HasLicensedFighters}}
     <section class="back-alley-section">
-        <header>
-            <p class="eyebrow">Secondary Vendor · Access Granted</p>
-            <h2>Private Equipment Locker</h2>
-            <p class="whisper">Department observers insist this is just a broom closet.</p>
-        </header>
         <div class="back-alley-grid">
             {{range $shopItem := .ShopItems}}
                 {{if eq $shopItem.ItemType "genetic_splicer"}}
