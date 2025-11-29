@@ -761,100 +761,98 @@
     margin-left: 4px;
 }
 
-.lineage-tree {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+.lineage-text {
+    margin-top: 20px;
+    padding: 22px 26px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(130deg, rgba(255,255,255,0.02), rgba(255,255,255,0.08));
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.4);
 }
 
-.lineage-column {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px;
-    padding: 18px;
-}
-
-.lineage-column.hybrid-focus {
-    border-color: rgba(255,92,126,0.45);
-    box-shadow: inset 0 0 40px rgba(255,92,126,0.08);
-}
-
-.column-label {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.35em;
-    color: rgba(255,255,255,0.58);
-    margin-bottom: 12px;
-}
-
-.lineage-list {
+.lineage-tree-list {
     list-style: none;
     margin: 0;
     padding: 0;
+    font-size: 0.95rem;
 }
 
-.lineage-list li {
+.lineage-tree-list > li {
     position: relative;
-    padding-left: 22px;
-    margin-bottom: 12px;
+    margin: 14px 0;
+    padding-left: 18px;
 }
 
-.lineage-list li::before {
+.lineage-tree-list > li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: #ff5c7e;
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.lineage-tree-list ul {
+    list-style: none;
+    margin: 10px 0 0;
+    padding-left: 26px;
+    border-left: 1px dashed rgba(255,255,255,0.18);
+}
+
+.lineage-tree-list ul li {
+    position: relative;
+    margin: 10px 0;
+    padding-left: 14px;
+}
+
+.lineage-tree-list ul li::before {
     content: "";
     position: absolute;
-    left: 6px;
-    top: 12px;
-    width: 12px;
+    left: -26px;
+    top: 14px;
+    width: 18px;
     height: 1px;
-    background: rgba(255,255,255,0.2);
-}
-
-.lineage-node,
-.hybrid-node {
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px;
-    padding: 12px;
-    background: rgba(0,0,0,0.6);
-}
-
-.lineage-node.ancestor {
-    border-color: rgba(144,255,191,0.4);
-}
-
-.lineage-node.descendant {
-    border-color: rgba(255,210,143,0.45);
-}
-
-.hybrid-node {
-    border-color: rgba(255,92,126,0.8);
-    background: rgba(255,92,126,0.08);
-    margin-bottom: 12px;
-    border-radius: 16px;
-}
-
-.hybrid-name {
-    display: block;
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: #ff5c7e;
-    letter-spacing: 0.1em;
+    background: rgba(255,255,255,0.18);
 }
 
 .node-link {
-    color: #90ffbf;
+    color: #f0fff6;
     font-weight: 600;
+    letter-spacing: 0.05em;
     text-decoration: none;
 }
 
 .node-link:hover {
-    text-decoration: underline;
+    text-shadow: 0 0 12px rgba(255,255,255,0.45);
 }
 
-.node-meta {
+.ancestor-link {
+    color: #7dffd1;
+}
+
+.hybrid-link {
+    color: #ff5c7e;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.descendant-link {
+    color: #ffd394;
+}
+
+.lineage-meta {
     display: block;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: rgba(255,255,255,0.6);
     margin-top: 4px;
+    letter-spacing: 0.08em;
+}
+
+.lineage-meta-note {
+    font-style: italic;
+    color: rgba(255,255,255,0.5);
+    margin-top: 8px;
 }
 
 .lineage-empty {
