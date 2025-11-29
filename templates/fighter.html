@@ -211,7 +211,7 @@
 			<div class="stats-card lineage-card">
 				<div class="card-header lineage-header">
 					<h3>Genome Lineage</h3>
-					<div class="license-pill {{if .LineageLicensedBy}}active{{else}}pending{{end}}">
+					<div class="{{if .LineageLicensedBy}}active{{else}}pending{{end}}">
 						{{if .LineageLicensedBy}}
 							Licensed by 
 							<a href="/user/@{{if .LineageLicensedBy.CustomUsername}}{{.LineageLicensedBy.CustomUsername}}{{else}}{{.LineageLicensedBy.Username}}{{end}}">
