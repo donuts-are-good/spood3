@@ -138,7 +138,7 @@ func (r *Repository) ensureHybridShopItems() error {
 		{
 			ItemType:    "genetic_splicer",
 			Name:        "Lab Equipment",
-			Description: "An assortment of beakers and test tubes.",
+			Description: "Some guy in the alley has a box of beakers and test tubes. Looks sketchy, smells illegal.",
 			Emoji:       "🔬",
 			Price:       10000000,
 		},

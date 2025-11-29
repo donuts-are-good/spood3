@@ -49,7 +49,7 @@
             {{end}}
         {{end}}
         {{$sponsorshipLocked := and (eq $shopItem.ItemType "fighter_sponsorship") (gt $.PendingSponsorshipCount 0)}}
-        {{if eq $shopItem.ItemType "genetic_splicer"}}
+        {{if and (eq $shopItem.ItemType "genetic_splicer") (not $.HasLicensedFighters)}}
             {{continue}}
         {{end}}
         
@@ -104,26 +104,13 @@
         </div>
         {{end}}
     </div>
-    {{if .HasLicensedFighters}}
-    <section class="back-alley-section">
-        <div class="back-alley-grid">
-            {{range $shopItem := .ShopItems}}
-                {{if eq $shopItem.ItemType "genetic_splicer"}}
-                <div class="back-alley-card" data-item-id="{{$shopItem.ID}}">
-                    <div class="item-emoji">{{$shopItem.Emoji}}</div>
-                    <div class="item-name">{{$shopItem.Name}}</div>
-                    <div class="item-description">{{$shopItem.Description}}</div>
-                    <div class="item-price">💰 {{$shopItem.Price}} Credits</div>
-                    <button class="buy-button" {{if lt $.User.Credits $shopItem.Price}}disabled{{end}}
-                            onclick="purchaseItem({{$shopItem.ID}}, '{{$shopItem.Name}}', {{$shopItem.Price}})">
-                        {{if lt $.User.Credits $shopItem.Price}}TOO POOR{{else}}BUY NOW{{end}}
-                    </button>
-                </div>
-                {{end}}
-            {{end}}
-        </div>
-    </section>
-    {{end}}
+    <div class="back-alley-note">
+        {{if .HasLicensedFighters}}
+            <div class="unlocked">
+                <a class="mini-cta" href="/user/hybrids">Proceed to private vendor</a>
+            </div>
+        {{end}}
+    </div>
     {{else}}
     <div class="login-required">
         <h3>🔒 AUTHENTICATION REQUIRED 🔒</h3>

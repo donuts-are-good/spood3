@@ -160,37 +160,33 @@
     margin-top: 30px;
 }
 
-.back-alley-section {
-    margin-top: 30px;
-    padding: 12px;
-    border-radius: 14px;
+.back-alley-note {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 12px;
     border: 1px dashed rgba(255,255,255,0.15);
-    background: rgba(0,0,0,0.6);
-}
-
-.back-alley-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
-}
-
-.back-alley-card {
-    background: rgba(8,8,8,0.95);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 18px;
-    box-shadow: 0 8px 18px rgba(0,0,0,0.4);
-}
-
-.back-alley-card .item-name {
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-}
-
-.back-alley-card .item-description {
     font-size: 0.9rem;
-    color: rgba(255,255,255,0.7);
-    min-height: 40px;
+}
+
+.back-alley-note .locked {
+    color: rgba(255,255,255,0.6);
+}
+
+.back-alley-note .unlocked {
+    color: #90ffbf;
+}
+
+.back-alley-note .mini-cta {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #000;
+    background: #90ffbf;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
 }
 
 .shop-item {
