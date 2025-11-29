@@ -82,7 +82,6 @@ function moveFighterToLicensed(card, licensedInfo) {
       <a class="name" href="/fighter/${licensedInfo.fighter_id}">${licensedInfo.name}</a>
       <div class="meta">${record} · Licensed just now</div>
     </div>
-    <div class="badge">Genome archived</div>
   `;
   grid.prepend(div);
   const count = document.querySelector('.licensed-panel .count');
