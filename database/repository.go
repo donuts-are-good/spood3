@@ -150,6 +150,9 @@ func (r *Repository) ensureHybridShopItems() error {
 			return err
 		}
 		if count > 0 {
+			if _, err := r.db.Exec(`UPDATE shop_items SET description = ?, price = ?, emoji = ? WHERE item_type = ?`, item.Description, item.Price, item.Emoji, item.ItemType); err != nil {
+				return err
+			}
 			continue
 		}
 		if _, err := r.db.Exec(`

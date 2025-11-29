@@ -22,10 +22,6 @@
                 <p>Purchase a Fighter Sponsorship from the shop to unlock genome keepsakes and hybrid privileges.</p>
             {{end}}
         </div>
-        <div class="status-actions">
-            <a class="cta" href="/shop">Visit Shop</a>
-            <span class="pill">Genomes archived for keepsake value only</span>
-        </div>
     </section>
 
     <section class="licensed-panel">
@@ -37,6 +33,7 @@
         <div class="licensed-grid">
             {{range .LicensedFighters}}
             <div class="licensed-card">
+                <img src="{{.AvatarURL}}" alt="{{.Name}}">
                 <div class="licensed-body">
                     <a class="name" href="/fighter/{{.FighterID}}">{{.Name}}</a>
                     <div class="meta">

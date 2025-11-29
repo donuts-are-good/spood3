@@ -56,11 +56,9 @@
         <div class="shop-item {{if or (lt $.User.Credits $shopItem.Price) $userOwnsItem $sponsorshipLocked}}disabled{{end}}" data-item-id="{{$shopItem.ID}}" data-price="{{$shopItem.Price}}">
             <div class="item-emoji">{{$shopItem.Emoji}}</div>
             <div class="item-name">{{$shopItem.Name}}</div>
-            <div class="item-description" title="{{if eq $shopItem.ItemType "high_roller"}}A portion of proceeds support the Little Spoodys Endowment for the Arts & Youth Enrichment (and other discretionary initiatives). Weekly patron tithe applies (7.5%).{{else if eq $shopItem.ItemType "fighter_sponsorship"}}Sponsor your favorite fighter’s training-camp fees. Includes commemorative genome archive rights (keepsake use only).{{else}}{{$shopItem.Description}}{{end}}">
+            <div class="item-description" title="{{if eq $shopItem.ItemType "high_roller"}}A portion of proceeds support the Little Spoodys Endowment for the Arts & Youth Enrichment (and other discretionary initiatives). Weekly patron tithe applies (7.5%).{{else}}{{$shopItem.Description}}{{end}}">
                 {{if eq $shopItem.ItemType "high_roller"}}
                     Increase max bet to 100M. Patron status included. Weekly tithe: 7.5%.
-                {{else if eq $shopItem.ItemType "fighter_sponsorship"}}
-                    Covers training camp fees, hydration paste, and morale enrichment. Includes archival access to the fighter’s genome (non-exclusive, keepsake only; no illegal gene splicing, resale, alteration, hybridizing, or fetish applications).
                 {{else}}
                     {{$shopItem.Description}}
                 {{end}}
@@ -81,7 +79,7 @@
             </button>
             
             {{/* Quick buy buttons - hide for unique items (MVP, fighter_creation, high_roller) */}}
-            {{if and $.User (ne $shopItem.ItemType "mvp_player") (ne $shopItem.ItemType "fighter_creation") (ne $shopItem.ItemType "high_roller")}}
+            {{if and $.User (ne $shopItem.ItemType "mvp_player") (ne $shopItem.ItemType "fighter_creation") (ne $shopItem.ItemType "high_roller") (ne $shopItem.ItemType "fighter_sponsorship")}}
                 <div class="quick-buy-section">
                     <div class="quick-buy-label">BULK BUY:</div>
                     <div class="quick-buy-buttons">
