@@ -118,6 +118,16 @@ func (e *Engine) AnnounceNecromancerSuccess(user *database.User, fighter databas
 	}
 }
 
+// AssignSuspectRole tags a user after hybridization activity
+func (e *Engine) AssignSuspectRole(user *database.User) {
+	if user == nil || e.roleManager == nil {
+		return
+	}
+	if err := e.roleManager.AssignSuspectRole(user); err != nil {
+		log.Printf("failed to assign suspect role to %s: %v", user.Username, err)
+	}
+}
+
 // initFightLog creates a log file for the fight and writes the header
 func (e *Engine) initFightLog(fight database.Fight, fighter1, fighter2 database.Fighter) error {
 	e.fightLogMutex.Lock()

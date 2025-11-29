@@ -7,6 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
+
 	"spoodblort/database"
 )
 
@@ -240,6 +243,10 @@ func (rm *RoleManager) addRoleToUser(discordID, roleName string) error {
 		return err
 	}
 
+	return rm.addRoleIDToUser(discordID, roleID)
+}
+
+func (rm *RoleManager) addRoleIDToUser(discordID, roleID string) error {
 	url := fmt.Sprintf("https://discord.com/api/v10/guilds/%s/members/%s/roles/%s", rm.guildID, discordID, roleID)
 	req, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
@@ -336,12 +343,34 @@ func (rm *RoleManager) ensureRoleExists(roleName string) (string, error) {
 	return rm.createRole(roleName)
 }
 
+func (rm *RoleManager) ensureRoleExistsWithColor(roleName, colorHex string) (string, error) {
+	roles, err := rm.getGuildRoles()
+	if err != nil {
+		return "", err
+	}
+	for _, role := range roles {
+		if role.Name == roleName {
+			if colorHex != "" {
+				if err := rm.updateRoleColor(role.ID, colorHex); err != nil {
+					log.Printf("failed to update color for role %s: %v", roleName, err)
+				}
+			}
+			return role.ID, nil
+		}
+	}
+	return rm.createRoleWithColor(roleName, colorHex)
+}
+
 // createRole creates a new role in the guild
 func (rm *RoleManager) createRole(roleName string) (string, error) {
+	return rm.createRoleWithColor(roleName, "")
+}
+
+func (rm *RoleManager) createRoleWithColor(roleName, colorHex string) (string, error) {
 	roleData := map[string]interface{}{
 		"name":        roleName,
 		"permissions": "0", // No special permissions
-		"color":       0,   // Default color for now
+		"color":       hexColorToInt(colorHex),
 		"hoist":       false,
 		"mentionable": false,
 	}
@@ -381,6 +410,49 @@ func (rm *RoleManager) createRole(roleName string) (string, error) {
 	return newRole.ID, nil
 }
 
+func (rm *RoleManager) updateRoleColor(roleID, colorHex string) error {
+	if colorHex == "" {
+		return nil
+	}
+	color := hexColorToInt(colorHex)
+	payload := map[string]interface{}{
+		"color": color,
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("https://discord.com/api/v10/guilds/%s/roles/%s", rm.guildID, roleID)
+	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bot "+rm.botToken)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to update role color, status: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func hexColorToInt(colorHex string) int {
+	trimmed := strings.TrimSpace(strings.TrimPrefix(colorHex, "#"))
+	if trimmed == "" {
+		return 0
+	}
+	val, err := strconv.ParseInt(trimmed, 16, 32)
+	if err != nil {
+		return 0
+	}
+	return int(val)
+}
+
 // AssignVIPRole assigns the VIP role to a user who has accessed the casino
 func (rm *RoleManager) AssignVIPRole(user *database.User) error {
 	if rm.botToken == "" || rm.guildID == "" {
@@ -410,5 +482,24 @@ func (rm *RoleManager) AssignVIPRole(user *database.User) error {
 	}
 
 	log.Printf("🎰 Assigned VIP role to %s for discovering The Commissioner's underground casino", user.Username)
+	return nil
+}
+
+// AssignSuspectRole tags a user after confirmed hybridization
+func (rm *RoleManager) AssignSuspectRole(user *database.User) error {
+	if rm.botToken == "" || rm.guildID == "" || user == nil || user.DiscordID == "" {
+		return nil
+	}
+	if _, err := rm.getGuildMember(user.DiscordID); err != nil {
+		return nil
+	}
+	roleName := "🚔 Suspect"
+	roleID, err := rm.ensureRoleExistsWithColor(roleName, "1F4F8")
+	if err != nil {
+		return fmt.Errorf("failed to ensure suspect role: %w", err)
+	}
+	if err := rm.addRoleIDToUser(user.DiscordID, roleID); err != nil {
+		return fmt.Errorf("failed to assign suspect role: %w", err)
+	}
 	return nil
 }

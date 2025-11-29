@@ -3097,6 +3097,11 @@ func (s *Server) handleHybridCreate(w http.ResponseWriter, r *http.Request) {
 		"fighter_id": fighterID,
 		"redirect":   fmt.Sprintf("/fighter/%d", fighterID),
 	}
+	if s.scheduler != nil {
+		if eng := s.scheduler.GetEngine(); eng != nil {
+			go eng.AssignSuspectRole(user)
+		}
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
