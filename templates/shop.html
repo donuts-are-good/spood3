@@ -39,9 +39,9 @@
 
     <div class="shop-grid">
         {{range $shopItem := .ShopItems}}
-        {{/* Check if user already owns unique items (MVP, fighter_creation, fighter_sponsorship, high_roller) */}}
+        {{/* Check if user already owns unique items (MVP, fighter_creation, fighter_sponsorship, genetic_splicer, high_roller) */}}
         {{$userOwnsItem := false}}
-        {{if and (or (eq $shopItem.ItemType "mvp_player") (eq $shopItem.ItemType "fighter_creation") (eq $shopItem.ItemType "fighter_sponsorship") (eq $shopItem.ItemType "high_roller")) $.UserInventory}}
+        {{if and (or (eq $shopItem.ItemType "mvp_player") (eq $shopItem.ItemType "fighter_creation") (eq $shopItem.ItemType "fighter_sponsorship") (eq $shopItem.ItemType "genetic_splicer") (eq $shopItem.ItemType "high_roller")) $.UserInventory}}
             {{range $.UserInventory}}
                 {{if and (eq .ShopItemID $shopItem.ID) (gt .Quantity 0)}}
                     {{$userOwnsItem = true}}

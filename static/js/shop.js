@@ -141,7 +141,8 @@ function updateShopInventoryItem(inv) {
 
         const isCombatLicense = inv.item_type === 'fighter_creation';
         const isSponsorship = inv.item_type === 'fighter_sponsorship';
-        const isLicense = isCombatLicense || isSponsorship;
+        const isSplicer = inv.item_type === 'genetic_splicer';
+        const isLicense = isCombatLicense || isSponsorship || isSplicer;
         if (!itemEl) {
             // Create a new inventory card if not present
             itemEl = document.createElement('div');
@@ -151,10 +152,12 @@ function updateShopInventoryItem(inv) {
                 itemEl.setAttribute('onclick', "window.location.href='/user/create-fighter'");
             } else if (isSponsorship) {
                 itemEl.setAttribute('onclick', "window.location.href='/user/sponsorships'");
+            } else if (isSplicer) {
+                itemEl.setAttribute('onclick', "window.location.href='/user/hybrids'");
             }
             const hintHTML = isCombatLicense
                 ? '<div class="license-hint">Click to create fighter!</div>'
-                : (isSponsorship ? '<div class="license-hint">Click to assign sponsorship</div>' : '');
+                : (isSponsorship ? '<div class="license-hint">Click to assign sponsorship</div>' : (isSplicer ? '<div class="license-hint">Click to deploy lab equipment</div>' : ''));
             itemEl.innerHTML = `
                 <div class="inventory-emoji"></div>
                 <div class="inventory-name"></div>
@@ -176,8 +179,10 @@ function updateShopInventoryItem(inv) {
                 itemEl.setAttribute('onclick', "window.location.href='/user/create-fighter'");
             } else if (isSponsorship) {
                 itemEl.setAttribute('onclick', "window.location.href='/user/sponsorships'");
+            } else if (isSplicer) {
+                itemEl.setAttribute('onclick', "window.location.href='/user/hybrids'");
             }
-            updateLicenseHint(itemEl, isCombatLicense, isSponsorship);
+            updateLicenseHint(itemEl, isCombatLicense, isSponsorship, isSplicer);
         }
         if (emojiEl) emojiEl.textContent = inv.emoji || '';
         if (nameEl) nameEl.textContent = inv.name || '';
@@ -219,7 +224,7 @@ function disableUniqueIfNeeded(itemId) {
     }
 }
 
-function updateLicenseHint(card, isCombatLicense, isSponsorship) {
+function updateLicenseHint(card, isCombatLicense, isSponsorship, isSplicer) {
     let hint = card.querySelector('.license-hint');
     if (!hint) {
         hint = document.createElement('div');
@@ -230,5 +235,7 @@ function updateLicenseHint(card, isCombatLicense, isSponsorship) {
         hint.textContent = 'Click to create fighter!';
     } else if (isSponsorship) {
         hint.textContent = 'Click to assign sponsorship';
+    } else if (isSplicer) {
+        hint.textContent = 'Click to deploy lab equipment';
     }
 }
