@@ -160,33 +160,67 @@
     margin-top: 30px;
 }
 
-.back-alley-note {
-    margin-top: 20px;
-    padding: 14px 18px;
-    border-radius: 12px;
-    border: 1px dashed rgba(255,255,255,0.15);
-    font-size: 0.9rem;
+.back-alley-section {
+    margin-top: 40px;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: radial-gradient(circle at top, rgba(255,255,255,0.06), rgba(0,0,0,0.75));
 }
 
-.back-alley-note .locked {
+.back-alley-section .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.45em;
+    font-size: 0.7rem;
     color: rgba(255,255,255,0.6);
 }
 
-.back-alley-note .unlocked {
-    color: #90ffbf;
+.back-alley-section h2 {
+    margin: 6px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
 }
 
-.back-alley-note .mini-cta {
-    display: inline-block;
-    margin-left: 12px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #000;
-    background: #90ffbf;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
+.back-alley-section .whisper {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 18px;
+}
+
+.back-alley-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.back-alley-card {
+    background: rgba(14,14,14,0.95);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.back-alley-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255,255,255,0.05);
+    pointer-events: none;
+}
+
+.back-alley-card .item-name {
     text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.back-alley-card .item-description {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+    min-height: 40px;
 }
 
 .shop-item {
