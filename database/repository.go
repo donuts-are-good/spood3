@@ -130,7 +130,7 @@ func (r *Repository) ensureHybridShopItems() error {
 	}{
 		{
 			ItemType:    "fighter_sponsorship",
-			Name:        "Research Permit",
+			Name:        "Fighter Sponsorship",
 			Description: "Funds a fighter's training camp fees.",
 			Emoji:       "📜",
 			Price:       1000000,
@@ -150,7 +150,7 @@ func (r *Repository) ensureHybridShopItems() error {
 			return err
 		}
 		if count > 0 {
-			if _, err := r.db.Exec(`UPDATE shop_items SET description = ?, price = ?, emoji = ? WHERE item_type = ?`, item.Description, item.Price, item.Emoji, item.ItemType); err != nil {
+			if _, err := r.db.Exec(`UPDATE shop_items SET name = ?, description = ?, price = ?, emoji = ? WHERE item_type = ?`, item.Name, item.Description, item.Price, item.Emoji, item.ItemType); err != nil {
 				return err
 			}
 			continue

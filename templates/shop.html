@@ -20,9 +20,10 @@
             {{range .UserInventory}}
             {{ $isCombat := eq .ItemType "fighter_creation" }}
             {{ $isSponsorship := eq .ItemType "fighter_sponsorship" }}
-            {{ $isLicense := or $isCombat $isSponsorship }}
+            {{ $isSplicer := eq .ItemType "genetic_splicer" }}
+            {{ $isLicense := or (or $isCombat $isSponsorship) $isSplicer }}
             <div class="inventory-item {{if $isLicense}}clickable-license{{end}}" 
-                 {{if $isCombat}}onclick="window.location.href='/user/create-fighter'"{{else if $isSponsorship}}onclick="window.location.href='/user/sponsorships'"{{end}}>
+                 {{if $isCombat}}onclick="window.location.href='/user/create-fighter'"{{else if $isSponsorship}}onclick="window.location.href='/user/sponsorships'"{{else if $isSplicer}}onclick="window.location.href='/user/hybrids'"{{end}}>
                 <div class="inventory-emoji">{{.Emoji}}</div>
                 <div class="inventory-name">{{.Name}}</div>
                 <div class="inventory-quantity">×{{.Quantity}}</div>
@@ -30,6 +31,8 @@
                     <div class="license-hint">Click to create fighter!</div>
                 {{else if $isSponsorship}}
                     <div class="license-hint">Click to assign sponsorship</div>
+                {{else if $isSplicer}}
+                    <div class="license-hint">Assemble lab equipment</div>
                 {{end}}
             </div>
             {{end}}

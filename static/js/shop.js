@@ -157,7 +157,7 @@ function updateShopInventoryItem(inv) {
             }
             const hintHTML = isCombatLicense
                 ? '<div class="license-hint">Click to create fighter!</div>'
-                : (isSponsorship ? '<div class="license-hint">Click to assign sponsorship</div>' : (isSplicer ? '<div class="license-hint">Click to deploy lab equipment</div>' : ''));
+                : (isSponsorship ? '<div class="license-hint">Click to assign sponsorship</div>' : (isSplicer ? '<div class="license-hint">Assemble lab equipment</div>' : ''));
             itemEl.innerHTML = `
                 <div class="inventory-emoji"></div>
                 <div class="inventory-name"></div>
@@ -236,6 +236,6 @@ function updateLicenseHint(card, isCombatLicense, isSponsorship, isSplicer) {
     } else if (isSponsorship) {
         hint.textContent = 'Click to assign sponsorship';
     } else if (isSplicer) {
-        hint.textContent = 'Click to deploy lab equipment';
+        hint.textContent = 'Assemble lab equipment';
     }
 }
