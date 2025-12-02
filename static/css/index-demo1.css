@@ -59,8 +59,6 @@
 /* Undead tint */
 .fight-card.undead-present{ background: linear-gradient(0deg, rgba(164,140,232,0.06), rgba(164,140,232,0.06)), #0a0a0a; }
 /* Side-specific undead aura: purple fade from zombie side + green edge that fades across */
-.fight-card.undead-left::before,
-.fight-card.undead-right::before{ /* don't override base stripe; keep radius via container clip */ }
 .fight-card.undead-left::after,
 .fight-card.undead-right::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; }
 /* Left zombie: top/bottom green fade from left → black, purple wash from left */
