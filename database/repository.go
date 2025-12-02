@@ -514,6 +514,40 @@ func (r *Repository) RecordFightKill(fightID, killerID, victimID, round, tick in
 	return err
 }
 
+// GetKillsByFighterForFights returns a map[fightID]victimID for the provided killer.
+func (r *Repository) GetKillsByFighterForFights(killerID int, fightIDs []int) (map[int]int, error) {
+	result := make(map[int]int)
+	if killerID <= 0 || len(fightIDs) == 0 {
+		return result, nil
+	}
+
+	query, args, err := sqlx.In(`
+		SELECT fight_id, victim_fighter_id
+		FROM fighter_kills
+		WHERE killer_fighter_id = ?
+		  AND fight_id IN (?)
+	`, killerID, fightIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	query = r.db.Rebind(query)
+	rows := []struct {
+		FightID  int `db:"fight_id"`
+		VictimID int `db:"victim_fighter_id"`
+	}{}
+
+	if err := r.db.Select(&rows, query, args...); err != nil {
+		return nil, err
+	}
+
+	for _, row := range rows {
+		result[row.FightID] = row.VictimID
+	}
+
+	return result, nil
+}
+
 func (r *Repository) GetActiveFights() ([]Fight, error) {
 	var fights []Fight
 	err := r.db.Select(&fights, "SELECT * FROM fights WHERE status = 'active'")

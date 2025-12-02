@@ -100,6 +100,26 @@
 .killmarks { display:flex; align-items:center; gap:6px; margin-left:12px; }
 .kill-skull { filter: drop-shadow(0 0 6px rgba(255,255,255,0.15)); }
 
+/* Postmortem highlight reused from schedule (for past fight victims) */
+.postmortem-name{
+    color:#ff5f5f !important;
+    text-shadow:0 0 6px rgba(255,95,95,0.45), 0 0 18px rgba(255,71,71,0.40);
+    display:inline-block;
+    animation:postmortemShake 400ms steps(2) infinite, postmortemPulse 2000ms ease-in-out infinite;
+}
+@keyframes postmortemShake{
+    0%{ transform:translate(0,0) rotate(0deg); }
+    25%{ transform:translate(-1px,-0.5px) rotate(-0.2deg); }
+    50%{ transform:translate(1px,0.5px) rotate(0.2deg); }
+    75%{ transform:translate(-0.5px,1px) rotate(-0.1deg); }
+    100%{ transform:translate(0,0) rotate(0deg); }
+}
+@keyframes postmortemPulse{
+    0%{ opacity:0.35; }
+    50%{ opacity:0.8; }
+    100%{ opacity:0.35; }
+}
+
 .status-badge {
     padding: 6px 16px;
     border-radius: 4px;

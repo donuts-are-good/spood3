@@ -312,14 +312,15 @@
 			<div class="card-header"><h3>Past Fights</h3></div>
 			<ul class="past-fights-list">
 				{{range .FighterPastFights}}
+				{{ $victimID := index $.FighterKillVictims .ID }}
 				<li class="past-fight-row" onclick="window.location='/fight/{{.ID}}'" role="link">
 					<div class="pf-link">
 						<span class="pf-dot {{if and .WinnerID.Valid (eq .WinnerID.Int64 (toInt64 $.Fighter.ID))}}win{{else}}loss{{end}}" title="{{if and .WinnerID.Valid (eq .WinnerID.Int64 (toInt64 $.Fighter.ID))}}Win{{else}}Loss{{end}}"></span>
 						<span class="pf-date">{{formatDate .CompletedAt.Time}}</span>
 						<span class="pf-vs">
-							<a href="/fighter/{{.Fighter1ID}}" class="pf-fighter">{{.Fighter1Name}}</a>
+							<a href="/fighter/{{.Fighter1ID}}" class="pf-fighter{{if and $victimID (eq $victimID .Fighter1ID)}} postmortem-name{{end}}">{{.Fighter1Name}}</a>
 							<span class="pf-sep">vs</span>
-							<a href="/fighter/{{.Fighter2ID}}" class="pf-fighter">{{.Fighter2Name}}</a>
+							<a href="/fighter/{{.Fighter2ID}}" class="pf-fighter{{if and $victimID (eq $victimID .Fighter2ID)}} postmortem-name{{end}}">{{.Fighter2Name}}</a>
 						</span>
 						<span class="pf-status">{{toTitle .Status}}</span>
 					</div>
