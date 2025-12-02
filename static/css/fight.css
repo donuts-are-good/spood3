@@ -950,6 +950,63 @@
 .tot-col {
     display: grid;
     gap: 8px;
+    position: relative;
+}
+
+.tot-col > * {
+    position: relative;
+    z-index: 1;
+}
+
+.tale-of-tape.postmortem-present {
+    box-shadow: inset 0 0 22px rgba(255, 68, 68, 0.25), 0 0 22px rgba(0, 0, 0, 0.4);
+}
+
+.tale-of-tape.postmortem-left .tot-col.left::after,
+.tale-of-tape.postmortem-right .tot-col.right::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: 0;
+    animation: postmortemPulse 2000ms ease-in-out infinite;
+    box-shadow: inset 0 0 24px rgba(255, 80, 80, 0.35);
+}
+
+.tale-of-tape.postmortem-left .tot-col.left::after {
+    background:
+        linear-gradient(90deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) top/100% 3px no-repeat,
+        linear-gradient(90deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) bottom/100% 3px no-repeat,
+        linear-gradient(90deg, rgba(255, 70, 70, 0.40) 0%, rgba(255, 70, 70, 0.05) 40%, rgba(12, 12, 12, 0) 70%);
+}
+
+.tale-of-tape.postmortem-right .tot-col.right::after {
+    background:
+        linear-gradient(270deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) top/100% 3px no-repeat,
+        linear-gradient(270deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) bottom/100% 3px no-repeat,
+        linear-gradient(270deg, rgba(255, 70, 70, 0.40) 0%, rgba(255, 70, 70, 0.05) 40%, rgba(12, 12, 12, 0) 70%);
+}
+
+.postmortem-name {
+    color: #ff5f5f !important;
+    text-shadow: 0 0 6px rgba(255, 95, 95, 0.45), 0 0 18px rgba(255, 71, 71, 0.40);
+    display: inline-block;
+    animation: postmortemShake 420ms steps(2) infinite, postmortemPulse 2100ms ease-in-out infinite;
+}
+
+@keyframes postmortemShake {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(-1px, -0.5px) rotate(-0.25deg); }
+    50% { transform: translate(1px, 0.5px) rotate(0.25deg); }
+    75% { transform: translate(-0.5px, 1px) rotate(-0.1deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes postmortemPulse {
+    0% { opacity: 0.35; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.35; }
 }
 
 .tot-col.left .tot-row {

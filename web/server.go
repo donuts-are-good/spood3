@@ -99,6 +99,7 @@ type PageData struct {
 	SaturdayFights  []scheduleFightDTO
 	Fighter         *database.Fighter
 	Fight           *database.Fight
+	FightKill       *database.FighterKill
 	Users           []database.User
 	Fighters        []database.Fighter
 	FighterMap      map[int]*database.Fighter // For looking up fighters by ID in templates
@@ -1334,12 +1335,18 @@ func (s *Server) handleFight(w http.ResponseWriter, r *http.Request) {
 		fight = nil
 	}
 
+	var fightKill *database.FighterKill
+	if fight != nil {
+		fightKill = s.repo.GetKillForFight(fight.ID)
+	}
+
 	user := GetUserFromContext(r.Context())
 	now := time.Now()
 	data := PageData{
 		User:        user,
 		Title:       "Fight Details",
 		Fight:       fight,
+		FightKill:   fightKill,
 		RequiredCSS: []string{"fight.css"},
 		Now:         now,
 	}

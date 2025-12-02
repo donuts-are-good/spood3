@@ -514,6 +514,23 @@ func (r *Repository) RecordFightKill(fightID, killerID, victimID, round, tick in
 	return err
 }
 
+// GetKillForFight returns the recorded killer/victim for a fight, if any.
+func (r *Repository) GetKillForFight(fightID int) *FighterKill {
+	if fightID <= 0 {
+		return nil
+	}
+	var fk FighterKill
+	err := r.db.Get(&fk, `
+		SELECT id, killer_fighter_id, victim_fighter_id, fight_id, round, tick, created_at
+		FROM fighter_kills
+		WHERE fight_id = ?
+		LIMIT 1`, fightID)
+	if err != nil {
+		return nil
+	}
+	return &fk
+}
+
 // GetKillsByFighterForFights returns a map[fightID]victimID for the provided killer.
 func (r *Repository) GetKillsByFighterForFights(killerID int, fightIDs []int) (map[int]int, error) {
 	result := make(map[int]int)

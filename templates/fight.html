@@ -41,8 +41,11 @@
 		{{if and .Fighter1 .Fighter2}}
 		{{$undeadLeft := and .Fighter1 .Fighter1.IsUndead}}
 		{{$undeadRight := and .Fighter2 .Fighter2.IsUndead}}
+		{{$fightKill := .FightKill}}
+		{{$deathLeft := and $fightKill (eq $fightKill.VictimFighterID .Fight.Fighter1ID)}}
+		{{$deathRight := and $fightKill (eq $fightKill.VictimFighterID .Fight.Fighter2ID)}}
 		<div class="fight-section-card">
-		<div class="tale-of-tape{{if or $undeadLeft $undeadRight}} undead-present{{end}}{{if $undeadLeft}} undead-left{{end}}{{if $undeadRight}} undead-right{{end}}">
+		<div class="tale-of-tape{{if or $undeadLeft $undeadRight}} undead-present{{end}}{{if $undeadLeft}} undead-left{{end}}{{if $undeadRight}} undead-right{{end}}{{if or $deathLeft $deathRight}} postmortem-present{{end}}{{if $deathLeft}} postmortem-left{{end}}{{if $deathRight}} postmortem-right{{end}}">
 				<div class="tot-col left">
                     <div class="tot-fighter-avatar">
                         <img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="tot-avatar-img">
@@ -55,7 +58,9 @@
                         {{end}}
                     </div>
 				<h4 class="fighter-name" style="margin-bottom:8px;">
-					<a href="/fighter/{{.Fight.Fighter1ID}}"{{if $undeadLeft}} class="undead-name"{{end}}>{{.Fight.Fighter1Name}}</a>
+					<a href="/fighter/{{.Fight.Fighter1ID}}" class="{{if $undeadLeft}}undead-name{{end}}{{if $deathLeft}} postmortem-name{{end}}">
+						{{if $deathLeft}}☠️ {{end}}{{.Fight.Fighter1Name}}{{if $deathLeft}} ☠️{{end}}
+					</a>
                     </h4>
                     {{if and .User (eq .Fight.Status "scheduled")}}
                         {{if not .UserBet}}
@@ -99,7 +104,9 @@
                         {{end}}
                     </div>
 				<h4 class="fighter-name" style="margin-bottom:8px;">
-					<a href="/fighter/{{.Fight.Fighter2ID}}"{{if $undeadRight}} class="undead-name"{{end}}>{{.Fight.Fighter2Name}}</a>
+					<a href="/fighter/{{.Fight.Fighter2ID}}" class="{{if $undeadRight}}undead-name{{end}}{{if $deathRight}} postmortem-name{{end}}">
+						{{if $deathRight}}☠️ {{end}}{{.Fight.Fighter2Name}}{{if $deathRight}} ☠️{{end}}
+					</a>
                     </h4>
                     {{if and .User (eq .Fight.Status "scheduled")}}
                         {{if not .UserBet}}

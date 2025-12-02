@@ -55,6 +55,16 @@ type Fighter struct {
 	HybridRogueLabInventoryID int        `db:"hybrid_rogue_lab_inventory_id"`
 }
 
+type FighterKill struct {
+	ID              int       `db:"id"`
+	KillerFighterID int       `db:"killer_fighter_id"`
+	VictimFighterID int       `db:"victim_fighter_id"`
+	FightID         int       `db:"fight_id"`
+	Round           int       `db:"round"`
+	Tick            int       `db:"tick"`
+	CreatedAt       time.Time `db:"created_at"`
+}
+
 type Sponsorship struct {
 	ID        int       `db:"id"`
 	UserID    int       `db:"user_id"`
