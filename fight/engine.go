@@ -19,7 +19,7 @@ import (
 // Fight engine constants - adjust these to tune gameplay
 const (
 	TICK_DURATION_SECONDS = 5
-	DEATH_CHANCE          = 1000   // 1 in 1000 chance per damage tick
+	DEATH_CHANCE          = 500    // 1 in 1000 chance per damage tick
 	CRIT_CHANCE           = 20     // 1 in 2 chance per tick for the losing fighter to attempt a crit
 	STARTING_HEALTH       = 100000 // Increased from 100k for longer fights
 	MIN_DAMAGE            = 10
