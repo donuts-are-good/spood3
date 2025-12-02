@@ -105,6 +105,58 @@
     animation:undeadNamePulse 2200ms ease-in-out infinite;
 }
 
+/* Postmortem tint (fighters who died in that fight) */
+.fight-card.postmortem-present{
+    background:linear-gradient(0deg, rgba(255,86,86,0.08), rgba(255,86,86,0.08)), #0a0a0a;
+}
+.fight-card.postmortem-left::after,
+.fight-card.postmortem-right::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    border-radius:inherit;
+}
+.fight-card.postmortem-left::after{
+    background:
+        linear-gradient(90deg, rgba(255,58,58,0.28), rgba(10,10,10,0)) top/100% 2px no-repeat,
+        linear-gradient(90deg, rgba(255,58,58,0.28), rgba(10,10,10,0)) bottom/100% 2px no-repeat,
+        linear-gradient(90deg, rgba(255,68,68,0.35) 0%, rgba(255,68,68,0.00) 38%);
+    animation:postmortemPulse 1800ms ease-in-out infinite;
+}
+.fight-card.postmortem-right::after{
+    background:
+        linear-gradient(270deg, rgba(255,58,58,0.28), rgba(10,10,10,0)) top/100% 2px no-repeat,
+        linear-gradient(270deg, rgba(255,58,58,0.28), rgba(10,10,10,0)) bottom/100% 2px no-repeat,
+        linear-gradient(270deg, rgba(255,68,68,0.35) 0%, rgba(255,68,68,0.00) 38%);
+    animation:postmortemPulse 1800ms ease-in-out infinite;
+}
+.postmortem-name{
+    color:#ff5f5f !important;
+    text-shadow:0 0 6px rgba(255,95,95,0.45), 0 0 18px rgba(255,71,71,0.40);
+    display:inline-block;
+    animation:postmortemShake 400ms steps(2) infinite, postmortemPulse 2000ms ease-in-out infinite;
+}
+.fight-card.postmortem-left .names a:first-child,
+.fight-card.postmortem-right .names a:last-child{
+    color:#ff5f5f !important;
+    text-shadow:0 0 6px rgba(255,95,95,0.45), 0 0 18px rgba(255,71,71,0.40);
+    display:inline-block;
+    animation:postmortemShake 400ms steps(2) infinite, postmortemPulse 2000ms ease-in-out infinite;
+}
+@keyframes postmortemShake{
+    0%{ transform:translate(0,0) rotate(0deg); }
+    25%{ transform:translate(-1px,-0.5px) rotate(-0.2deg); }
+    50%{ transform:translate(1px,0.5px) rotate(0.2deg); }
+    75%{ transform:translate(-0.5px,1px) rotate(-0.1deg); }
+    100%{ transform:translate(0,0) rotate(0deg); }
+}
+@keyframes postmortemPulse{
+    0%{ opacity:0.35; }
+    50%{ opacity:0.8; }
+    100%{ opacity:0.35; }
+}
+
 @media (max-width:960px){
     .hero{ grid-template-columns:1fr; }
     .grid{ grid-template-columns:1fr; }
