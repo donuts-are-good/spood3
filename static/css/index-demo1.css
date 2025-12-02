@@ -21,6 +21,9 @@
 .pill.next{ border-color:var(--idx-accent); color:var(--idx-accent); }
 .live-grid{ display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:start; }
 .fighter{ display:grid; gap:8px; }
+.fighter-right{ text-align:right; }
+.fighter-right .name{ justify-content:flex-end; }
+.fighter-right .name a{ justify-content:flex-end; }
 /* Normalize name block height so left/right columns align even if one wraps */
 .fighter .name{ font-family:'Mozilla Headline',sans-serif; font-size:1.4rem; letter-spacing:1px; min-height:3.2rem; display:flex; align-items:center; }
 .fighter .record{ color:var(--idx-dim); font-size:.95rem; }
