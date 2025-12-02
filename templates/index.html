@@ -53,14 +53,14 @@
 								<div class="record">&nbsp;</div>
 							</div>
 							<div class="vs-chip">VS</div>
-							<div class="fighter fighter-right">
+							<div class="fighter" style="text-align:right;">
 								{{ $af2 := index $.FighterMap $activeFight.Fighter2ID }}
 								{{if index $.FighterMap $activeFight.Fighter2ID}}
 									<a href="/fighter/{{$activeFight.Fighter2ID}}" style="text-decoration:none; border-bottom:none;">
 										<img class="live-avatar-img" src="{{(index $.FighterMap $activeFight.Fighter2ID).AvatarURL}}" alt="{{$activeFight.Fighter2Name}}" style="justify-self:end;">
 									</a>
 								{{end}}
-								<div class="name"><a href="/fighter/{{$activeFight.Fighter2ID}}" class="{{if and $af2 $af2.IsUndead}}undead-name{{end}}">{{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}</a></div>
+								<div class="name" style="justify-content:flex-end;"><a href="/fighter/{{$activeFight.Fighter2ID}}" class="{{if and $af2 $af2.IsUndead}}undead-name{{end}}">{{$activeFight.Fighter2Name}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $activeFight.Fighter2ID))}} 👑{{end}}</a></div>
 								<div class="record">&nbsp;</div>
 							</div>
 						</div>
