@@ -531,19 +531,18 @@ func (r *Repository) GetKillForFight(fightID int) *FighterKill {
 	return &fk
 }
 
-// GetKillsByFighterForFights returns a map[fightID]victimID for the provided killer.
-func (r *Repository) GetKillsByFighterForFights(killerID int, fightIDs []int) (map[int]int, error) {
+// GetFightKillVictims returns fight_id to victim_id for provided fights.
+func (r *Repository) GetFightKillVictims(fightIDs []int) (map[int]int, error) {
 	result := make(map[int]int)
-	if killerID <= 0 || len(fightIDs) == 0 {
+	if len(fightIDs) == 0 {
 		return result, nil
 	}
 
 	query, args, err := sqlx.In(`
 		SELECT fight_id, victim_fighter_id
 		FROM fighter_kills
-		WHERE killer_fighter_id = ?
-		  AND fight_id IN (?)
-	`, killerID, fightIDs)
+		WHERE fight_id IN (?)
+	`, fightIDs)
 	if err != nil {
 		return nil, err
 	}

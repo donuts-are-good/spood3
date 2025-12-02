@@ -1102,10 +1102,10 @@ func (s *Server) handleFighter(w http.ResponseWriter, r *http.Request) {
 				for _, f := range pastFights {
 					fightIDs = append(fightIDs, f.ID)
 				}
-				if kv, err := s.repo.GetKillsByFighterForFights(fighter.ID, fightIDs); err == nil && kv != nil {
+				if kv, err := s.repo.GetFightKillVictims(fightIDs); err == nil && kv != nil {
 					killVictims = kv
 				} else if err != nil {
-					log.Printf("failed to load kill victims for fighter %d: %v", fighter.ID, err)
+					log.Printf("failed to load fight kill victims for fighter %d: %v", fighter.ID, err)
 				}
 			}
 		}
