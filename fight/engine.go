@@ -1108,6 +1108,10 @@ func (e *Engine) CompleteFight(fight database.Fight, state *FightState) error {
 			deadFighterID = fight.Fighter1ID
 		}
 
+		if err = e.repo.RecordFightKill(fight.ID, state.WinnerID, deadFighterID, state.CurrentRound, state.TickNumber); err != nil {
+			return fmt.Errorf("failed to record kill for fight %d: %w", fight.ID, err)
+		}
+
 		err = e.repo.KillFighter(deadFighterID)
 		if err != nil {
 			return fmt.Errorf("failed to kill fighter: %w", err)

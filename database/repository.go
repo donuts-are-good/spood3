@@ -505,6 +505,15 @@ func (r *Repository) KillFighter(fighterID int) error {
 	return err
 }
 
+// RecordFightKill logs a confirmed kill for later display (killmarks, stats, etc).
+func (r *Repository) RecordFightKill(fightID, killerID, victimID, round, tick int) error {
+	_, err := r.db.Exec(`
+		INSERT INTO fighter_kills (killer_fighter_id, victim_fighter_id, fight_id, round, tick)
+		VALUES (?, ?, ?, ?, ?)`,
+		killerID, victimID, fightID, round, tick)
+	return err
+}
+
 func (r *Repository) GetActiveFights() ([]Fight, error) {
 	var fights []Fight
 	err := r.db.Select(&fights, "SELECT * FROM fights WHERE status = 'active'")
