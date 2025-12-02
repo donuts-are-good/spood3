@@ -46,6 +46,8 @@
 		{{$deathRight := and $fightKill (eq $fightKill.VictimFighterID .Fight.Fighter2ID)}}
 		<div class="fight-section-card">
 		<div class="tale-of-tape{{if or $undeadLeft $undeadRight}} undead-present{{end}}{{if $undeadLeft}} undead-left{{end}}{{if $undeadRight}} undead-right{{end}}{{if or $deathLeft $deathRight}} postmortem-present{{end}}{{if $deathLeft}} postmortem-left{{end}}{{if $deathRight}} postmortem-right{{end}}">
+				{{if $deathLeft}}<div class="postmortem-veil postmortem-veil-left"></div>{{end}}
+				{{if $deathRight}}<div class="postmortem-veil postmortem-veil-right"></div>{{end}}
 				<div class="tot-col left">
                     <div class="tot-fighter-avatar">
                         <img src="{{.Fighter1.AvatarURL}}" alt="{{.Fight.Fighter1Name}}" class="tot-avatar-img">

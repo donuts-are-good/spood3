@@ -959,33 +959,37 @@
 }
 
 .tale-of-tape.postmortem-present {
-    box-shadow: inset 0 0 22px rgba(255, 68, 68, 0.25), 0 0 22px rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 0 26px rgba(255, 72, 72, 0.3), 0 0 26px rgba(0, 0, 0, 0.45);
 }
 
-.tale-of-tape.postmortem-left .tot-col.left::after,
-.tale-of-tape.postmortem-right .tot-col.right::after {
-    content: "";
+.postmortem-veil {
     position: absolute;
-    inset: -14px;
-    border-radius: 12px;
+    top: -2px;
+    bottom: -2px;
+    width: 53%;
     pointer-events: none;
+    border-radius: 6px;
     z-index: 0;
-    animation: postmortemPulse 2000ms ease-in-out infinite;
-    box-shadow: inset 0 0 24px rgba(255, 80, 80, 0.35);
+    mix-blend-mode: screen;
+    animation: postmortemPulse 2200ms ease-in-out infinite;
 }
 
-.tale-of-tape.postmortem-left .tot-col.left::after {
+.postmortem-veil-left {
+    left: -2px;
     background:
-        linear-gradient(90deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) top/100% 3px no-repeat,
-        linear-gradient(90deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) bottom/100% 3px no-repeat,
-        linear-gradient(90deg, rgba(255, 70, 70, 0.40) 0%, rgba(255, 70, 70, 0.05) 40%, rgba(12, 12, 12, 0) 70%);
+        linear-gradient(90deg, rgba(255, 106, 106, 0.9), rgba(10, 10, 10, 0)) top/100% 4px no-repeat,
+        linear-gradient(90deg, rgba(255, 106, 106, 0.9), rgba(10, 10, 10, 0)) bottom/100% 4px no-repeat,
+        radial-gradient(140% 120% at 0% 50%, rgba(255, 82, 82, 0.55), rgba(10, 10, 10, 0) 72%),
+        linear-gradient(90deg, rgba(255, 60, 60, 0.45) 0%, rgba(10, 10, 10, 0) 75%);
 }
 
-.tale-of-tape.postmortem-right .tot-col.right::after {
+.postmortem-veil-right {
+    right: -2px;
     background:
-        linear-gradient(270deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) top/100% 3px no-repeat,
-        linear-gradient(270deg, rgba(255, 90, 90, 0.45), rgba(12, 12, 12, 0)) bottom/100% 3px no-repeat,
-        linear-gradient(270deg, rgba(255, 70, 70, 0.40) 0%, rgba(255, 70, 70, 0.05) 40%, rgba(12, 12, 12, 0) 70%);
+        linear-gradient(270deg, rgba(255, 106, 106, 0.9), rgba(10, 10, 10, 0)) top/100% 4px no-repeat,
+        linear-gradient(270deg, rgba(255, 106, 106, 0.9), rgba(10, 10, 10, 0)) bottom/100% 4px no-repeat,
+        radial-gradient(140% 120% at 100% 50%, rgba(255, 82, 82, 0.55), rgba(10, 10, 10, 0) 72%),
+        linear-gradient(270deg, rgba(255, 60, 60, 0.45) 0%, rgba(10, 10, 10, 0) 75%);
 }
 
 .postmortem-name {
@@ -1005,7 +1009,7 @@
 
 @keyframes postmortemPulse {
     0% { opacity: 0.35; }
-    50% { opacity: 0.8; }
+    50% { opacity: 0.85; }
     100% { opacity: 0.35; }
 }
 
