@@ -200,8 +200,12 @@
 							<div class="fight-time"><span class="time-display">{{$fight.ScheduledTime.Format "3:04 PM"}}</span></div>
 							<div class="match">
 									<div class="names">
-                                        <a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()" class="{{if $winnerLeft}}fight-winner{{else if $winnerRight}}fight-loser{{end}}{{if and $f1 $f1.IsUndead}} undead-name{{end}}{{if $flatlineLeft}} postmortem-name{{end}}">{{$fight.Fighter1Name}}</a>{{if and $f1 $f1.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
-                                        <a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()" class="{{if $winnerRight}}fight-winner{{else if $winnerLeft}}fight-loser{{end}}{{if and $f2 $f2.IsUndead}} undead-name{{end}}{{if $flatlineRight}} postmortem-name{{end}}">{{$fight.Fighter2Name}}</a>{{if and $f2 $f2.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
+                                        <a href="/fighter/{{$fight.Fighter1ID}}" onclick="event.stopPropagation()" class="{{if $winnerLeft}}fight-winner{{else if $winnerRight}}fight-loser{{end}}{{if and $f1 $f1.IsUndead}} undead-name{{end}}{{if $flatlineLeft}} postmortem-name{{end}}">
+											{{if $flatlineLeft}}☠️ {{end}}{{$fight.Fighter1Name}}{{if $flatlineLeft}} ☠️{{end}}
+										</a>{{if and $f1 $f1.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter1ID))}} <span>👑</span>{{end}} vs 
+                                        <a href="/fighter/{{$fight.Fighter2ID}}" onclick="event.stopPropagation()" class="{{if $winnerRight}}fight-winner{{else if $winnerLeft}}fight-loser{{end}}{{if and $f2 $f2.IsUndead}} undead-name{{end}}{{if $flatlineRight}} postmortem-name{{end}}">
+											{{if $flatlineRight}}☠️ {{end}}{{$fight.Fighter2Name}}{{if $flatlineRight}} ☠️{{end}}
+										</a>{{if and $f2 $f2.IsUndead}} <span class="undead-dot" title="Undead"></span>{{end}}{{if and $.CurrentMVP (eq $.CurrentMVP.SettingValue (printf "%d" $fight.Fighter2ID))}} <span>👑</span>{{end}}
 									</div>
 								<div class="sub" style="color:var(--idx-dim)">Fight {{add $i 1}}</div>
 							</div>
