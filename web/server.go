@@ -891,17 +891,31 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if ads, err := s.repo.GetShopItemsByType("serum"); err == nil {
 		serumAds = ads
 	}
+	var fightIDs []int
+	for _, f := range fights {
+		fightIDs = append(fightIDs, f.ID)
+	}
+	killVictims := map[int]int{}
+	if len(fightIDs) > 0 {
+		if kv, err := s.repo.GetFightKillVictims(fightIDs); err == nil && kv != nil {
+			killVictims = kv
+		} else if err != nil {
+			log.Printf("failed to load fight kill victims for index: %v", err)
+		}
+	}
+
 	data := PageData{
-		User:            user,
-		Title:           "Fight Schedule",
-		Fights:          fights,
-		NextFight:       nextFight,
-		Tournament:      tournament,
-		Now:             now,
-		MetaDescription: "Spoodblort is a timewaster game to play at work. Bets, bribes, and violence await.",
-		MetaType:        "website",
-		RequiredCSS:     []string{"index-demo1.css", "ad.css"},
-		FighterMap:      fighterMap,
+		User:               user,
+		Title:              "Fight Schedule",
+		Fights:             fights,
+		NextFight:          nextFight,
+		Tournament:         tournament,
+		Now:                now,
+		MetaDescription:    "Spoodblort is a timewaster game to play at work. Bets, bribes, and violence await.",
+		MetaType:           "website",
+		RequiredCSS:        []string{"index-demo1.css", "ad.css"},
+		FighterMap:         fighterMap,
+		FighterKillVictims: killVictims,
 		// Reuse ShopItems optional field to pass ads if needed in templates
 		ShopItems: serumAds,
 	}
