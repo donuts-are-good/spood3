@@ -55,6 +55,63 @@
     box-shadow: 0 12px 24px rgba(255, 170, 0, 0.45);
 }
 
+/* Fighter Filters */
+.fighters-filters {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+}
+
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-toggle input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #111;
+    border: 2px solid #555;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.filter-toggle input[type="checkbox"]:checked {
+    background: #ffaa00;
+    border-color: #ffaa00;
+}
+
+.filter-toggle input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #000;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.filter-toggle input[type="checkbox"]:hover {
+    border-color: #ffaa00;
+}
+
+.filter-toggle .toggle-label {
+    color: #ccc;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 /* Fighters Table */
 .fighters-table-container {
     background: #000000;

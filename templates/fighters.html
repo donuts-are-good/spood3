@@ -7,6 +7,16 @@
         <div class="fighters-header-actions">
             <a class="cta champions-link" href="/champions">🏆 Visit the Champions Hall of Fame</a>
         </div>
+        <div class="fighters-filters">
+            <label class="filter-toggle">
+                <input type="checkbox" id="showDead">
+                <span class="toggle-label">Show Dead</span>
+            </label>
+            <label class="filter-toggle">
+                <input type="checkbox" id="showUndead" checked>
+                <span class="toggle-label">Show Undead</span>
+            </label>
+        </div>
     </div>
 
     <!-- Fighters Table -->
@@ -113,9 +123,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const table = document.querySelector('.fighters-table');
     const tbody = table.querySelector('tbody');
     const sortableHeaders = table.querySelectorAll('.sortable');
+    const showDeadCheckbox = document.getElementById('showDead');
+    const showUndeadCheckbox = document.getElementById('showUndead');
     
     let currentSort = null;
     let currentDirection = 'asc';
+    
+    // Filter toggles
+    showDeadCheckbox.addEventListener('change', applyFilters);
+    showUndeadCheckbox.addEventListener('change', applyFilters);
+    
+    // Apply filters on load
+    applyFilters();
     
     sortableHeaders.forEach(header => {
         header.addEventListener('click', function(e) {
@@ -142,6 +161,27 @@ document.addEventListener('DOMContentLoaded', function() {
             sortTable(sortKey, currentDirection);
         });
     });
+    
+    function applyFilters() {
+        const showDead = showDeadCheckbox.checked;
+        const showUndead = showUndeadCheckbox.checked;
+        const rows = tbody.querySelectorAll('.fighter-row');
+        
+        rows.forEach(row => {
+            const status = row.dataset.status;
+            let visible = true;
+            
+            if (status === 'DEAD' && !showDead) {
+                visible = false;
+            } else if (status === 'UNDEAD' && !showUndead) {
+                visible = false;
+            }
+            
+            row.style.display = visible ? '' : 'none';
+        });
+        
+        updateRankNumbers();
+    }
     
     function sortTable(sortKey, direction) {
         const rows = Array.from(tbody.querySelectorAll('.fighter-row'));
@@ -178,22 +218,31 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateRankNumbers() {
         const rows = tbody.querySelectorAll('.fighter-row');
-        rows.forEach((row, index) => {
+        let visibleIndex = 0;
+        
+        rows.forEach(row => {
             const rankCell = row.querySelector('.rank-cell');
+            
+            // Skip hidden rows
+            if (row.style.display === 'none') {
+                return;
+            }
             
             // Only show special rank badges when sorted by wins (default ranking) in descending order
             // or when no sort has been applied yet (natural order)
             const isDefaultRanking = (currentSort === 'wins' && currentDirection === 'desc') || currentSort === null;
             
-            if (isDefaultRanking && index === 0) {
+            if (isDefaultRanking && visibleIndex === 0) {
                 rankCell.innerHTML = '<span class="rank-badge rank-1">👑 1</span>';
-            } else if (isDefaultRanking && index === 1) {
+            } else if (isDefaultRanking && visibleIndex === 1) {
                 rankCell.innerHTML = '<span class="rank-badge rank-2">🥈 2</span>';
-            } else if (isDefaultRanking && index === 2) {
+            } else if (isDefaultRanking && visibleIndex === 2) {
                 rankCell.innerHTML = '<span class="rank-badge rank-3">🥉 3</span>';
             } else {
-                rankCell.innerHTML = `<span class="rank-number">${index + 1}</span>`;
+                rankCell.innerHTML = `<span class="rank-number">${visibleIndex + 1}</span>`;
             }
+            
+            visibleIndex++;
         });
     }
 });
