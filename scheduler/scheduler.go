@@ -52,11 +52,9 @@ func (s *Scheduler) GetEngine() *fight.Engine {
 }
 
 func (s *Scheduler) GetCurrentTournament(now time.Time) (*database.Tournament, error) {
-	weekNum := utils.GetCurrentWeek(now)
-
-	tournament, err := s.repo.GetTournamentByWeek(weekNum)
+	tournament, err := s.repo.GetTournamentForTime(now)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("tournament for week %d not found", weekNum)
+		return nil, fmt.Errorf("tournament for %s not found", now.Format("2006-01-02"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("error checking tournament: %w", err)

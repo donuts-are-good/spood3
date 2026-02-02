@@ -356,9 +356,31 @@ func (r *Repository) columnExists(table, column string) (bool, error) {
 	return count > 0, err
 }
 
+func (r *Repository) tournamentRangeCondition(timeExpr string) (string, error) {
+	hasEndDate, err := r.columnExists("tournaments", "end_date")
+	if err != nil {
+		return "", err
+	}
+	if hasEndDate {
+		return fmt.Sprintf("%s >= t.start_date AND %s < t.end_date", timeExpr, timeExpr), nil
+	}
+	return fmt.Sprintf("%s >= t.start_date AND %s < datetime(t.start_date, '+7 days')", timeExpr, timeExpr), nil
+}
+
 func (r *Repository) GetTournamentByWeek(weekNumber int) (*Tournament, error) {
 	var tournament Tournament
 	err := r.db.Get(&tournament, "SELECT * FROM tournaments WHERE week_number = ?", weekNumber)
+	return &tournament, err
+}
+
+func (r *Repository) GetTournamentForTime(now time.Time) (*Tournament, error) {
+	condition, err := r.tournamentRangeCondition("?")
+	if err != nil {
+		return nil, err
+	}
+	query := fmt.Sprintf("SELECT * FROM tournaments t WHERE %s ORDER BY t.start_date DESC LIMIT 1", condition)
+	var tournament Tournament
+	err = r.db.Get(&tournament, query, now, now)
 	return &tournament, err
 }
 
@@ -1513,15 +1535,38 @@ func (r *Repository) GetRecentChampionLegacyRecords(limit int) ([]ChampionLegacy
 	if limit <= 0 {
 		limit = 20
 	}
-	query := `
-		SELECT clr.*, f.name AS fighter_name, fi.fighter1_name, fi.fighter2_name, fi.scheduled_time
+	condition, err := r.tournamentRangeCondition("clr.awarded_at")
+	if err != nil {
+		return nil, err
+	}
+	query := fmt.Sprintf(`
+		SELECT
+			clr.id,
+			clr.fight_id,
+			clr.fighter_id,
+			clr.tournament_id,
+			clr.tournament_week,
+			COALESCE(t.name, clr.tournament_name) AS tournament_name,
+			clr.stat_awarded,
+			clr.stat_delta,
+			clr.total_wagered,
+			clr.total_payout,
+			clr.blessings_count,
+			clr.curses_count,
+			clr.awarded_at,
+			clr.created_at,
+			f.name AS fighter_name,
+			fi.fighter1_name,
+			fi.fighter2_name,
+			fi.scheduled_time
 		FROM champion_legacy_records clr
 		JOIN fighters f ON clr.fighter_id = f.id
 		JOIN fights fi ON clr.fight_id = fi.id
+		LEFT JOIN tournaments t ON %s
 		ORDER BY clr.awarded_at DESC
-		LIMIT ?`
+		LIMIT ?`, condition)
 	var records []ChampionLegacyEntry
-	err := r.db.Select(&records, query, limit)
+	err = r.db.Select(&records, query, limit)
 	return records, err
 }
 
@@ -1533,10 +1578,31 @@ func (r *Repository) CountChampionTitlesForFighter(fighterID int) (int, error) {
 
 func (r *Repository) GetChampionLegacyRecordsForFighter(fighterID int) ([]ChampionLegacyRecord, error) {
 	var records []ChampionLegacyRecord
-	err := r.db.Select(&records, `
-		SELECT * FROM champion_legacy_records
-		WHERE fighter_id = ?
-		ORDER BY awarded_at DESC`, fighterID)
+	condition, err := r.tournamentRangeCondition("clr.awarded_at")
+	if err != nil {
+		return nil, err
+	}
+	query := fmt.Sprintf(`
+		SELECT
+			clr.id,
+			clr.fight_id,
+			clr.fighter_id,
+			clr.tournament_id,
+			clr.tournament_week,
+			COALESCE(t.name, clr.tournament_name) AS tournament_name,
+			clr.stat_awarded,
+			clr.stat_delta,
+			clr.total_wagered,
+			clr.total_payout,
+			clr.blessings_count,
+			clr.curses_count,
+			clr.awarded_at,
+			clr.created_at
+		FROM champion_legacy_records clr
+		LEFT JOIN tournaments t ON %s
+		WHERE clr.fighter_id = ?
+		ORDER BY clr.awarded_at DESC`, condition)
+	err = r.db.Select(&records, query, fighterID)
 	return records, err
 }
 
